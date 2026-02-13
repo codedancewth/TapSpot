@@ -116,7 +116,18 @@ function App() {
       
       const response = await axios.get(url)
       if (response.data && response.data.success) {
-        setSpots(response.data.data || [])
+        // API返回 {success: true, data: {spots: [...]}}
+        const spotsData = response.data.data
+        // 检查是对象还是数组
+        if (Array.isArray(spotsData)) {
+          setSpots(spotsData)
+        } else if (spotsData && spotsData.spots) {
+          setSpots(spotsData.spots)
+        } else {
+          setSpots([])
+        }
+      } else {
+        setSpots([])
       }
     } catch (error) {
       console.error('加载地点失败:', error)
@@ -184,10 +195,20 @@ function App() {
     try {
       const response = await axios.get(`${API_BASE}/spots?search=${encodeURIComponent(searchQuery)}`)
       if (response.data && response.data.success) {
-        setSpots(response.data.data || [])
+        const spotsData = response.data.data
+        if (Array.isArray(spotsData)) {
+          setSpots(spotsData)
+        } else if (spotsData && spotsData.spots) {
+          setSpots(spotsData.spots)
+        } else {
+          setSpots([])
+        }
+      } else {
+        setSpots([])
       }
     } catch (error) {
       console.error('搜索失败:', error)
+      setSpots([])
     } finally {
       setLoading(false)
     }
@@ -337,7 +358,7 @@ function App() {
           />
 
           {/* 位置标记 */}
-          {spots.map((spot) => (
+          {spots && Array.isArray(spots) && spots.map((spot) => (
             <Marker
               key={spot.id}
               position={[spot.latitude, spot.longitude]}
