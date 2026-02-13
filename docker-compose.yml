@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # MySQL数据库
+  mysql:
+    image: mysql:8.0
+    container_name: tapspot-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: tapspot_root_password
+      MYSQL_DATABASE: tapspot
+      MYSQL_USER: tapspot_user
+      MYSQL_PASSWORD: tapspot_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - tapspot-network
+
+  # Go后端服务
+  backend:
+    build: ./backend
+    container_name: tapspot-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_TYPE: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: tapspot_user
+      DB_PASSWORD: tapspot_password
+      DB_NAME: tapspot
+      PORT: 8080
+      GIN_MODE: release
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app
+    networks:
+      - tapspot-network
+    restart: unless-stopped
+
+  # React前端服务
+  frontend:
+    build: ./frontend
+    container_name: tapspot-frontend
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: http://localhost:8080/api/v1
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - tapspot-network
+    restart: unless-stopped
+
+  # Nginx反向代理（可选，用于生产环境）
+  nginx:
+    image: nginx:alpine
+    container_name: tapspot-nginx
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - tapspot-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+
+networks:
+  tapspot-network:
+    driver: bridge
