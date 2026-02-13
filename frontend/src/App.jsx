@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import axios from 'axios'
-import { Search, X, Plus, ZoomIn, ZoomOut, RotateCw, Send, Heart, MessageCircle, Check, List, Close } from 'lucide-react'
+import { Search, X, Plus, ZoomIn, ZoomOut, RotateCw, Send, Heart, MessageCircle, Check, List } from 'lucide-react'
 import './styles/modern.css'
 
 // 修复图标
@@ -259,7 +259,7 @@ function App() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: showList ? 'white' : '#333'
           }}>
-            {showList ? <Close size={18} /> : <List size={18} />}
+            {showList ? <X size={18} /> : <List size={18} />}
           </button>
         </div>
       </nav>
