@@ -341,10 +341,12 @@ app.get('/health', (req, res) => {
 });
 
 // 启动服务器
-app.listen(PORT, () => {
+const HOST = '0.0.0.0'; // 监听所有网络接口
+app.listen(PORT, HOST, () => {
   console.log(`🚀 TapSpot API server running on port ${PORT}`);
   console.log(`📊 Total spots: ${spots.length}`);
   console.log(`💬 Total reviews: ${reviews.length}`);
   console.log(`🌍 Countries: ${new Set(spots.map(spot => spot.country)).size}`);
-  console.log(`🔗 API Base URL: http://localhost:${PORT}/api/v1`);
+  console.log(`🔗 API Base URL: http://${HOST}:${PORT}/api/v1`);
+  console.log(`🌐 网络访问: http://10.4.0.3:${PORT}/api/v1`);
 });

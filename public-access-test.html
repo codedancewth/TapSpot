@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TapSpot 公网访问测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #f8fafc;
+            min-height: 100vh;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .logo {
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        
+        .status-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .status-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .links {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 40px 0;
+        }
+        
+        .link-card {
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(71, 85, 105, 0.3);
+        }
+        
+        .link-card:hover {
+            transform: translateY(-5px);
+            border-color: #3b82f6;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .link-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #3b82f6;
+        }
+        
+        .link-url {
+            font-family: 'Courier New', monospace;
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 8px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .test-result {
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">TapSpot</div>
+        <h1>公网访问测试页面</h1>
+        
+        <div class="status status-success">🚀 公网隧道已建立</div>
+        
+        <div class="links">
+            <div class="link-card">
+                <div class="link-title">🌐 前端访问地址</div>
+                <div class="link-url" id="frontend-url">https://tapspot-frontend.loca.lt</div>
+                <a href="https://tapspot-frontend.loca.lt" class="btn" target="_blank">访问前端</a>
+            </div>
+            
+            <div class="link-card">
+                <div class="link-title">🔧 后端API地址</div>
+                <div class="link-url" id="backend-url">https://tapspot-api.loca.lt/api/v1</div>
+                <a href="https://tapspot-api.loca.lt/api/v1/stats" class="btn" target="_blank">测试API</a>
+            </div>
+        </div>
+        
+        <h2>📊 服务状态测试</h2>
+        <div class="test-result" id="test-result">
+            正在测试服务连接...
+        </div>
+        
+        <div style="margin-top: 40px; color: #94a3b8; font-size: 14px;">
+            <p>⚠ 注意：localtunnel是免费服务，适合临时测试使用</p>
+            <p>⏳ 隧道会在闲置一段时间后自动关闭</p>
+            <p>🔒 生产环境建议使用正式的云服务器部署</p>
+        </div>
+    </div>
+    
+    <script>
+        // 测试服务连接
+        async function testServices() {
+            const resultEl = document.getElementById('test-result');
+            
+            try {
+                // 测试后端API
+                resultEl.innerHTML = '正在测试后端API连接...';
+                const apiResponse = await fetch('https://tapspot-api.loca.lt/api/v1/stats');
+                const apiData = await apiResponse.json();
+                
+                resultEl.innerHTML = `✅ 后端API连接成功！\n\n` +
+                                   `📊 统计数据：\n` +
+                                   `- 地点总数：${apiData.data.total_spots}\n` +
+                                   `- 评论总数：${apiData.data.total_reviews}\n` +
+                                   `- 国家总数：${apiData.data.total_countries}\n\n` +
+                                   `正在测试前端连接...`;
+                
+                // 测试前端
+                const frontendResponse = await fetch('https://tapspot-frontend.loca.lt');
+                const frontendText = await frontendResponse.text();
+                
+                if (frontendText.includes('TapSpot') || frontendText.includes('React')) {
+                    resultEl.innerHTML += `\n✅ 前端连接成功！\n\n` +
+                                        `🎉 所有服务运行正常！\n` +
+                                        `现在可以通过公网访问TapSpot了！`;
+                } else {
+                    resultEl.innerHTML += `\n⚠ 前端连接成功，但内容可能未完全加载\n` +
+                                        `请稍后刷新页面重试`;
+                }
+                
+            } catch (error) {
+                resultEl.innerHTML = `❌ 连接测试失败\n\n` +
+                                   `错误信息：${error.message}\n\n` +
+                                   `可能的原因：\n` +
+                                   `1. 隧道还在建立中，请等待1-2分钟\n` +
+                                   `2. 网络连接问题\n` +
+                                   `3. 服务未正常运行\n\n` +
+                                   `请稍后刷新页面重试`;
+            }
+        }
+        
+        // 页面加载后开始测试
+        document.addEventListener('DOMContentLoaded', testServices);
+        
+        // 自动刷新前端URL显示（防止缓存）
+        setInterval(() => {
+            const frontendUrl = `https://tapspot-frontend.loca.lt?t=${Date.now()}`;
+            const backendUrl = `https://tapspot-api.loca.lt/api/v1?t=${Date.now()}`;
+            
+            document.getElementById('frontend-url').textContent = frontendUrl;
+            document.getElementById('backend-url').textContent = backendUrl;
+        }, 30000);
+    </script>
+</body>
+</html>
