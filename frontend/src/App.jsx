@@ -50,7 +50,9 @@ function App() {
     { id: 2, title: '重庆火锅绝了', content: '正宗重庆味！辣得过瘾，推荐大家来试试', type: 'food', author: '美食家小李', latitude: 29.5630, longitude: 106.5516, location_name: '重庆市', likes: 256, comments: 45 },
     { id: 3, title: '外滩夜景太美了', content: '夜景绝美！推荐晚上来拍照打卡', type: 'post', author: '摄影师小张', latitude: 31.2397, longitude: 121.4909, location_name: '上海外滩', likes: 512, comments: 67 },
   ])
-  const [likedPosts, setLikedPosts] = useState(new Set())
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [showSearch, setShowSearch] = useState(false)
   const [mapZoom, setMapZoom] = useState(4)
   const [mapRef, setMapRef] = useState(null)
   const [newCoords, setNewCoords] = useState(null)
@@ -124,6 +126,33 @@ function App() {
   const goToPost = (p) => {
     if (mapRef) mapRef.setView([p.latitude, p.longitude], 12)
     setShowList(false)
+    setShowSearch(false)
+    setSearchQuery('')
+    setSearchResults([])
+  }
+
+  // 搜索功能
+  const handleSearch = (query) => {
+    setSearchQuery(query)
+    if (!query.trim()) {
+      setSearchResults([])
+      return
+    }
+    const q = query.toLowerCase()
+    const results = [
+      ...posts.filter(p => 
+        p.title.toLowerCase().includes(q) || 
+        p.content.toLowerCase().includes(q) ||
+        (p.location_name || '').toLowerCase().includes(q) ||
+        p.author.toLowerCase().includes(q)
+      ).map(p => ({ ...p, _type: 'post' })),
+      ...spots.filter(s =>
+        (s.name || '').toLowerCase().includes(q) ||
+        (s.country || '').toLowerCase().includes(q) ||
+        (s.city || '').toLowerCase().includes(q)
+      ).map(s => ({ ...s, _type: 'spot' }))
+    ]
+    setSearchResults(results)
   }
 
   const allMarkers = [
@@ -149,6 +178,71 @@ function App() {
             <div style={{ fontWeight: 700, fontSize: isMobile ? 16 : 20 }}>TapSpot</div>
             {!isMobile && <div style={{ fontSize: 11, color: '#999' }}>发现精彩地点</div>}
           </div>
+        </div>
+        
+        {/* 搜索框 */}
+        <div style={{ flex: 1, maxWidth: isMobile ? 120 : 300, position: 'relative' }}>
+          <input
+            type="text"
+            placeholder="搜索..."
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            onFocus={() => setShowSearch(true)}
+            style={{
+              width: '100%',
+              padding: isMobile ? '8px 12px' : '10px 16px',
+              border: '1px solid #ddd',
+              borderRadius: 20,
+              fontSize: 14,
+              background: '#f5f5f5'
+            }}
+          />
+          {/* 搜索结果下拉 */}
+          {showSearch && searchQuery && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              background: 'white',
+              borderRadius: 12,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+              marginTop: 4,
+              maxHeight: 300,
+              overflowY: 'auto',
+              zIndex: 1002
+            }}>
+              {searchResults.length > 0 ? (
+                searchResults.map(item => (
+                  <div
+                    key={`${item._type}-${item.id}`}
+                    onClick={() => {
+                      if (mapRef) mapRef.setView([item.latitude, item.longitude], 12)
+                      setShowSearch(false)
+                      setSearchQuery('')
+                      setSearchResults([])
+                    }}
+                    style={{
+                      padding: 12,
+                      borderBottom: '1px solid #eee',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {item._type === 'post' ? '📝' : '📍'} {item.title || item.name}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#666' }}>
+                      {item.location_name || (item.country && `${item.country} ${item.city || ''}`)}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={{ padding: 20, textAlign: 'center', color: '#999' }}>
+                  未找到相关内容
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => setShowPost(true)} style={{
