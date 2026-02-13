@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import axios from 'axios'
-import { Search, Star, MapPin, X, Plus, TrendingUp, ZoomIn, ZoomOut, RotateCw, Send, Heart, MessageCircle, Check } from 'lucide-react'
+import { Search, Star, MapPin, X, Plus, TrendingUp, ZoomIn, ZoomOut, RotateCw, Send, Heart, MessageCircle, Check, Flame } from 'lucide-react'
 import './styles/modern.css'
 
 // 修复图标
@@ -48,10 +48,13 @@ function MapEvents({ onClick, onReady, onZoom }) {
 function App() {
   const [spots, setSpots] = useState([])
   const [posts, setPosts] = useState([
-    { id: 1, title: '故宫打卡', content: '太美了！推荐大家来', type: 'post', author: '旅行者', latitude: 39.9163, longitude: 116.3972, location_name: '故宫', likes: 128, comments: 23 },
-    { id: 2, title: '重庆火锅', content: '正宗重庆味！', type: 'food', author: '美食家', latitude: 29.5630, longitude: 106.5516, location_name: '重庆', likes: 256, comments: 45 },
-    { id: 3, title: '外滩夜景', content: '夜景绝美！', type: 'post', author: '摄影师', latitude: 31.2397, longitude: 121.4909, location_name: '上海外滩', likes: 512, comments: 67 },
+    { id: 1, title: '故宫打卡', content: '太美了！推荐大家来', type: 'post', author: '旅行者', latitude: 39.9163, longitude: 116.3972, location_name: '故宫', likes: 128, comments: 23, liked: false },
+    { id: 2, title: '重庆火锅', content: '正宗重庆味！', type: 'food', author: '美食家', latitude: 29.5630, longitude: 106.5516, location_name: '重庆', likes: 256, comments: 45, liked: false },
+    { id: 3, title: '外滩夜景', content: '夜景绝美！', type: 'post', author: '摄影师', latitude: 31.2397, longitude: 121.4909, location_name: '上海外滩', likes: 512, comments: 67, liked: false },
   ])
+  // 已点赞的帖子ID集合（防止重复点赞）
+  const [likedPosts, setLikedPosts] = useState(new Set())
+  
   const [showStats, setShowStats] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [mapZoom, setMapZoom] = useState(4)
@@ -84,12 +87,13 @@ function App() {
     setShowAddSpot(true)
   }
 
-  // 添加地点
+  // 添加地点 - 支持重复经纬度
   const handleAddSpot = async () => {
     if (!spotForm.name || !spotForm.country) {
       alert('请填写名称和国家')
       return
     }
+    // 即使坐标相同也允许添加（支持重复保存）
     try {
       await axios.post(`${API_BASE}/spots`, {
         ...spotForm, latitude: newCoords.lat, longitude: newCoords.lng, rating: 0, review_count: 0
@@ -100,7 +104,7 @@ function App() {
         setSpots(Array.isArray(data) ? data : (data?.spots || []))
       }
     } catch (e) {
-      // 本地添加
+      // 本地添加（允许重复坐标）
       setSpots([...spots, {
         id: Date.now(), ...spotForm, latitude: newCoords.lat, longitude: newCoords.lng, rating: 0, review_count: 0
       }])
@@ -110,7 +114,7 @@ function App() {
     alert('添加成功！')
   }
 
-  // 发帖 - 修复：确保新帖子立即显示在地图上
+  // 发帖 - 支持重复经纬度保存
   const handlePost = () => {
     if (!postForm.title || !postForm.content) {
       alert('请填写标题和内容')
@@ -120,22 +124,31 @@ function App() {
       id: Date.now(),
       ...postForm,
       author: '我',
-      // 使用当前地图中心或点击的坐标
+      // 允许使用相同坐标（支持重复保存）
       latitude: newCoords?.lat || 35.8617,
       longitude: newCoords?.lng || 104.1954,
       likes: 0,
-      comments: 0
+      comments: 0,
+      liked: false
     }
     setPosts(prev => [newPost, ...prev])
     setShowPost(false)
     setPostForm({ title: '', content: '', type: 'post', location_name: '' })
-    setNewCoords(null) // 重置坐标
+    // 不重置坐标，允许连续在同一位置发帖
     alert('发布成功！帖子已显示在地图上')
   }
 
-  // 点赞
+  // 点赞 - 防止重复点赞
   const handleLike = (id) => {
-    setPosts(posts.map(p => p.id === id ? { ...p, likes: p.likes + 1 } : p))
+    // 检查是否已点赞
+    if (likedPosts.has(id)) {
+      alert('您已经点赞过了！')
+      return
+    }
+    // 记录已点赞
+    setLikedPosts(prev => new Set([...prev, id]))
+    // 更新点赞数
+    setPosts(posts.map(p => p.id === id ? { ...p, likes: p.likes + 1, liked: true } : p))
   }
 
   // 地图控制
@@ -143,7 +156,10 @@ function App() {
   const zoomOut = () => mapRef?.setZoom(mapZoom - 1)
   const resetView = () => mapRef?.setView([35.8617, 104.1954], 4)
 
-  // 所有标记 - spots + posts
+  // 热门帖子（点赞数前3）
+  const hotPosts = [...posts].sort((a, b) => b.likes - a.likes).slice(0, 3)
+
+  // 所有标记
   const allMarkers = [
     ...spots.map(s => ({ ...s, _type: 'spot' })),
     ...posts.map(p => ({ ...p, _type: p.type || 'post' }))
@@ -190,8 +206,24 @@ function App() {
               <div className="stat-item"><div className="stat-value">∞</div><div className="stat-label">探索</div></div>
             </div>
           </div>
+          
+          {/* 热门帖子 */}
           <div className="stats-card">
-            <div className="stats-title"><MessageCircle size={16} /> 最新帖子 ({posts.length})</div>
+            <div className="stats-title"><Flame size={16} style={{color: '#ff6b35'}} /> 热门帖子</div>
+            {hotPosts.map((p, i) => (
+              <div key={p.id} className="country-item" onClick={() => mapRef?.setView([p.latitude, p.longitude], 12)} style={{ borderLeft: i < 3 ? `3px solid ${i === 0 ? '#ff6b35' : i === 1 ? '#f39c12' : '#3498db'}` : 'none' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {i === 0 && '🔥'} {i === 1 && '⭐'} {i === 2 && '👍'} {p.title}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#999' }}>{p.author} · ❤️ {p.likes}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="stats-card">
+            <div className="stats-title"><MessageCircle size={16} /> 全部帖子 ({posts.length})</div>
             {posts.slice(0, 5).map(p => (
               <div key={p.id} className="country-item" onClick={() => mapRef?.setView([p.latitude, p.longitude], 12)}>
                 <div style={{ flex: 1 }}>
@@ -204,7 +236,7 @@ function App() {
         </div>
       )}
 
-      {/* 地图 - 添加平滑拖动选项 */}
+      {/* 地图 - 使用OpenStreetMap作为备用 */}
       <MapContainer 
         center={[35.8617, 104.1954]} 
         zoom={mapZoom} 
@@ -213,16 +245,14 @@ function App() {
         preferCanvas={true}
       >
         <TileLayer
-          attribution='&copy; 高德地图'
-          url="https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}"
-          subdomains={['1', '2', '3', '4']}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapEvents onClick={handleMapClick} onReady={setMapRef} onZoom={setMapZoom} />
         
-        {/* 所有标记 */}
         {allMarkers.map((item, i) => (
           <Marker 
-            key={`${item._type}-${item.id}`} 
+            key={`${item._type}-${item.id}-${i}`} 
             position={[item.latitude, item.longitude]} 
             icon={createIcon(item._type, item.rating)}
           >
@@ -233,8 +263,16 @@ function App() {
                 <p style={{ fontSize: '12px', color: '#888', marginBottom: '8px' }}>{(item.description || item.content || '').substring(0, 60)}...</p>
                 {item._type !== 'spot' && (
                   <div style={{ display: 'flex', gap: '12px' }}>
-                    <button onClick={() => handleLike(item.id)} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: '#ff6b35' }}>
-                      <Heart size={14} /> {item.likes}
+                    <button 
+                      onClick={() => handleLike(item.id)} 
+                      style={{ 
+                        display: 'flex', alignItems: 'center', gap: '4px', 
+                        background: likedPosts.has(item.id) ? '#f5f5f5' : 'none', 
+                        border: 'none', cursor: likedPosts.has(item.id) ? 'default' : 'pointer', 
+                        color: likedPosts.has(item.id) ? '#999' : '#ff6b35' 
+                      }}
+                    >
+                      <Heart size={14} fill={likedPosts.has(item.id) ? '#999' : 'none'} /> {item.likes}
                     </button>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666', fontSize: '13px' }}>
                       <MessageCircle size={14} /> {item.comments}
@@ -349,7 +387,7 @@ function App() {
                 <input className="input" placeholder="地点名称" value={postForm.location_name} onChange={e => setPostForm({...postForm, location_name: e.target.value})} />
               </div>
               <div style={{ padding: '10px', background: '#fff3e0', borderRadius: '8px', fontSize: '12px', color: '#666' }}>
-                💡 提示：发帖前可以先点击地图选择位置
+                💡 提示：发帖前可以先点击地图选择位置（支持同一位置多次发帖）
               </div>
             </div>
             <div className="modal-footer">
