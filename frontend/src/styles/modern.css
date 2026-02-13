@@ -411,14 +411,16 @@ body {
   }
   
   .navbar-content {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 12px;
   }
   
+  .logo-subtitle {
+    display: none;
+  }
+  
   .search-container {
-    order: 3;
-    flex: 1 1 100%;
-    max-width: 100%;
+    display: none;
   }
   
   .side-panel {
@@ -426,20 +428,43 @@ body {
   }
   
   .map-controls {
-    top: auto;
-    bottom: 80px;
-    right: 16px;
+    top: 80px !important;
+    right: 12px;
+  }
+  
+  .control-panel {
+    padding: 8px;
+  }
+  
+  .control-btn {
+    width: 36px;
+    height: 36px;
   }
   
   .modal {
     margin: 16px;
     max-height: calc(100vh - 32px);
+    max-width: calc(100vw - 32px);
   }
   
   .btn {
-    padding: 8px 16px;
-    font-size: 13px;
+    padding: 10px 16px;
+    font-size: 14px;
   }
+  
+  .hint-content {
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+  
+  .map-hint {
+    bottom: 24px !important;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 /* Leaflet Popup */
