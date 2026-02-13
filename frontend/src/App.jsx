@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import axios from 'axios'
-import { Search, Star, MapPin, X, Plus, Globe, TrendingUp, ZoomIn, ZoomOut, RotateCw } from 'lucide-react'
+import { Search, Star, MapPin, X, Plus, Globe, TrendingUp, ZoomIn, ZoomOut, RotateCw, Send, Heart, MessageCircle, Image, User } from 'lucide-react'
 import './styles/modern.css'
 
 // 修复 Leaflet 默认图标问题
@@ -14,8 +14,15 @@ L.Icon.Default.mergeOptions({
 })
 
 // 自定义标记图标
-const createCustomIcon = (rating = 0) => {
-  const color = rating >= 4.5 ? '#10b981' : rating >= 4 ? '#3b82f6' : rating >= 3 ? '#f59e0b' : '#667eea'
+const createCustomIcon = (rating = 0, type = 'spot') => {
+  const colors = {
+    spot: rating >= 4.5 ? '#10b981' : rating >= 4 ? '#3b82f6' : rating >= 3 ? '#f59e0b' : '#667eea',
+    post: '#ec4899',
+    food: '#f97316',
+    hotel: '#8b5cf6',
+    shop: '#06b6d4'
+  }
+  const color = colors[type] || colors.spot
   
   return L.divIcon({
     className: 'custom-marker',
@@ -38,7 +45,7 @@ const createCustomIcon = (rating = 0) => {
           font-weight: bold;
           font-size: 12px;
         ">
-          ${rating > 0 ? rating.toFixed(1) : '★'}
+          ${type === 'post' ? '📝' : type === 'food' ? '🍜' : type === 'hotel' ? '🏨' : type === 'shop' ? '🛍️' : (rating > 0 ? rating.toFixed(1) : '📍')}
         </div>
       </div>
     `,
@@ -87,22 +94,79 @@ function MapEvents({ onMapClick, onBoundsChange, onMapReady, onZoomChange }) {
 
 function App() {
   const [spots, setSpots] = useState([])
+  const [posts, setPosts] = useState([])
   const [stats, setStats] = useState({ total_spots: 0, total_reviews: 0, total_countries: 0 })
   const [countries, setCountries] = useState([])
   const [showStats, setShowStats] = useState(true)
   const [showCountries, setShowCountries] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(false)
-  const [mapCenter] = useState([20, 0])
-  const [mapZoom, setMapZoom] = useState(2)
+  const [mapCenter] = useState([35.8617, 104.1954]) // 中国中心
+  const [mapZoom, setMapZoom] = useState(4)
   const [mapRef, setMapRef] = useState(null)
   const [selectedSpot, setSelectedSpot] = useState(null)
   const [showSpotModal, setShowSpotModal] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [newSpotCoords, setNewSpotCoords] = useState(null)
+  
+  // 发帖相关状态
+  const [showPostModal, setShowPostModal] = useState(false)
+  const [postForm, setPostForm] = useState({
+    title: '',
+    content: '',
+    type: 'post',
+    location_name: '',
+    image_url: ''
+  })
 
   // API 基础 URL
   const API_BASE = 'http://43.130.53.168:8080/api/v1'
+
+  // 初始化模拟帖子数据
+  useEffect(() => {
+    const mockPosts = [
+      {
+        id: 1,
+        title: '今天在故宫拍的照片',
+        content: '故宫真的太美了！推荐大家去打卡',
+        type: 'post',
+        author: '旅行者小王',
+        latitude: 39.9163,
+        longitude: 116.3972,
+        location_name: '故宫博物院',
+        likes: 128,
+        comments: 23,
+        created_at: '2024-02-13T10:00:00Z'
+      },
+      {
+        id: 2,
+        title: '发现一家超好吃的火锅店',
+        content: '重庆火锅真的绝了！辣得过瘾！',
+        type: 'food',
+        author: '美食家小李',
+        latitude: 29.5630,
+        longitude: 106.5516,
+        location_name: '重庆市渝中区',
+        likes: 256,
+        comments: 45,
+        created_at: '2024-02-13T12:00:00Z'
+      },
+      {
+        id: 3,
+        title: '外滩夜景太美了',
+        content: '上海外滩的夜景真的太美了，推荐晚上来拍照',
+        type: 'post',
+        author: '摄影师小张',
+        latitude: 31.2397,
+        longitude: 121.4909,
+        location_name: '上海外滩',
+        likes: 512,
+        comments: 67,
+        created_at: '2024-02-13T14:00:00Z'
+      }
+    ]
+    setPosts(mockPosts)
+  }, [])
 
   // 加载spots数据
   const loadSpots = async (bounds = null) => {
@@ -116,9 +180,7 @@ function App() {
       
       const response = await axios.get(url)
       if (response.data && response.data.success) {
-        // API返回 {success: true, data: {spots: [...]}}
         const spotsData = response.data.data
-        // 检查是对象还是数组
         if (Array.isArray(spotsData)) {
           setSpots(spotsData)
         } else if (spotsData && spotsData.spots) {
@@ -180,38 +242,41 @@ function App() {
     loadSpots(bounds)
   }
 
-  // 标记点击事件
-  const handleMarkerClick = (spot) => {
-    setSelectedSpot(spot)
-    setShowSpotModal(true)
+  // 发帖功能
+  const handleSubmitPost = () => {
+    if (!postForm.title || !postForm.content) {
+      alert('请填写标题和内容')
+      return
+    }
+    
+    const newPost = {
+      id: posts.length + 1,
+      ...postForm,
+      author: '匿名用户',
+      latitude: newSpotCoords ? newSpotCoords.lat : mapCenter[0],
+      longitude: newSpotCoords ? newSpotCoords.lng : mapCenter[1],
+      likes: 0,
+      comments: 0,
+      created_at: new Date().toISOString()
+    }
+    
+    setPosts([newPost, ...posts])
+    setShowPostModal(false)
+    setPostForm({
+      title: '',
+      content: '',
+      type: 'post',
+      location_name: '',
+      image_url: ''
+    })
+    alert('发布成功！')
   }
 
-  // 搜索功能
-  const handleSearch = async (e) => {
-    e.preventDefault()
-    if (!searchQuery.trim()) return
-    
-    setLoading(true)
-    try {
-      const response = await axios.get(`${API_BASE}/spots?search=${encodeURIComponent(searchQuery)}`)
-      if (response.data && response.data.success) {
-        const spotsData = response.data.data
-        if (Array.isArray(spotsData)) {
-          setSpots(spotsData)
-        } else if (spotsData && spotsData.spots) {
-          setSpots(spotsData.spots)
-        } else {
-          setSpots([])
-        }
-      } else {
-        setSpots([])
-      }
-    } catch (error) {
-      console.error('搜索失败:', error)
-      setSpots([])
-    } finally {
-      setLoading(false)
-    }
+  // 点赞功能
+  const handleLike = (postId) => {
+    setPosts(posts.map(post => 
+      post.id === postId ? { ...post, likes: post.likes + 1 } : post
+    ))
   }
 
   // 地图控制函数
@@ -229,7 +294,7 @@ function App() {
 
   const handleResetView = () => {
     if (mapRef) {
-      mapRef.setView([20, 0], 2)
+      mapRef.setView([35.8617, 104.1954], 4)
     }
   }
 
@@ -238,47 +303,59 @@ function App() {
     setMapRef(map)
   }
 
+  // 合并spots和posts用于地图显示
+  const allMarkers = [
+    ...(spots && Array.isArray(spots) ? spots.map(s => ({ ...s, markerType: 'spot' })) : []),
+    ...(posts && Array.isArray(posts) ? posts.map(p => ({ ...p, markerType: 'post' })) : [])
+  ]
+
   return (
     <div className="app-container">
       {/* 顶部导航栏 */}
       <nav className="navbar">
         <div className="navbar-content">
-          {/* Logo */}
           <div className="logo">
             <div className="logo-icon">📍</div>
             <div>
               <div className="logo-text">TapSpot</div>
-              <div className="logo-subtitle">Discover Amazing Places</div>
+              <div className="logo-subtitle">发现精彩地点</div>
             </div>
           </div>
 
-          {/* 搜索栏 */}
           <div className="search-container">
-            <form onSubmit={handleSearch} className="search-box">
+            <form onSubmit={(e) => { e.preventDefault(); }} className="search-box">
               <Search className="search-icon" size={18} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="搜索地点、国家..."
+                placeholder="搜索地点、帖子..."
                 className="search-input"
               />
             </form>
           </div>
 
-          {/* 快捷按钮 */}
           <div className="nav-actions">
+            <button
+              onClick={() => {
+                setNewSpotCoords(null)
+                setShowPostModal(true)
+              }}
+              className="btn btn-primary"
+              style={{ padding: '8px 16px', fontSize: '13px' }}
+            >
+              <Plus size={16} />
+              发帖
+            </button>
             <button
               onClick={() => setShowStats(!showStats)}
               className={`nav-btn ${showStats ? 'active' : ''}`}
-              title="统计数据"
             >
               <TrendingUp size={18} />
             </button>
             <button
               onClick={() => setShowCountries(!showCountries)}
               className={`nav-btn ${showCountries ? 'active' : ''}`}
-              title="国家列表"
             >
               <Globe size={18} />
             </button>
@@ -296,43 +373,52 @@ function App() {
             </div>
             <div className="stats-grid">
               <div className="stat-item">
-                <div className="stat-value">{stats.total_spots || 0}</div>
-                <div className="stat-label">地点总数</div>
+                <div className="stat-value">{spots.length}</div>
+                <div className="stat-label">地点</div>
               </div>
               <div className="stat-item">
-                <div className="stat-value">{stats.total_reviews || 0}</div>
-                <div className="stat-label">评论总数</div>
+                <div className="stat-value">{posts.length}</div>
+                <div className="stat-label">帖子</div>
               </div>
               <div className="stat-item">
-                <div className="stat-value">{stats.total_countries || 0}</div>
-                <div className="stat-label">国家数量</div>
+                <div className="stat-value">{posts.reduce((sum, p) => sum + p.likes, 0)}</div>
+                <div className="stat-label">点赞</div>
               </div>
               <div className="stat-item">
                 <div className="stat-value">∞</div>
-                <div className="stat-label">探索可能</div>
+                <div className="stat-label">探索</div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* 右侧国家列表 */}
-      {showCountries && countries.length > 0 && (
-        <div className="side-panel panel-right">
-          <div className="country-list">
+          
+          {/* 最新帖子 */}
+          <div className="stats-card">
             <div className="stats-title">
-              <Globe size={16} />
-              热门国家 ({countries.length})
+              <MessageCircle size={16} />
+              最新帖子
             </div>
-            {countries.map((country, index) => (
-              <div key={index} className="country-item">
-                <div className="country-name">
-                  <span className="country-flag">{country.flag || '🌍'}</span>
-                  {country.name || 'Unknown'}
+            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              {posts.slice(0, 5).map(post => (
+                <div 
+                  key={post.id} 
+                  className="country-item"
+                  onClick={() => {
+                    if (mapRef) {
+                      mapRef.setView([post.latitude, post.longitude], 12)
+                    }
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '600', fontSize: '13px', marginBottom: '4px' }}>
+                      {post.title}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                      {post.author} · ❤️ {post.likes}
+                    </div>
+                  </div>
                 </div>
-                <div className="country-count">{country.spot_count || 0}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -345,9 +431,10 @@ function App() {
           className="w-full h-full"
           zoomControl={false}
         >
+          {/* 使用GeoQ地图 - 国内可用 */}
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="http://geoq.cn">GeoQ</a>'
+            url="https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}"
           />
           
           <MapEvents 
@@ -357,33 +444,44 @@ function App() {
             onZoomChange={setMapZoom}
           />
 
-          {/* 位置标记 */}
-          {spots && Array.isArray(spots) && spots.map((spot) => (
+          {/* 所有标记 */}
+          {allMarkers.map((item) => (
             <Marker
-              key={spot.id}
-              position={[spot.latitude, spot.longitude]}
-              icon={createCustomIcon(spot.rating)}
-              eventHandlers={{
-                click: () => handleMarkerClick(spot),
-              }}
+              key={`${item.markerType}-${item.id}`}
+              position={[item.latitude, item.longitude]}
+              icon={createCustomIcon(item.rating || 0, item.markerType === 'post' ? item.type : 'spot')}
             >
               <Popup>
-                <div style={{ padding: '8px', minWidth: '200px' }}>
+                <div style={{ padding: '12px', minWidth: '220px' }}>
                   <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px' }}>
-                    {spot.name}
+                    {item.name || item.title}
                   </h3>
                   <p style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>
-                    {spot.country} {spot.city && `· ${spot.city}`}
+                    {item.description || item.content?.substring(0, 50)}...
                   </p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Star size={14} style={{ color: '#f59e0b' }} />
-                    <span style={{ fontWeight: '600' }}>
-                      {spot.rating > 0 ? spot.rating.toFixed(1) : '暂无评分'}
-                    </span>
-                    <span style={{ fontSize: '12px', color: '#999' }}>
-                      ({spot.review_count || 0} 条评论)
-                    </span>
-                  </div>
+                  {item.markerType === 'post' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
+                      <button 
+                        onClick={() => handleLike(item.id)}
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '4px',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: '#ec4899'
+                        }}
+                      >
+                        <Heart size={16} />
+                        {item.likes}
+                      </button>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666' }}>
+                        <MessageCircle size={16} />
+                        {item.comments}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </Popup>
             </Marker>
@@ -412,71 +510,118 @@ function App() {
       <div className="map-hint">
         <div className="hint-content">
           <Plus className="hint-icon" size={18} />
-          <span className="hint-text">点击地图任意位置添加新地点</span>
+          <span className="hint-text">点击地图添加地点 | 点击发帖分享你的发现</span>
         </div>
       </div>
 
-      {/* 详情模态框 */}
-      {showSpotModal && selectedSpot && (
-        <div className="modal-overlay" onClick={() => setShowSpotModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+      {/* 发帖模态框 */}
+      {showPostModal && (
+        <div className="modal-overlay" onClick={() => setShowPostModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
             <div className="modal-header">
-              <h2 className="modal-title">{selectedSpot.name}</h2>
-              <button className="modal-close" onClick={() => setShowSpotModal(false)}>
+              <h2 className="modal-title">发布新帖子</h2>
+              <button className="modal-close" onClick={() => setShowPostModal(false)}>
                 <X size={18} />
               </button>
             </div>
             <div className="modal-body">
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  <MapPin size={16} style={{ color: '#666' }} />
-                  <span>{selectedSpot.country} {selectedSpot.city && `· ${selectedSpot.city}`}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Star size={16} style={{ color: '#f59e0b' }} />
-                  <span style={{ fontWeight: '600' }}>
-                    {selectedSpot.rating > 0 ? selectedSpot.rating.toFixed(1) : '暂无评分'}
-                  </span>
-                  <span style={{ color: '#999', fontSize: '13px' }}>
-                    ({selectedSpot.review_count || 0} 条评论)
-                  </span>
+              {/* 帖子类型选择 */}
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                {[
+                  { type: 'post', label: '📝 日常', icon: '📝' },
+                  { type: 'food', label: '🍜 美食', icon: '🍜' },
+                  { type: 'hotel', label: '🏨 住宿', icon: '🏨' },
+                  { type: 'shop', label: '🛍️ 购物', icon: '🛍️' }
+                ].map(item => (
+                  <button
+                    key={item.type}
+                    onClick={() => setPostForm({ ...postForm, type: item.type })}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      background: postForm.type === item.type ? 'var(--primary-gradient)' : 'rgba(255,255,255,0.05)',
+                      border: '1px solid',
+                      borderColor: postForm.type === item.type ? 'transparent' : 'var(--border-color)',
+                      borderRadius: '8px',
+                      color: 'white',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">标题 *</label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="给帖子起个标题"
+                  value={postForm.title}
+                  onChange={(e) => setPostForm({ ...postForm, title: e.target.value })}
+                  maxLength={50}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">内容 *</label>
+                <textarea
+                  className="input"
+                  rows="4"
+                  placeholder="分享你的发现、体验或推荐..."
+                  value={postForm.content}
+                  onChange={(e) => setPostForm({ ...postForm, content: e.target.value })}
+                  maxLength={500}
+                />
+                <div style={{ textAlign: 'right', fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  {postForm.content.length}/500
                 </div>
               </div>
-              <p style={{ color: '#666', lineHeight: '1.6' }}>
-                {selectedSpot.description || '暂无描述'}
-              </p>
+
+              <div className="form-group">
+                <label className="form-label">地点名称</label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="例如：故宫博物院"
+                  value={postForm.location_name}
+                  onChange={(e) => setPostForm({ ...postForm, location_name: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">图片链接（可选）</label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="粘贴图片URL"
+                  value={postForm.image_url}
+                  onChange={(e) => setPostForm({ ...postForm, image_url: e.target.value })}
+                />
+              </div>
+
+              {newSpotCoords && (
+                <div style={{ 
+                  padding: '12px', 
+                  background: 'rgba(102, 126, 234, 0.1)', 
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  color: 'var(--text-secondary)',
+                  marginBottom: '16px'
+                }}>
+                  📍 已选择位置: {newSpotCoords.lat.toFixed(4)}, {newSpotCoords.lng.toFixed(4)}
+                </div>
+              )}
             </div>
             <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setShowSpotModal(false)}>
-                关闭
+              <button className="btn btn-secondary" onClick={() => setShowPostModal(false)}>
+                取消
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 创建地点模态框 */}
-      {showCreateModal && newSpotCoords && (
-        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">添加新地点</h2>
-              <button className="modal-close" onClick={() => setShowCreateModal(false)}>
-                <X size={18} />
-              </button>
-            </div>
-            <div className="modal-body">
-              <p style={{ color: '#666', marginBottom: '16px' }}>
-                坐标: {newSpotCoords.lat.toFixed(4)}, {newSpotCoords.lng.toFixed(4)}
-              </p>
-              <button 
-                className="btn btn-primary"
-                onClick={() => {
-                  setShowCreateModal(false)
-                  alert('地点添加功能开发中...')
-                }}
-              >
-                确认添加
+              <button className="btn btn-primary" onClick={handleSubmitPost}>
+                <Send size={16} />
+                发布
               </button>
             </div>
           </div>
