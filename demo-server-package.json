@@ -1,0 +1,14 @@
+{
+  "name": "tapspot-demo-server",
+  "version": "1.0.0",
+  "description": "Demo server for TapSpot",
+  "main": "demo-server.js",
+  "scripts": {
+    "start": "node demo-server.js",
+    "dev": "node demo-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}

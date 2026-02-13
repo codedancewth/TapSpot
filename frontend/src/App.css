@@ -1,0 +1,14 @@
+.stats-panel {
+}
+
+.stats-card {
+  @apply glass p-4 rounded-xl;
+}
+
+.stats-number {
+  @apply text-2xl font-bold gradient-text;
+}
+
+.stats-label {
+  @apply text-sm text-slate-400 mt-1;
+}
