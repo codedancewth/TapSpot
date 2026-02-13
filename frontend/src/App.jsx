@@ -213,8 +213,9 @@ function App() {
         preferCanvas={true}
       >
         <TileLayer
-          attribution='&copy; GeoQ'
-          url="https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}"
+          attribution='&copy; 高德地图'
+          url="https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}"
+          subdomains={['1', '2', '3', '4']}
         />
         <MapEvents onClick={handleMapClick} onReady={setMapRef} onZoom={setMapZoom} />
         
