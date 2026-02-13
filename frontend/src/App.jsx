@@ -7,6 +7,7 @@ import SpotModal from './components/SpotModal'
 import CreateSpotModal from './components/CreateSpotModal'
 import StatsPanel from './components/StatsPanel'
 import CountryList from './components/CountryList'
+import MapControls from './components/MapControls'
 import './App.css'
 
 // 修复 Leaflet 默认图标问题
@@ -53,8 +54,14 @@ const createCustomIcon = (rating = 0) => {
 }
 
 // 地图事件组件
-function MapEvents({ onMapClick, onBoundsChange }) {
+function MapEvents({ onMapClick, onBoundsChange, onMapReady, onZoomChange }) {
   const map = useMap()
+  
+  useEffect(() => {
+    if (onMapReady) {
+      onMapReady(map)
+    }
+  }, [map, onMapReady])
   
   useMapEvents({
     click: (e) => {
@@ -66,8 +73,13 @@ function MapEvents({ onMapClick, onBoundsChange }) {
         min_lat: bounds.getSouth(),
         max_lat: bounds.getNorth(),
         min_lng: bounds.getWest(),
-        max_lng: bounds.getBounds().getEast(),
+        max_lng: bounds.getEast(),
       })
+    },
+    zoomend: () => {
+      if (onZoomChange) {
+        onZoomChange(map.getZoom())
+      }
     },
   })
   
@@ -88,6 +100,8 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [mapCenter, setMapCenter] = useState([20, 0])
   const [mapZoom, setMapZoom] = useState(2)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [mapRef, setMapRef] = useState(null)
 
   // 加载spots数据
   const loadSpots = async (bounds = null) => {
@@ -191,6 +205,74 @@ function App() {
     setShowCreateModal(false)
   }
 
+  // 地图控制函数
+  const handleZoomIn = () => {
+    if (mapRef && mapZoom < 18) {
+      mapRef.setZoom(mapZoom + 1)
+    }
+  }
+
+  const handleZoomOut = () => {
+    if (mapRef && mapZoom > 2) {
+      mapRef.setZoom(mapZoom - 1)
+    }
+  }
+
+  const handleResetView = () => {
+    if (mapRef) {
+      mapRef.setView([20, 0], 2)
+    }
+  }
+
+  const handleCenterOnUser = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          if (mapRef) {
+            mapRef.setView([position.coords.latitude, position.coords.longitude], 12)
+          }
+        },
+        (error) => {
+          console.error('Geolocation error:', error)
+          alert('Unable to get your location. Please check location permissions.')
+        }
+      )
+    } else {
+      alert('Geolocation is not supported by your browser.')
+    }
+  }
+
+  const handleToggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.error('Fullscreen error:', err)
+      })
+      setIsFullscreen(true)
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen()
+        setIsFullscreen(false)
+      }
+    }
+  }
+
+  // 监听全屏变化
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    }
+  }, [])
+
+  // 更新地图引用
+  const updateMapRef = (map) => {
+    setMapRef(map)
+  }
+
   return (
     <div className="relative w-full h-full">
       {/* 顶部导航栏 */}
@@ -258,7 +340,13 @@ function App() {
         center={mapCenter}
         zoom={mapZoom}
         className="w-full h-full"
-        zoomControl={false}
+        zoomControl={true}
+        dragging={true}
+        scrollWheelZoom={true}
+        doubleClickZoom={true}
+        touchZoom={true}
+        boxZoom={true}
+        keyboard={true}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -268,6 +356,8 @@ function App() {
         <MapEvents 
           onMapClick={handleMapClick} 
           onBoundsChange={handleBoundsChange}
+          onMapReady={updateMapRef}
+          onZoomChange={setMapZoom}
         />
 
         {/* 位置标记 */}
@@ -294,6 +384,19 @@ function App() {
           </Marker>
         ))}
       </MapContainer>
+
+      {/* 地图控制面板 */}
+      <MapControls
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onResetView={handleResetView}
+        onCenterOnUser={handleCenterOnUser}
+        onToggleFullscreen={handleToggleFullscreen}
+        isFullscreen={isFullscreen}
+        currentZoom={mapZoom}
+        maxZoom={18}
+        minZoom={2}
+      />
 
       {/* 底部提示 */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[1000]">
