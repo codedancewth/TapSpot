@@ -1,257 +1,214 @@
-# TapSpot - Discover Places Through Real Reviews
+# TapSpot - 发现精彩地点
 
-TapSpot lets you tap any location on the map and see what people really think. Real reviews, pinned right where they belong. Discover places through the eyes of others—just tap and go.
+TapSpot 是一个基于地图的社交应用，让用户可以在地图上发布帖子、分享地点、查看他人的评价。
 
-## 🚀 Features
+## 🚀 功能特性
 
-- 🌍 **Interactive World Map**: Click anywhere on the map to view or add spots
-- 📍 **Real Reviews**: User-generated reviews with ratings and photos
-- 🎯 **Smart Filtering**: Filter by country, category, and rating
-- 📊 **Live Statistics**: Real-time stats on spots, reviews, and countries
-- 💫 **Beautiful UI**: Modern, responsive design with smooth animations
-- 🔍 **Search Functionality**: Find spots by name, location, or category
+- 🗺️ **交互式地图**: 使用高德/OpenStreetMap地图，点击任意位置发帖
+- 🔐 **用户系统**: 登录注册功能，测试账号 root/root
+- 📝 **帖子发布**: 支持日常、美食、住宿、购物等分类
+- ⭐ **我的帖子**: 金色标记区分自己的帖子
+- ❤️ **点赞功能**: 为喜欢的帖子点赞
+- 🔍 **搜索功能**: 搜索帖子和地点
+- 📱 **响应式设计**: 支持手机和电脑访问
 
-## 🏗️ Architecture
+## 🏗️ 项目结构
 
 ```
 TapSpot/
-├── backend/          # Go backend (Gin + GORM + MySQL)
-├── frontend/         # React frontend (Vite + Tailwind CSS + Leaflet)
-└── README.md         # This file
+├── backend/          # Go 后端 (Gin + GORM)
+│   ├── main.go           # 入口文件
+│   ├── config/           # 配置
+│   ├── models/           # 数据模型
+│   ├── controllers/      # 控制器
+│   └── routes/           # 路由
+├── frontend/         # React 前端 (Vite + Leaflet)
+│   ├── src/
+│   │   ├── App.jsx       # 主应用
+│   │   └── styles/       # 样式
+│   └── package.json
+└── README.md
 ```
 
-## 🛠️ Tech Stack
+## 🛠️ 技术栈
 
-### Backend
-- **Go 1.21+** - High-performance backend
-- **Gin** - HTTP web framework
-- **GORM** - ORM for database operations
-- **MySQL** - Relational database
-- **JWT** - Authentication (optional)
+### 后端
+- **Go 1.21+** - 后端语言
+- **Gin** - Web框架
+- **GORM** - ORM
+- **SQLite/MySQL** - 数据库
+- **JWT** - 认证（可选）
 
-### Frontend
-- **React 18** - UI library
-- **Vite** - Build tool and dev server
-- **Tailwind CSS** - Utility-first CSS framework
-- **Leaflet** - Interactive maps
-- **Axios** - HTTP client
+### 前端
+- **React 18** - UI框架
+- **Vite** - 构建工具
+- **Leaflet** - 地图库
+- **Lucide React** - 图标库
 
-## 📦 Installation
+## 📦 安装部署
 
-### Prerequisites
-- Go 1.21+
+### 前置要求
 - Node.js 18+
-- MySQL 8.0+
+- Go 1.21+ (可选，如需后端)
 - Git
 
-### 1. Clone the Repository
+### 1. 克隆项目
 ```bash
 git clone https://github.com/codedancewth/TapSpot.git
 cd TapSpot
 ```
 
-### 2. Backend Setup
-```bash
-cd backend
-
-# Copy environment variables
-cp .env.example .env
-# Edit .env with your database credentials
-
-# Install dependencies
-go mod download
-
-# Run database migrations (auto-migrate on startup)
-# Start the server
-go run main.go
-```
-
-### 3. Frontend Setup
+### 2. 前端启动（开发模式）
 ```bash
 cd frontend
 
-# Install dependencies
+# 安装依赖
 npm install
 
-# Start development server
+# 启动开发服务器
 npm run dev
 ```
 
-### 4. Database Setup
-```sql
--- Create database
-CREATE DATABASE tapspot CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+访问: http://localhost:3000
 
--- The application will automatically create tables via GORM AutoMigrate
+### 3. 后端启动（可选）
+```bash
+cd backend
+
+# 安装依赖
+go mod download
+
+# 启动服务
+go run main.go
 ```
 
-## 🚀 Running the Application
+后端API: http://localhost:8080
 
-1. **Start MySQL** service
-2. **Start Backend** (port 8080):
-   ```bash
-   cd backend
-   go run main.go
-   ```
-3. **Start Frontend** (port 3000):
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-4. Open browser: http://localhost:3000
+## 🚀 生产环境部署
 
-## 📖 API Documentation
+### 服务器信息
+- **服务器IP**: 43.130.53.168
+- **前端端口**: 3000
+- **后端端口**: 8080
 
-### Base URL: `http://localhost:8080/api/v1`
+### 启动命令（服务器上执行）
 
-### Endpoints
+```bash
+# 进入项目目录
+cd /root/.openclaw/workspace/TapSpot
 
-#### Spots
-- `GET /spots` - List spots with pagination
-- `GET /spots/:id` - Get spot details
-- `POST /spots` - Create new spot
-- `PUT /spots/:id` - Update spot
-- `DELETE /spots/:id` - Delete spot
-- `GET /spots/nearby` - Get nearby spots
-- `GET /spots/bounds` - Get spots in map bounds
+# 1. 启动前端（后台运行）
+cd frontend
+npm run dev &
 
-#### Reviews
-- `GET /spots/:id/reviews` - Get spot reviews
-- `POST /spots/:id/reviews` - Create review
-- `PUT /reviews/:id` - Update review
-- `DELETE /reviews/:id` - Delete review
-- `POST /reviews/:id/like` - Like review
+# 2. 启动后端（如需要）
+cd ../backend
+go run main.go &
+```
 
-#### Statistics
-- `GET /stats` - Get global statistics
-- `GET /countries` - Get country list with counts
+### 使用 nohup 后台运行
+```bash
+# 前端
+cd /root/.openclaw/workspace/TapSpot/frontend
+nohup npm run dev > frontend.log 2>&1 &
 
-## 🎨 Features in Detail
+# 后端
+cd /root/.openclaw/workspace/TapSpot/backend
+nohup go run main.go > backend.log 2>&1 &
+```
 
-### Map Interface
-- **Drag & Zoom**: Smooth map navigation
-- **Custom Markers**: Color-coded by rating
-- **Click to Add**: Add spots anywhere on the map
-- **Real-time Updates**: Live data synchronization
+### 查看日志
+```bash
+# 前端日志
+tail -f /root/.openclaw/workspace/TapSpot/frontend/frontend.log
 
-### Spot Management
-- **Rich Details**: Name, description, category, location
-- **Rating System**: 1-5 star ratings with averages
-- **Review System**: User reviews with likes
-- **Category Filtering**: Filter by restaurant, hotel, etc.
+# 后端日志
+tail -f /root/.openclaw/workspace/TapSpot/backend/backend.log
+```
 
-### User Experience
-- **Responsive Design**: Works on desktop and mobile
-- **Dark Theme**: Eye-friendly dark mode
-- **Smooth Animations**: CSS transitions and effects
-- **Loading States**: Visual feedback for async operations
+### 停止服务
+```bash
+# 查找进程
+ps aux | grep "vite"
+ps aux | grep "tapspot"
 
-## 🔧 Configuration
+# 终止进程
+kill <PID>
+```
 
-### Backend (.env)
+## 📖 使用说明
+
+### 登录注册
+1. 点击右上角「登录」按钮
+2. 使用测试账号: **root / root**
+3. 或注册新账号
+
+### 发布帖子
+1. **方式一**: 点击右上角「发帖」按钮
+   - 填写标题、内容、地点名称
+   - 点击「选择地图位置」
+   - 在地图上点击选择位置
+   - 点击发布
+
+2. **方式二**: 直接点击地图
+   - 登录后点击地图任意位置
+   - 自动弹出发帖框（位置已选好）
+   - 填写信息后发布
+
+### 查看帖子
+1. 点击右上角列表图标
+2. 查看「我的帖子」或全部帖子
+3. 点击帖子自动跳转到地图位置
+
+## 🔧 配置说明
+
+### 前端配置 (vite.config.js)
+```javascript
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3000,
+    host: '0.0.0.0',  // 允许外部访问
+    proxy: {
+      '/api': {
+        target: 'http://43.130.53.168:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '/api/v1')
+      }
+    }
+  }
+})
+```
+
+### 后端环境变量 (.env)
 ```env
+DB_TYPE=sqlite    # 或 mysql
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
-DB_PASSWORD=your_password
+DB_PASSWORD=
 DB_NAME=tapspot
-PORT=8080
-GIN_MODE=debug
 ```
 
-### Frontend (vite.config.js)
-- Proxy configured to backend
-- Tailwind CSS for styling
-- Leaflet map tiles from OpenStreetMap
+## 📞 问题排查
 
-## 📁 Project Structure
+### 前端无法访问
+1. 检查服务是否运行: `curl http://localhost:3000`
+2. 检查端口是否监听: `netstat -tlnp | grep 3000`
+3. 检查防火墙/安全组是否开放3000端口
 
-### Backend
-```
-backend/
-├── main.go                 # Application entry point
-├── config/
-│   └── database.go         # Database configuration
-├── models/
-│   └── models.go           # Data models (Spot, Review)
-├── controllers/
-│   ├── spot.go             # Spot controllers
-│   └── review.go           # Review controllers
-├── routes/
-│   └── routes.go           # API routes
-└── .env.example            # Environment variables template
-```
+### 地图加载慢
+- 当前使用 OpenStreetMap 瓦片
+- 如需国内加速，可申请高德地图API Key
 
-### Frontend
-```
-frontend/
-├── src/
-│   ├── components/
-│   │   ├── StatsPanel.jsx      # Statistics panel
-│   │   ├── CountryList.jsx     # Country list
-│   │   ├── SpotModal.jsx       # Spot details modal
-│   │   └── CreateSpotModal.jsx # Create spot modal
-│   ├── App.jsx                 # Main application
-│   ├── main.jsx                # React entry point
-│   └── index.css               # Global styles
-├── index.html                  # HTML template
-└── package.json                # Dependencies
-```
-
-## 🚀 Deployment
-
-### Backend Deployment
-```bash
-# Build binary
-cd backend
-go build -o tapspot
-
-# Run with environment variables
-DB_HOST=localhost DB_PORT=3306 DB_USER=root DB_PASSWORD=xxx ./tapspot
-```
-
-### Frontend Deployment
-```bash
-cd frontend
-npm run build
-# Deploy the dist/ folder to any static hosting
-```
-
-### Docker (Optional)
-```dockerfile
-# Backend Dockerfile
-FROM golang:1.21-alpine
-WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-RUN go build -o tapspot
-CMD ["./tapspot"]
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
+### 数据丢失
+- 前端数据存储在浏览器 localStorage
+- 清除浏览器缓存会丢失数据
 
 ## 📄 License
 
-MIT License - see LICENSE file for details
-
-## 🙏 Acknowledgments
-
-- [OpenStreetMap](https://www.openstreetmap.org/) for map tiles
-- [Leaflet](https://leafletjs.com/) for interactive maps
-- [React Leaflet](https://react-leaflet.js.org/) for React integration
-- [Tailwind CSS](https://tailwindcss.com/) for styling
-
-## 📞 Support
-
-For issues and questions, please open an issue on GitHub.
+MIT License
 
 ---
 
-Made with ❤️ by the TapSpot team
+Made with ❤️ by TapSpot Team
