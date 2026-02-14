@@ -100,7 +100,7 @@ export default function App() {
   const handleRegister = () => {
     if (!loginForm.username || !loginForm.password) return alert('请填写用户名和密码')
     if (loginForm.username.length < 3) return alert('用户名至少3个字符')
-    if (loginForm.password.length < 6) return alert('密码至少6个字符')
+    if (loginForm.password.length < 3) return alert('密码至少3个字符')
     const users = JSON.parse(localStorage.getItem('tapspot_users') || '[]')
     if (users.find(u => u.username === loginForm.username)) return alert('用户名已存在')
     const newUser = { id: Date.now(), username: loginForm.username, password: loginForm.password, nickname: loginForm.username }
