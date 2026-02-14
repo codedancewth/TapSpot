@@ -208,12 +208,10 @@ export default function App() {
       {/* 地图 */}
       <MapContainer center={[35.8617, 104.1954]} zoom={mapZoom} style={{ width: '100%', height: '100%' }} zoomControl={false}>
         <TileLayer 
-          url="https://online{s}.map.bdimg.com/onlinelabel/?qt=tile&x={x}&y={y}&z={z}&styles=pl&scaler=1&p=1"
-          subdomains="0123456789"
-          attribution='&copy; 百度地图'
+          url="https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}"
+          attribution='&copy; 高德地图'
           maxZoom={18}
-          keepBuffer={15}
-          tms={true}
+          keepBuffer={10}
         />
         <MapEvents onClick={(latlng) => { 
           if (selectingLocation) { 
