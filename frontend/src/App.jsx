@@ -718,10 +718,73 @@ export default function App() {
               <input placeholder="标题 *" value={postForm.title} onChange={e => setPostForm({ ...postForm, title: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} />
               <textarea placeholder="分享你的发现... *" value={postForm.content} onChange={e => setPostForm({ ...postForm, content: e.target.value })} rows={4} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, resize: 'none', boxSizing: 'border-box' }} />
               <input placeholder="地点名称（如：北京故宫）" value={postForm.location_name} onChange={e => setPostForm({ ...postForm, location_name: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} />
-              <button onClick={() => { setShowPost(false); setSelectingLocation(true) }} style={{ width: '100%', padding: 14, background: postCoords ? '#e8f5e9' : '#fff3e0', border: postCoords ? `2px solid ${COLORS.success}` : `2px dashed ${COLORS.accent}`, borderRadius: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                <MapPin size={18} color={postCoords ? COLORS.success : COLORS.accent} />
-                <span style={{ color: postCoords ? COLORS.success : COLORS.accent, fontWeight: 500, fontSize: 14 }}>{postCoords ? `✅ 已选择: ${postCoords.lat.toFixed(4)}, ${postCoords.lng.toFixed(4)}` : '📍 点击选择地图位置（必选）'}</span>
-              </button>
+              
+              {/* 位置选择区域 */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                <button 
+                  onClick={() => {
+                    if (navigator.geolocation) {
+                      navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                          setPostCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+                          if (mapRef) mapRef.setView([pos.coords.latitude, pos.coords.longitude], 14)
+                        },
+                        (err) => {
+                          alert('获取位置失败: ' + err.message + '\n请允许浏览器访问您的位置')
+                        },
+                        { enableHighAccuracy: true, timeout: 10000 }
+                      )
+                    } else {
+                      alert('您的浏览器不支持定位功能')
+                    }
+                  }}
+                  style={{ 
+                    flex: 1, padding: 12, 
+                    background: '#e3f2fd', 
+                    border: '2px solid #2196f3', 
+                    borderRadius: 10, 
+                    cursor: 'pointer', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: 6 
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>📍</span>
+                  <span style={{ color: '#1565c0', fontWeight: 500, fontSize: 13 }}>获取我的位置</span>
+                </button>
+                <button 
+                  onClick={() => { setShowPost(false); setSelectingLocation(true) }} 
+                  style={{ 
+                    flex: 1, padding: 12, 
+                    background: '#fff3e0', 
+                    border: '2px dashed #ff9800', 
+                    borderRadius: 10, 
+                    cursor: 'pointer', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: 6 
+                  }}
+                >
+                  <MapPin size={16} color="#ff9800" />
+                  <span style={{ color: '#e65100', fontWeight: 500, fontSize: 13 }}>地图选点</span>
+                </button>
+              </div>
+              
+              {/* 已选位置显示 */}
+              {postCoords && (
+                <div style={{ padding: 12, background: '#e8f5e9', border: `2px solid ${COLORS.success}`, borderRadius: 10, marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 18 }}>✅</span>
+                    <div>
+                      <div style={{ fontSize: 12, color: COLORS.success, fontWeight: 500 }}>已选择位置</div>
+                      <div style={{ fontSize: 11, color: '#666' }}>{postCoords.lat.toFixed(6)}, {postCoords.lng.toFixed(6)}</div>
+                    </div>
+                  </div>
+                  <button onClick={() => setPostCoords(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}><X size={16} /></button>
+                </div>
+              )}
             </div>
             <div style={{ padding: 20, borderTop: `1px solid ${COLORS.border}`, display: 'flex', gap: 10 }}>
               <button onClick={() => { setShowPost(false); setPostCoords(null); setPostForm({ title: '', content: '', type: 'post', location_name: '' }) }} style={{ flex: 1, padding: 14, background: '#f5f5f5', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 14 }}>取消</button>
