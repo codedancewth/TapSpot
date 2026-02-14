@@ -63,6 +63,7 @@ function App() {
   const [showList, setShowList] = useState(false)
   const [newPostId, setNewPostId] = useState(null)
   const [isMobile, setIsMobile] = useState(false)
+  const [likedPosts, setLikedPosts] = useState(new Set())
 
   const API_BASE = 'http://43.130.53.168:8080/api/v1'
 
@@ -299,7 +300,11 @@ function App() {
 
       {/* 地图 */}
       <MapContainer center={[35.8617, 104.1954]} zoom={mapZoom} style={{ width: '100%', height: '100%' }} zoomControl={false} preferCanvas>
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <TileLayer 
+        url="https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}"
+        subdomains="123"
+        attribution='&copy; 高德地图'
+      />
         <MapEvents onClick={handleMapClick} onReady={setMapRef} onZoom={setMapZoom} />
         {allMarkers.map(item => (
           <Marker key={`${item._type}-${item.id}`} position={[item.latitude, item.longitude]} icon={createIcon(item._type, item.id === newPostId)}>
