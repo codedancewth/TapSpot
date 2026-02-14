@@ -29,42 +29,39 @@ const COLORS = {
 }
 
 const createIcon = (type, isNew = false, isMyPost = false, zoom = 10) => {
+  // 简洁舒服的配色
   const config = {
-    post: { color: '#3b82f6', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', icon: '✨' },
-    food: { color: '#ef4444', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', icon: '🍜' },
-    hotel: { color: '#8b5cf6', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', icon: '🏨' },
-    shop: { color: '#f59e0b', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', icon: '🛍️' },
+    post: { gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', icon: '📍' },
+    food: { gradient: 'linear-gradient(135deg, #ff6b6b 0%, #ffa07a 100%)', icon: '🍜' },
+    hotel: { gradient: 'linear-gradient(135deg, #4ecdc4 0%, #44a8c4 100%)', icon: '🏨' },
+    shop: { gradient: 'linear-gradient(135deg, #f9d423 0%, #ff4e50 100%)', icon: '🛍️' },
   }
   const c = config[type] || config.post
-  const borderColor = isMyPost ? COLORS.gold : 'rgba(255,255,255,0.9)'
-  const baseShadow = isMyPost ? `0 0 20px ${COLORS.gold}, 0 4px 15px rgba(244,162,97,0.4)` : '0 4px 15px rgba(0,0,0,0.2)'
+  const border = isMyPost ? '3px solid #ffd700' : '2px solid rgba(255,255,255,0.85)'
+  const shadow = isMyPost ? '0 0 12px rgba(255,215,0,0.4), 0 3px 8px rgba(0,0,0,0.15)' : '0 3px 8px rgba(0,0,0,0.15)'
   
   // 根据缩放级别计算大小
-  let size, fontSize, starSize
-  if (zoom <= 4) {
-    size = 28; fontSize = 12; starSize = 14
-  } else if (zoom <= 8) {
-    size = 36; fontSize = 14; starSize = 16
-  } else {
-    size = 44; fontSize = 16; starSize = 18
-  }
+  let size, fontSize
+  if (zoom <= 4) { size = 28; fontSize = 11 }
+  else if (zoom <= 8) { size = 36; fontSize = 14 }
+  else { size = 44; fontSize = 17 }
   
   return L.divIcon({
     className: 'custom-marker',
-    html: `<div class="marker-wrapper" style="
+    html: `<div style="
       width: ${size}px; height: ${size}px;
       background: ${c.gradient};
       border-radius: 50% 50% 50% 0;
       transform: rotate(-45deg);
-      border: 2.5px solid ${borderColor};
-      box-shadow: ${baseShadow};
+      border: ${border};
+      box-shadow: ${shadow};
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      ${isNew ? 'animation: bounce 0.6s ease infinite;' : ''}
+      transition: transform 0.2s;
+      ${isNew ? 'animation: pulse 1s infinite;' : ''}
     ">
-      ${isMyPost ? `<div style="position:absolute;top:-7px;right:-7px;width:${starSize}px;height:${starSize}px;background:linear-gradient(135deg, #ffd700 0%, #ffb347 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;box-shadow:0 2px 8px rgba(255,215,0,0.5);z-index:10;border:1.5px solid white;">⭐</div>` : ''}
-      <div style="transform: rotate(45deg); font-size: ${fontSize}px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">${c.icon}</div>
+      ${isMyPost ? `<div style="position:absolute;top:-5px;right:-5px;width:14px;height:14px;background:#ffd700;border-radius:50%;border:2px solid white;font-size:8px;display:flex;align-items:center;justify-content:center;">⭐</div>` : ''}
+      <span style="transform: rotate(45deg); font-size: ${fontSize}px;">${c.icon}</span>
     </div>`,
     iconSize: [size, size],
     iconAnchor: [size/2, size],
