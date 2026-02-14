@@ -30,41 +30,41 @@ const COLORS = {
 
 const createIcon = (type, isNew = false, isMyPost = false, zoom = 10) => {
   const config = {
-    post: { color: '#3b82f6', icon: '📝' },
-    food: { color: '#ef4444', icon: '🍜' },
-    hotel: { color: '#8b5cf6', icon: '🏨' },
-    shop: { color: '#f59e0b', icon: '🛍️' },
+    post: { color: '#3b82f6', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', icon: '✨' },
+    food: { color: '#ef4444', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', icon: '🍜' },
+    hotel: { color: '#8b5cf6', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', icon: '🏨' },
+    shop: { color: '#f59e0b', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', icon: '🛍️' },
   }
   const c = config[type] || config.post
-  const borderColor = isMyPost ? COLORS.gold : '#ffffff'
-  const baseShadow = isMyPost ? `0 0 20px ${COLORS.gold}` : '0 3px 10px rgba(0,0,0,0.3)'
+  const borderColor = isMyPost ? COLORS.gold : 'rgba(255,255,255,0.9)'
+  const baseShadow = isMyPost ? `0 0 20px ${COLORS.gold}, 0 4px 15px rgba(244,162,97,0.4)` : '0 4px 15px rgba(0,0,0,0.2)'
   
-  // 根据缩放级别计算大小: zoom 3-4 小，5-8 中，9-18 大
+  // 根据缩放级别计算大小
   let size, fontSize, starSize
   if (zoom <= 4) {
     size = 28; fontSize = 12; starSize = 14
   } else if (zoom <= 8) {
-    size = 36; fontSize = 16; starSize = 16
+    size = 36; fontSize = 14; starSize = 16
   } else {
-    size = 44; fontSize = 18; starSize = 18
+    size = 44; fontSize = 16; starSize = 18
   }
   
   return L.divIcon({
     className: 'custom-marker',
     html: `<div class="marker-wrapper" style="
       width: ${size}px; height: ${size}px;
-      background: linear-gradient(135deg, ${c.color} 0%, ${c.color}dd 100%);
+      background: ${c.gradient};
       border-radius: 50% 50% 50% 0;
       transform: rotate(-45deg);
-      border: 2px solid ${borderColor};
+      border: 2.5px solid ${borderColor};
       box-shadow: ${baseShadow};
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       ${isNew ? 'animation: bounce 0.6s ease infinite;' : ''}
     ">
-      ${isMyPost ? `<div style="position:absolute;top:-6px;right:-6px;width:${starSize}px;height:${starSize}px;background:${COLORS.gold};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;box-shadow:0 2px 6px rgba(0,0,0,0.3);z-index:10;">⭐</div>` : ''}
-      <div style="transform: rotate(45deg); font-size: ${fontSize}px;">${c.icon}</div>
+      ${isMyPost ? `<div style="position:absolute;top:-7px;right:-7px;width:${starSize}px;height:${starSize}px;background:linear-gradient(135deg, #ffd700 0%, #ffb347 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;box-shadow:0 2px 8px rgba(255,215,0,0.5);z-index:10;border:1.5px solid white;">⭐</div>` : ''}
+      <div style="transform: rotate(45deg); font-size: ${fontSize}px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">${c.icon}</div>
     </div>`,
     iconSize: [size, size],
     iconAnchor: [size/2, size],
@@ -615,7 +615,7 @@ export default function App() {
             crossOrigin="anonymous"
           />
           <MapEvents onClick={(latlng) => { 
-            // 点击地图空白区域直接发帖
+            // 点击地图空白区域直接打卡
             if (user) { setPostCoords(latlng); setShowPost(true) } else { setShowLogin(true) }
           }} onReady={setMapRef} onZoom={setMapZoom} />
           {posts.map(item => (
@@ -654,7 +654,7 @@ export default function App() {
                       <MessageCircle size={14} /> {commentCounts[item.id] || 0} 评论
                     </button>
                     <button onClick={() => { setPostCoords({ lat: item.latitude, lng: item.longitude }); setPostForm({ title: '', content: '', type: item.type, location_name: item.location_name }); setShowPost(true) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', color: '#fff', fontSize: 12 }}>
-                      <Plus size={14} /> 在此发帖
+                      <Plus size={14} /> 在此打卡
                     </button>
                   </div>
                 </div>
@@ -685,7 +685,7 @@ export default function App() {
           ) : (
             <button onClick={() => setShowLogin(true)} style={{ padding: '10px 18px', background: COLORS.cardBg, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.textDark, fontWeight: 600, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}><User size={16} /> 登录</button>
           )}
-          <button onClick={() => { if (!user) { setShowLogin(true); return }; setShowPost(true) }} style={{ padding: '10px 18px', background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#fff', fontWeight: 600, boxShadow: `0 4px 15px ${COLORS.accent}40` }}><Plus size={18} /> 发帖</button>
+          <button onClick={() => { if (!user) { setShowLogin(true); return }; setShowPost(true) }} style={{ padding: '10px 18px', background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#fff', fontWeight: 600, boxShadow: `0 4px 15px ${COLORS.accent}40` }}><Plus size={18} /> 打卡</button>
         </div>
 
         {/* 缩放控制 */}
@@ -720,7 +720,7 @@ export default function App() {
         </div>
       )}
 
-      {/* 发帖弹窗 */}
+      {/* 打卡弹窗 */}
       {showPost && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => { setShowPost(false); setPostCoords(null) }}>
           <div style={{ background: COLORS.cardBg, borderRadius: 16, width: '100%', maxWidth: 400, maxHeight: '90vh', overflow: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
