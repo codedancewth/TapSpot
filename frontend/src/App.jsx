@@ -881,6 +881,24 @@ export default function App() {
           margin-top: -12px !important;
         }
         
+        /* 标记悬停高亮效果 */
+        .custom-marker {
+          background: transparent !important;
+          border: none !important;
+        }
+        .custom-marker:hover .marker-wrapper,
+        .leaflet-marker-icon:hover .marker-wrapper {
+          transform: rotate(-45deg) scale(1.3) !important;
+          box-shadow: 0 0 30px currentColor, 0 0 50px rgba(233, 69, 96, 0.5) !important;
+          z-index: 1000 !important;
+        }
+        .leaflet-marker-icon {
+          cursor: pointer !important;
+        }
+        .leaflet-marker-icon:hover {
+          z-index: 1000 !important;
+        }
+        
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: ${COLORS.border}; border-radius: 3px; }
