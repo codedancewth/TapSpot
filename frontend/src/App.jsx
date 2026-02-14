@@ -28,7 +28,7 @@ const COLORS = {
   success: '#10b981',
 }
 
-const createIcon = (type, isNew = false, isMyPost = false, isHovered = false) => {
+const createIcon = (type, isNew = false, isMyPost = false, zoom = 10) => {
   const config = {
     post: { color: '#3b82f6', icon: '📝' },
     food: { color: '#ef4444', icon: '🍜' },
@@ -38,30 +38,37 @@ const createIcon = (type, isNew = false, isMyPost = false, isHovered = false) =>
   const c = config[type] || config.post
   const borderColor = isMyPost ? COLORS.gold : '#ffffff'
   const baseShadow = isMyPost ? `0 0 20px ${COLORS.gold}` : '0 3px 10px rgba(0,0,0,0.3)'
-  const shadow = isHovered ? `0 0 25px ${c.color}, 0 0 40px ${c.color}80` : baseShadow
-  const scale = isHovered ? 1.2 : 1
-  const transition = 'transition: all 0.2s ease;'
+  
+  // 根据缩放级别计算大小: zoom 3-4 小，5-8 中，9-18 大
+  let size, fontSize, starSize
+  if (zoom <= 4) {
+    size = 28; fontSize = 12; starSize = 14
+  } else if (zoom <= 8) {
+    size = 36; fontSize = 16; starSize = 16
+  } else {
+    size = 44; fontSize = 18; starSize = 18
+  }
   
   return L.divIcon({
     className: 'custom-marker',
     html: `<div class="marker-wrapper" style="
-      width: 48px; height: 48px;
+      width: ${size}px; height: ${size}px;
       background: linear-gradient(135deg, ${c.color} 0%, ${c.color}dd 100%);
       border-radius: 50% 50% 50% 0;
-      transform: rotate(-45deg) scale(${scale});
-      border: 3px solid ${borderColor};
-      box-shadow: ${shadow};
+      transform: rotate(-45deg);
+      border: 2px solid ${borderColor};
+      box-shadow: ${baseShadow};
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      ${transition}
+      transition: all 0.2s ease;
       ${isNew ? 'animation: bounce 0.6s ease infinite;' : ''}
     ">
-      ${isMyPost ? `<div style="position:absolute;top:-10px;right:-10px;width:20px;height:20px;background:${COLORS.gold};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 2px 6px rgba(0,0,0,0.3);z-index:10;">⭐</div>` : ''}
-      <div style="transform: rotate(45deg); font-size: 20px;">${c.icon}</div>
+      ${isMyPost ? `<div style="position:absolute;top:-6px;right:-6px;width:${starSize}px;height:${starSize}px;background:${COLORS.gold};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;box-shadow:0 2px 6px rgba(0,0,0,0.3);z-index:10;">⭐</div>` : ''}
+      <div style="transform: rotate(45deg); font-size: ${fontSize}px;">${c.icon}</div>
     </div>`,
-    iconSize: [48, 48],
-    iconAnchor: [24, 48],
-    popupAnchor: [0, -48],
+    iconSize: [size, size],
+    iconAnchor: [size/2, size],
+    popupAnchor: [0, -size],
   })
 }
 
@@ -597,17 +604,25 @@ export default function App() {
         transition: 'left 0.3s ease',
       }}>
         <MapContainer center={[35.8617, 104.1954]} zoom={mapZoom} style={{ width: '100%', height: '100%' }} zoomControl={false}>
-          <TileLayer url="https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}" subdomains="1234" attribution='&copy; 高德地图' maxZoom={18} />
+          <TileLayer 
+            url="https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}" 
+            subdomains="1234" 
+            attribution='&copy; 高德地图' 
+            maxZoom={18}
+            minZoom={3}
+            keepBuffer={10}
+            updateWhenZooming={false}
+            crossOrigin="anonymous"
+          />
           <MapEvents onClick={(latlng) => { 
-            // 只有点击空白区域才新建帖子，点击标记会触发Popup
-            if (!selectingLocation) return
+            // 点击地图空白区域直接发帖
             if (user) { setPostCoords(latlng); setShowPost(true) } else { setShowLogin(true) }
           }} onReady={setMapRef} onZoom={setMapZoom} />
           {posts.map(item => (
             <Marker 
               key={`post-${item.id}`} 
               position={[item.latitude, item.longitude]} 
-              icon={createIcon(item.type, item.id === newPostId, user && item.authorId === user.id)}
+              icon={createIcon(item.type, item.id === newPostId, user && item.authorId === user.id, mapZoom)}
               eventHandlers={{
                 click: () => {
                   // 点击标记时，打开详情弹窗（Leaflet会自动打开Popup，这里额外打开详情）
