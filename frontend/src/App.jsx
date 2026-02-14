@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import axios from 'axios'
-import { Search, X, Plus, ZoomIn, ZoomOut, RotateCw, Send, Heart, MessageCircle, Check, List } from 'lucide-react'
+import { Search, X, Plus, ZoomIn, ZoomOut, RotateCw, Send, Heart, MessageCircle, Check, List, MapPin } from 'lucide-react'
 import './styles/modern.css'
 
 // 修复图标
@@ -60,6 +60,8 @@ function App() {
   const [showPost, setShowPost] = useState(false)
   const [spotForm, setSpotForm] = useState({ name: '', country: '', city: '', category: 'Attraction', description: '' })
   const [postForm, setPostForm] = useState({ title: '', content: '', type: 'post', location_name: '' })
+  const [postCoords, setPostCoords] = useState(null) // 发帖时选择的位置
+  const [selectingLocation, setSelectingLocation] = useState(false) // 是否正在选择位置
   const [showList, setShowList] = useState(false)
   const [newPostId, setNewPostId] = useState(null)
   const [isMobile, setIsMobile] = useState(false)
@@ -84,6 +86,13 @@ function App() {
   }, [])
 
   const handleMapClick = (latlng) => {
+    // 如果正在选择位置模式
+    if (selectingLocation) {
+      setPostCoords(latlng)
+      setSelectingLocation(false)
+      setShowPost(true) // 重新打开发帖弹窗
+      return
+    }
     setNewCoords(latlng)
     setShowAddSpot(true)
   }
@@ -101,21 +110,25 @@ function App() {
 
   const handlePost = () => {
     if (!postForm.title || !postForm.content) return alert('请填写标题和内容')
+    if (!postCoords) return alert('请在地图上点击选择位置！')
+    
     const id = Date.now()
-    const lat = newCoords?.lat || 35.8617
-    const lng = newCoords?.lng || 104.1954
+    const lat = postCoords.lat
+    const lng = postCoords.lng
     
     setPosts(prev => [{ id, ...postForm, author: '我', latitude: lat, longitude: lng, likes: 0, comments: 0 }, ...prev])
     setNewPostId(id)
     setTimeout(() => setNewPostId(null), 5000)
     
-    if (mapRef) mapRef.setView([lat, lng], 12)
+    if (mapRef) mapRef.setView([lat, lng], 14)
     
     setShowPost(false)
     setPostForm({ title: '', content: '', type: 'post', location_name: '' })
-    setShowList(true) // 自动打开列表
+    setPostCoords(null)
+    setSelectingLocation(false)
+    setShowList(true)
     
-    alert(`✅ 发布成功！\n📍 "${postForm.title}"\n已定位到地图位置`)
+    alert(`✅ 发布成功！\n📍 "${postForm.title}"\n坐标: ${lat.toFixed(4)}, ${lng.toFixed(4)}`)
   }
 
   const handleLike = (id) => {
@@ -338,17 +351,24 @@ function App() {
       </div>
 
       {/* 提示 */}
-      <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, background: 'white', padding: '10px 20px', borderRadius: 20, boxShadow: '0 2px 10px rgba(0,0,0,0.1)', fontSize: 13, color: '#666' }}>
-        点击地图添加地点
-      </div>
+      {selectingLocation ? (
+        <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, background: '#ff6b35', color: 'white', padding: '12px 24px', borderRadius: 20, boxShadow: '0 2px 10px rgba(0,0,0,0.2)', fontSize: 14, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8 }}>
+          📍 请在地图上点击选择位置
+          <button onClick={() => setSelectingLocation(false)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+        </div>
+      ) : (
+        <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, background: 'white', padding: '10px 20px', borderRadius: 20, boxShadow: '0 2px 10px rgba(0,0,0,0.1)', fontSize: 13, color: '#666' }}>
+          点击地图添加地点
+        </div>
+      )}
 
       {/* 发帖弹窗 */}
       {showPost && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowPost(false)}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => { setShowPost(false); setSelectingLocation(false); }}>
           <div style={{ background: 'white', borderRadius: 16, width: '100%', maxWidth: 400, maxHeight: '90vh', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: 16, borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <b style={{ fontSize: 18 }}>发布帖子</b>
-              <button onClick={() => setShowPost(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+              <button onClick={() => { setShowPost(false); setPostCoords(null); setSelectingLocation(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             <div style={{ padding: 16 }}>
               <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
@@ -359,13 +379,43 @@ function App() {
               <input placeholder="标题 *" value={postForm.title} onChange={e => setPostForm({...postForm, title: e.target.value})} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8, marginBottom: 12, fontSize: 14 }} />
               <textarea placeholder="内容 *" value={postForm.content} onChange={e => setPostForm({...postForm, content: e.target.value})} rows={4} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8, marginBottom: 12, fontSize: 14, resize: 'none' }} />
               <input placeholder="地点名称" value={postForm.location_name} onChange={e => setPostForm({...postForm, location_name: e.target.value})} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8, marginBottom: 12, fontSize: 14 }} />
-              <div style={{ padding: 10, background: '#e8f5e9', borderRadius: 8, fontSize: 12, color: '#2e7d32', marginBottom: 12 }}>
-                ✅ 发帖后自动打开列表，方便你找到帖子！
+              
+              {/* 选择位置按钮 */}
+              <button 
+                onClick={() => {
+                  // 关闭弹窗让用户点击地图
+                  setShowPost(false);
+                  setSelectingLocation(true);
+                }}
+                style={{ 
+                  width: '100%', 
+                  padding: 12, 
+                  background: postCoords ? '#e8f5e9' : '#fff3e0', 
+                  border: postCoords ? '2px solid #4caf50' : '2px dashed #ff6b35', 
+                  borderRadius: 8, 
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  marginBottom: 12
+                }}
+              >
+                <MapPin size={18} color={postCoords ? '#4caf50' : '#ff6b35'} />
+                <span style={{ color: postCoords ? '#4caf50' : '#ff6b35', fontWeight: 500 }}>
+                  {postCoords 
+                    ? `✅ 已选择: ${postCoords.lat.toFixed(4)}, ${postCoords.lng.toFixed(4)}` 
+                    : '📍 点击选择地图位置（必选）'}
+                </span>
+              </button>
+              
+              <div style={{ padding: 10, background: '#e3f2fd', borderRadius: 8, fontSize: 12, color: '#1565c0' }}>
+                💡 提示：先点击上方按钮，然后在地图上点击选择准确位置
               </div>
             </div>
             <div style={{ padding: 16, borderTop: '1px solid #eee', display: 'flex', gap: 12 }}>
-              <button onClick={() => setShowPost(false)} style={{ flex: 1, padding: 12, background: '#f5f5f5', border: 'none', borderRadius: 8, cursor: 'pointer' }}>取消</button>
-              <button onClick={handlePost} style={{ flex: 1, padding: 12, background: '#ff6b35', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>发布</button>
+              <button onClick={() => { setShowPost(false); setPostCoords(null); setSelectingLocation(false); setPostForm({ title: '', content: '', type: 'post', location_name: '' }); }} style={{ flex: 1, padding: 12, background: '#f5f5f5', border: 'none', borderRadius: 8, cursor: 'pointer' }}>取消</button>
+              <button onClick={handlePost} style={{ flex: 1, padding: 12, background: postCoords ? '#ff6b35' : '#ccc', color: 'white', border: 'none', borderRadius: 8, cursor: postCoords ? 'pointer' : 'not-allowed', fontWeight: 600 }}>发布</button>
             </div>
           </div>
         </div>
