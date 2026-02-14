@@ -208,12 +208,12 @@ export default function App() {
       {/* 地图 */}
       <MapContainer center={[35.8617, 104.1954]} zoom={mapZoom} style={{ width: '100%', height: '100%' }} zoomControl={false}>
         <TileLayer 
-          url="https://tile-{s}.openstreetmap.fr/hot/{z}/{x}/{y}.png"
-          subdomains="abc"
-          attribution='&copy; OpenStreetMap'
-          maxZoom={19}
+          url="https://online{s}.map.bdimg.com/onlinelabel/?qt=tile&x={x}&y={y}&z={z}&styles=pl&scaler=1&p=1"
+          subdomains="0123456789"
+          attribution='&copy; 百度地图'
+          maxZoom={18}
           keepBuffer={15}
-          updateWhenIdle={true}
+          tms={true}
         />
         <MapEvents onClick={(latlng) => { 
           if (selectingLocation) { 
