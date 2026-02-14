@@ -215,7 +215,22 @@ export default function App() {
           keepBuffer={15}
           updateWhenIdle={true}
         />
-        <MapEvents onClick={(latlng) => { if (selectingLocation) { setPostCoords(latlng); setSelectingLocation(false); setShowPost(true); return } }} onReady={setMapRef} onZoom={setMapZoom} />
+        <MapEvents onClick={(latlng) => { 
+          if (selectingLocation) { 
+            setPostCoords(latlng); 
+            setSelectingLocation(false); 
+            setShowPost(true); 
+            return; 
+          }
+          // 普通点击地图 - 弹出发帖框选位置
+          if (user) {
+            setPostCoords(latlng);
+            setShowPost(true);
+          } else {
+            alert('请先登录！');
+            setShowLogin(true);
+          }
+        }} onReady={setMapRef} onZoom={setMapZoom} />
         {allMarkers.map(item => (
           <Marker key={`${item._type}-${item.id}`} position={[item.latitude, item.longitude]} icon={createIcon(item._type, item.id === newPostId, item.isMyPost)}>
             <Popup>
