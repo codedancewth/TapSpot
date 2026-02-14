@@ -28,7 +28,7 @@ const COLORS = {
   success: '#10b981',
 }
 
-const createIcon = (type, isNew = false, isMyPost = false) => {
+const createIcon = (type, isNew = false, isMyPost = false, isHovered = false) => {
   const config = {
     post: { color: '#3b82f6', icon: '📝' },
     food: { color: '#ef4444', icon: '🍜' },
@@ -37,26 +37,31 @@ const createIcon = (type, isNew = false, isMyPost = false) => {
   }
   const c = config[type] || config.post
   const borderColor = isMyPost ? COLORS.gold : '#ffffff'
-  const shadow = isMyPost ? `0 0 20px ${COLORS.gold}` : '0 3px 10px rgba(0,0,0,0.3)'
+  const baseShadow = isMyPost ? `0 0 20px ${COLORS.gold}` : '0 3px 10px rgba(0,0,0,0.3)'
+  const shadow = isHovered ? `0 0 25px ${c.color}, 0 0 40px ${c.color}80` : baseShadow
+  const scale = isHovered ? 1.2 : 1
+  const transition = 'transition: all 0.2s ease;'
   
   return L.divIcon({
     className: 'custom-marker',
-    html: `<div style="
-      width: 44px; height: 44px;
+    html: `<div class="marker-wrapper" style="
+      width: 48px; height: 48px;
       background: linear-gradient(135deg, ${c.color} 0%, ${c.color}dd 100%);
       border-radius: 50% 50% 50% 0;
-      transform: rotate(-45deg);
+      transform: rotate(-45deg) scale(${scale});
       border: 3px solid ${borderColor};
       box-shadow: ${shadow};
       display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      ${transition}
       ${isNew ? 'animation: bounce 0.6s ease infinite;' : ''}
     ">
-      ${isMyPost ? `<div style="position:absolute;top:-10px;right:-10px;width:20px;height:20px;background:${COLORS.gold};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 2px 6px rgba(0,0,0,0.3);">⭐</div>` : ''}
-      <div style="transform: rotate(45deg); font-size: 18px;">${c.icon}</div>
+      ${isMyPost ? `<div style="position:absolute;top:-10px;right:-10px;width:20px;height:20px;background:${COLORS.gold};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 2px 6px rgba(0,0,0,0.3);z-index:10;">⭐</div>` : ''}
+      <div style="transform: rotate(45deg); font-size: 20px;">${c.icon}</div>
     </div>`,
-    iconSize: [44, 44],
-    iconAnchor: [22, 44],
-    popupAnchor: [0, -44],
+    iconSize: [48, 48],
+    iconAnchor: [24, 48],
+    popupAnchor: [0, -48],
   })
 }
 
@@ -589,10 +594,23 @@ export default function App() {
       }}>
         <MapContainer center={[35.8617, 104.1954]} zoom={mapZoom} style={{ width: '100%', height: '100%' }} zoomControl={false}>
           <TileLayer url="https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}" subdomains="1234" attribution='&copy; 高德地图' maxZoom={18} />
-          <MapEvents onClick={(latlng) => { if (user) { setPostCoords(latlng); setShowPost(true) } else { setShowLogin(true) }}} onReady={setMapRef} onZoom={setMapZoom} />
+          <MapEvents onClick={(latlng) => { 
+            // 只有点击空白区域才新建帖子，点击标记会触发Popup
+            if (!selectingLocation) return
+            if (user) { setPostCoords(latlng); setShowPost(true) } else { setShowLogin(true) }
+          }} onReady={setMapRef} onZoom={setMapZoom} />
           {posts.map(item => (
-            <Marker key={`post-${item.id}`} position={[item.latitude, item.longitude]} icon={createIcon(item.type, item.id === newPostId, user && item.authorId === user.id)}>
-              <Popup>
+            <Marker 
+              key={`post-${item.id}`} 
+              position={[item.latitude, item.longitude]} 
+              icon={createIcon(item.type, item.id === newPostId, user && item.authorId === user.id)}
+              eventHandlers={{
+                click: () => {
+                  // 点击标记时，打开详情弹窗（Leaflet会自动打开Popup，这里额外打开详情）
+                },
+              }}
+            >
+              <Popup maxWidth={300} minWidth={260}>
                 <div style={{ minWidth: 240, maxWidth: 280, padding: 8 }}>
                   <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                     {item.id === newPostId && <span style={{ background: COLORS.accent, color: '#fff', padding: '2px 6px', borderRadius: 4, fontSize: 10 }}>NEW</span>}
@@ -609,12 +627,15 @@ export default function App() {
                     </div>
                   )}
                   
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <button onClick={() => handleLike(item.id)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: likedPosts.has(item.id) ? `${COLORS.accent}20` : '#f5f5f5', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', color: likedPosts.has(item.id) ? COLORS.accent : '#666', fontSize: 12 }}>
-                      <Heart size={12} fill={likedPosts.has(item.id) ? COLORS.accent : 'none'} /> {item.likes}
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button onClick={() => handleLike(item.id)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: likedPosts.has(item.id) ? `${COLORS.accent}20` : '#f5f5f5', border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', color: likedPosts.has(item.id) ? COLORS.accent : '#666', fontSize: 12 }}>
+                      <Heart size={14} fill={likedPosts.has(item.id) ? COLORS.accent : 'none'} /> {item.likes}
                     </button>
-                    <button onClick={() => openPostDetail(item)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#f5f5f5', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', color: '#666', fontSize: 12 }}>
-                      <MessageCircle size={12} /> {commentCounts[item.id] || 0}
+                    <button onClick={() => openPostDetail(item)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#f5f5f5', border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', color: '#666', fontSize: 12 }}>
+                      <MessageCircle size={14} /> {commentCounts[item.id] || 0} 评论
+                    </button>
+                    <button onClick={() => { setPostCoords({ lat: item.latitude, lng: item.longitude }); setPostForm({ title: '', content: '', type: item.type, location_name: item.location_name }); setShowPost(true) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', color: '#fff', fontSize: 12 }}>
+                      <Plus size={14} /> 在此发帖
                     </button>
                   </div>
                 </div>
@@ -829,8 +850,37 @@ export default function App() {
       <style>{`
         @keyframes bounce { 0%, 100% { transform: rotate(-45deg) translateY(0); } 50% { transform: rotate(-45deg) translateY(-8px); } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 10px currentColor; } 50% { box-shadow: 0 0 25px currentColor, 0 0 40px currentColor; } }
+        
         .leaflet-popup-content-wrapper { border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important; }
         .leaflet-popup-content { margin: 0 !important; }
+        
+        /* 标记悬停效果 */
+        .custom-marker { 
+          cursor: pointer !important; 
+          transition: all 0.2s ease;
+        }
+        .custom-marker:hover .marker-wrapper {
+          transform: rotate(-45deg) scale(1.25) !important;
+          filter: brightness(1.2);
+        }
+        .custom-marker:hover .marker-wrapper::after {
+          content: '';
+          position: absolute;
+          inset: -8px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(233,69,96,0.3) 0%, transparent 70%);
+          animation: pulse-glow 1s ease infinite;
+        }
+        
+        /* 增大点击区域 */
+        .leaflet-marker-icon {
+          width: 60px !important;
+          height: 60px !important;
+          margin-left: -12px !important;
+          margin-top: -12px !important;
+        }
+        
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: ${COLORS.border}; border-radius: 3px; }
