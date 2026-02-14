@@ -208,7 +208,7 @@ export default function App() {
       {/* 地图 */}
       <MapContainer center={[35.8617, 104.1954]} zoom={mapZoom} style={{ width: '100%', height: '100%' }} zoomControl={false}>
         <TileLayer 
-          url="http://43.130.53.168:3001/tiles/{z}/{x}/{y}.png"
+          url="/tiles/{z}/{x}/{y}.png"
           attribution='&copy; 高德地图 (本地缓存)'
           maxZoom={10}
           keepBuffer={20}

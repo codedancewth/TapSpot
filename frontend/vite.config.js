@@ -11,6 +11,10 @@ export default defineConfig({
         target: 'http://43.130.53.168:8080',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api/v1')
+      },
+      '/tiles': {
+        target: 'http://localhost:3001',
+        changeOrigin: true
       }
     }
   },

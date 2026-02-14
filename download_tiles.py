@@ -1,140 +1,96 @@
 #!/usr/bin/env python3
 """
-高德地图瓦片下载脚本
-下载全中国范围的地图瓦片（缩放级别1-10）
+高德地图瓦片下载脚本 - XYZ标准格式
+只下载中国区域 (经度 73-135, 纬度 18-54)
 """
 
 import os
 import requests
 import time
+import math
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# 高德瓦片URL模板
-URL_TEMPLATE = "https://webrd0{}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={}&y={}&z={}"
-
-# 输出目录
 OUTPUT_DIR = "/root/.openclaw/workspace/TapSpot/tiles"
 
-# 中国范围大致边界（Web墨卡托坐标）
-# 经度: 73°E - 135°E
-# 纬度: 18°N - 54°N
+def latlon_to_tile(lat, lon, zoom):
+    """经纬度转瓦片坐标"""
+    n = 2 ** zoom
+    x = int((lon + 180) / 360 * n)
+    lat_rad = math.radians(lat)
+    y = int((1 - math.asinh(math.tan(lat_rad)) / math.pi) / 2 * n)
+    return x, y
 
 def get_tile_range(zoom):
-    """根据缩放级别计算中国范围内的瓦片坐标范围"""
-    # 简化计算：中国大致范围
-    # X: 73°E - 135°E
-    # Y: 18°N - 54°N
-    
-    n = 2 ** zoom
-    
-    # 经度转瓦片X
-    min_x = int((73.0 + 180) / 360 * n)
-    max_x = int((135.0 + 180) / 360 * n) + 1
-    
-    # 纬度转瓦片Y (Web墨卡托)
-    import math
-    def lat_to_y(lat):
-        lat_rad = math.radians(lat)
-        return int((1 - math.log(math.tan(lat_rad) + 1/math.cos(lat_rad)) / math.pi) / 2 * n)
-    
-    min_y = lat_to_y(54.0)
-    max_y = lat_to_y(18.0) + 1
-    
-    return min_x, max_x, min_y, max_y
+    """计算中国范围瓦片坐标"""
+    # 中国范围: 经度73-135, 纬度18-54
+    x_min, y_min = latlon_to_tile(54, 73, zoom)  # 西北角
+    x_max, y_max = latlon_to_tile(18, 135, zoom)  # 东南角
+    return x_min, x_max, min(y_min, y_max), max(y_min, y_max)
 
 def download_tile(z, x, y, retry=3):
     """下载单个瓦片"""
+    # 高德瓦片URL - XYZ标准格式
+    server = (x + y) % 4  # 负载均衡
+    url = f"https://webrd0{server}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}"
+    
     dir_path = os.path.join(OUTPUT_DIR, str(z), str(x))
     file_path = os.path.join(dir_path, f"{y}.png")
     
-    # 已存在则跳过
     if os.path.exists(file_path):
-        return True, "exists"
-    
-    os.makedirs(dir_path, exist_ok=True)
-    
-    # 轮询服务器 1-4
-    server = (x + y) % 4 + 1
-    url = URL_TEMPLATE.format(server, x, y, z)
+        return None  # 已存在
     
     for attempt in range(retry):
         try:
-            resp = requests.get(url, timeout=10)
-            if resp.status_code == 200:
+            resp = requests.get(url, timeout=10, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Referer': 'https://gaode.com/'
+            })
+            if resp.status_code == 200 and len(resp.content) > 100:
+                os.makedirs(dir_path, exist_ok=True)
                 with open(file_path, 'wb') as f:
                     f.write(resp.content)
-                return True, "downloaded"
-            else:
-                time.sleep(0.5)
-        except Exception as e:
-            time.sleep(1)
-    
-    return False, f"failed after {retry} attempts"
-
-def download_zoom_level(zoom, max_workers=10):
-    """下载指定缩放级别的所有瓦片"""
-    min_x, max_x, min_y, max_y = get_tile_range(zoom)
-    total = (max_x - min_x) * (max_y - min_y)
-    
-    print(f"\n缩放级别 {zoom}: X[{min_x}-{max_x}] Y[{min_y}-{max_y}] 共 {total} 个瓦片")
-    
-    downloaded = 0
-    exists = 0
-    failed = 0
-    
-    tasks = []
-    for x in range(min_x, max_x):
-        for y in range(min_y, max_y):
-            tasks.append((zoom, x, y))
-    
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = {executor.submit(download_tile, z, x, y): (x, y) for z, x, y in tasks}
-        
-        for i, future in enumerate(as_completed(futures)):
-            success, status = future.result()
-            if success:
-                if status == "downloaded":
-                    downloaded += 1
-                else:
-                    exists += 1
-            else:
-                failed += 1
-            
-            # 进度显示
-            if (i + 1) % 100 == 0 or i + 1 == total:
-                print(f"  进度: {i+1}/{total} (下载:{downloaded} 已存在:{exists} 失败:{failed})")
-    
-    return downloaded, exists, failed
+                return True
+        except:
+            pass
+        time.sleep(0.1)
+    return False
 
 def main():
-    print("=" * 50)
-    print("高德地图瓦片下载器 - 全中国范围")
-    print("=" * 50)
-    print(f"输出目录: {OUTPUT_DIR}")
-    print("缩放级别: 1-10")
-    print()
+    # 缩放级别 1-10
+    zooms = range(1, 11)
     
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    total = 0
+    success = 0
     
-    total_stats = {"downloaded": 0, "exists": 0, "failed": 0}
+    for z in zooms:
+        x_min, x_max, y_min, y_max = get_tile_range(z)
+        tiles_in_zoom = (x_max - x_min + 1) * (y_max - y_min + 1)
+        print(f"Zoom {z}: x={x_min}-{x_max}, y={y_min}-{y_max}, 共 {tiles_in_zoom} 个瓦片")
+        total += tiles_in_zoom
     
-    start_time = time.time()
+    print(f"\n总计: {total} 个瓦片")
+    print("开始下载...\n")
     
-    for zoom in range(1, 11):  # 缩放级别1-10
-        downloaded, exists, failed = download_zoom_level(zoom, max_workers=20)
-        total_stats["downloaded"] += downloaded
-        total_stats["exists"] += exists
-        total_stats["failed"] += failed
-    
-    elapsed = time.time() - start_time
-    
-    print("\n" + "=" * 50)
-    print("下载完成！")
-    print(f"总耗时: {elapsed:.1f} 秒")
-    print(f"新下载: {total_stats['downloaded']}")
-    print(f"已存在: {total_stats['exists']}")
-    print(f"失败: {total_stats['failed']}")
-    print("=" * 50)
+    for z in zooms:
+        x_min, x_max, y_min, y_max = get_tile_range(z)
+        
+        tasks = []
+        for x in range(x_min, x_max + 1):
+            for y in range(y_min, y_max + 1):
+                tasks.append((z, x, y))
+        
+        z_success = 0
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            futures = {executor.submit(download_tile, z, x, y): (x, y) for z, x, y in tasks}
+            for future in as_completed(futures):
+                result = future.result()
+                if result:
+                    z_success += 1
+                    success += 1
+        
+        print(f"Zoom {z} 完成: {z_success}/{len(tasks)}")
+
+    print(f"\n下载完成: {success}/{total}")
 
 if __name__ == "__main__":
     main()
