@@ -208,10 +208,10 @@ export default function App() {
       {/* 地图 */}
       <MapContainer center={[35.8617, 104.1954]} zoom={mapZoom} style={{ width: '100%', height: '100%' }} zoomControl={false}>
         <TileLayer 
-          url="https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}"
-          attribution='&copy; 高德地图'
-          maxZoom={18}
-          keepBuffer={10}
+          url="http://43.130.53.168:3001/tiles/{z}/{x}/{y}.png"
+          attribution='&copy; 高德地图 (本地缓存)'
+          maxZoom={10}
+          keepBuffer={20}
         />
         <MapEvents onClick={(latlng) => { 
           if (selectingLocation) { 

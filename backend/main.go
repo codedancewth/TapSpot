@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"tapspot/config"
+	"tapspot/controllers"
 	"tapspot/models"
 	"tapspot/routes"
 
@@ -21,7 +22,10 @@ func main() {
 	config.InitDB()
 	
 	// 自动迁移数据库表
-	config.DB.AutoMigrate(&models.Spot{}, &models.Review{})
+	config.DB.AutoMigrate(&models.User{}, &models.Post{}, &models.Spot{}, &models.Review{})
+
+	// 创建测试用户 root/root
+	controllers.CreateTestUser()
 
 	// 创建Gin引擎
 	r := gin.Default()

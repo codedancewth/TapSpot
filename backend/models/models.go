@@ -6,6 +6,38 @@ import (
 	"gorm.io/gorm"
 )
 
+// User 用户
+type User struct {
+	ID        uint           `json:"id" gorm:"primaryKey"`
+	Username  string         `json:"username" gorm:"size:50;uniqueIndex;not null"`
+	Password  string         `json:"-" gorm:"size:255;not null"` // 不返回给前端
+	Nickname  string         `json:"nickname" gorm:"size:50"`
+	Avatar    string         `json:"avatar" gorm:"size:500"`
+	Bio       string         `json:"bio" gorm:"size:500"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+	Posts     []Post         `json:"posts,omitempty" gorm:"foreignKey:AuthorID"`
+}
+
+// Post 用户发布的帖子
+type Post struct {
+	ID           uint           `json:"id" gorm:"primaryKey"`
+	AuthorID     uint           `json:"author_id" gorm:"not null;index"`
+	Author       User           `json:"author" gorm:"foreignKey:AuthorID"`
+	Title        string         `json:"title" gorm:"size:255;not null"`
+	Content      string         `json:"content" gorm:"type:text;not null"`
+	Type         string         `json:"type" gorm:"size:20;default:'post'"` // post, food, hotel, shop
+	LocationName string         `json:"location_name" gorm:"size:255"`
+	Latitude     float64        `json:"latitude" gorm:"not null;index"`
+	Longitude    float64        `json:"longitude" gorm:"not null;index"`
+	Likes        int            `json:"likes" gorm:"default:0"`
+	Comments     int            `json:"comments" gorm:"default:0"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `json:"-" gorm:"index"`
+}
+
 // Spot 地图上的一个位置点
 type Spot struct {
 	ID          uint           `json:"id" gorm:"primaryKey"`

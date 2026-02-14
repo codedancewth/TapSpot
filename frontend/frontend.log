@@ -1,0 +1,11 @@
+
+> tapspot-frontend@0.1.0 dev
+> vite
+
+
+  VITE v5.4.21  ready in 219 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: http://10.4.0.3:3000/
+11:03:01 PM [vite] hmr update /src/App.jsx, /src/index.css
+11:03:08 PM [vite] page reload src/main.jsx
