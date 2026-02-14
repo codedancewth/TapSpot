@@ -364,7 +364,7 @@ app.get('/api/likes/my', auth, async (req, res) => {
 
 // ============ 评论相关 API ============
 
-// 获取帖子评论
+// 获取帖子评论（含评论数统计）
 app.get('/api/posts/:id/comments', async (req, res) => {
   try {
     const [comments] = await pool.execute(`
@@ -381,6 +381,8 @@ app.get('/api/posts/:id/comments', async (req, res) => {
         content: c.content,
         author: c.nickname || c.username,
         authorId: c.user_id,
+        replyToId: c.reply_to_id,
+        replyToUser: c.reply_to_user,
         createdAt: c.created_at
       }))
     })
@@ -390,10 +392,34 @@ app.get('/api/posts/:id/comments', async (req, res) => {
   }
 })
 
-// 发表评论
+// 获取多个帖子的评论数
+app.get('/api/posts/comments/count', async (req, res) => {
+  try {
+    const { postIds } = req.query
+    if (!postIds) return res.json({ counts: {} })
+    
+    const ids = postIds.split(',').map(id => parseInt(id)).filter(id => !isNaN(id))
+    if (ids.length === 0) return res.json({ counts: {} })
+
+    const placeholders = ids.map(() => '?').join(',')
+    const [rows] = await pool.execute(
+      `SELECT post_id, COUNT(*) as count FROM comments WHERE post_id IN (${placeholders}) GROUP BY post_id`,
+      ids
+    )
+    
+    const counts = {}
+    rows.forEach(r => { counts[r.post_id] = r.count })
+    res.json({ counts })
+  } catch (error) {
+    console.error('Get comment counts error:', error)
+    res.status(500).json({ error: '获取失败' })
+  }
+})
+
+// 发表评论（支持回复）
 app.post('/api/posts/:id/comments', auth, async (req, res) => {
   try {
-    const { content } = req.body
+    const { content, replyToId, replyToUser } = req.body
     if (!content || !content.trim()) {
       return res.status(400).json({ error: '评论内容不能为空' })
     }
@@ -405,8 +431,8 @@ app.post('/api/posts/:id/comments', auth, async (req, res) => {
     }
 
     const [result] = await pool.execute(
-      'INSERT INTO comments (post_id, user_id, content) VALUES (?, ?, ?)',
-      [req.params.id, req.user.id, content.trim()]
+      'INSERT INTO comments (post_id, user_id, content, reply_to_id, reply_to_user) VALUES (?, ?, ?, ?, ?)',
+      [req.params.id, req.user.id, content.trim(), replyToId || null, replyToUser || null]
     )
 
     res.json({
@@ -416,6 +442,8 @@ app.post('/api/posts/:id/comments', auth, async (req, res) => {
         content: content.trim(),
         author: req.user.nickname,
         authorId: req.user.id,
+        replyToId: replyToId || null,
+        replyToUser: replyToUser || null,
         createdAt: new Date()
       }
     })

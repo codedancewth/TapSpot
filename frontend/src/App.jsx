@@ -104,9 +104,11 @@ export default function App() {
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showPostDetail, setShowPostDetail] = useState(null)
   const [comments, setComments] = useState([])
+  const [commentCounts, setCommentCounts] = useState({})
   const [newComment, setNewComment] = useState('')
   const [loadingComments, setLoadingComments] = useState(false)
   const [submittingComment, setSubmittingComment] = useState(false)
+  const [replyTo, setReplyTo] = useState(null) // 回复对象
   const [activeTab, setActiveTab] = useState('all')
   const [filterType, setFilterType] = useState('all')
   const [submitting, setSubmitting] = useState(false)
@@ -165,6 +167,16 @@ export default function App() {
   useEffect(() => {
     fetchPosts()
   }, [filterType, activeTab, user])
+
+  // 获取评论数
+  useEffect(() => {
+    if (posts.length > 0) {
+      const postIds = posts.map(p => p.id).join(',')
+      api(`/posts/comments/count?postIds=${postIds}`).then(data => {
+        setCommentCounts(data.counts || {})
+      }).catch(() => {})
+    }
+  }, [posts])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -245,22 +257,30 @@ export default function App() {
     setShowPostDetail(post)
     setComments([])
     setNewComment('')
+    setReplyTo(null)
     fetchComments(post.id)
   }
 
-  // 发表评论
+  // 发表评论（支持回复）
   const handleComment = async () => {
     if (!user) { setShowLogin(true); return }
     if (!newComment.trim()) return
     
     setSubmittingComment(true)
     try {
+      const body = { content: newComment }
+      if (replyTo) {
+        body.replyToId = replyTo.id
+        body.replyToUser = replyTo.author
+      }
       const data = await api(`/posts/${showPostDetail.id}/comments`, {
         method: 'POST',
-        body: JSON.stringify({ content: newComment })
+        body: JSON.stringify(body)
       })
       setComments(prev => [...prev, data.comment])
+      setCommentCounts(prev => ({ ...prev, [showPostDetail.id]: (prev[showPostDetail.id] || 0) + 1 }))
       setNewComment('')
+      setReplyTo(null)
     } catch (error) {
       alert(error.message)
     } finally {
@@ -573,17 +593,30 @@ export default function App() {
           {posts.map(item => (
             <Marker key={`post-${item.id}`} position={[item.latitude, item.longitude]} icon={createIcon(item.type, item.id === newPostId, user && item.authorId === user.id)}>
               <Popup>
-                <div style={{ minWidth: 200, padding: 8 }}>
+                <div style={{ minWidth: 240, maxWidth: 280, padding: 8 }}>
                   <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                     {item.id === newPostId && <span style={{ background: COLORS.accent, color: '#fff', padding: '2px 6px', borderRadius: 4, fontSize: 10 }}>NEW</span>}
                     {user && item.authorId === user.id && <span style={{ color: COLORS.gold }}>⭐</span>}
                     {item.title}
                   </div>
-                  <div style={{ fontSize: 12, color: '#666', marginBottom: 6 }}>{item.content?.substring(0, 60)}...</div>
-                  <div style={{ fontSize: 11, color: '#888', marginBottom: 6 }}>📍 {item.location_name} · 👤 {item.author}</div>
-                  <button onClick={() => handleLike(item.id)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: likedPosts.has(item.id) ? `${COLORS.accent}20` : '#f5f5f5', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', color: likedPosts.has(item.id) ? COLORS.accent : '#666', fontSize: 12 }}>
-                    <Heart size={12} fill={likedPosts.has(item.id) ? COLORS.accent : 'none'} /> {item.likes}
-                  </button>
+                  <div style={{ fontSize: 12, color: '#666', marginBottom: 6, lineHeight: 1.4 }}>{item.content?.substring(0, 80)}{item.content?.length > 80 ? '...' : ''}</div>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 8 }}>📍 {item.location_name} · 👤 {item.author}</div>
+                  
+                  {/* 评论预览 */}
+                  {commentCounts[item.id] > 0 && (
+                    <div style={{ background: '#f8f8f8', borderRadius: 6, padding: 8, marginBottom: 8 }}>
+                      <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>💬 {commentCounts[item.id]} 条评论</div>
+                    </div>
+                  )}
+                  
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <button onClick={() => handleLike(item.id)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: likedPosts.has(item.id) ? `${COLORS.accent}20` : '#f5f5f5', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', color: likedPosts.has(item.id) ? COLORS.accent : '#666', fontSize: 12 }}>
+                      <Heart size={12} fill={likedPosts.has(item.id) ? COLORS.accent : 'none'} /> {item.likes}
+                    </button>
+                    <button onClick={() => openPostDetail(item)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#f5f5f5', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', color: '#666', fontSize: 12 }}>
+                      <MessageCircle size={12} /> {commentCounts[item.id] || 0}
+                    </button>
+                  </div>
                 </div>
               </Popup>
             </Marker>
@@ -731,15 +764,26 @@ export default function App() {
                 comments.map(comment => (
                   <div key={comment.id} style={{ background: 'white', borderRadius: 10, padding: 12, marginBottom: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                         <div style={{ width: 24, height: 24, background: COLORS.secondary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>👤</div>
                         <span style={{ fontWeight: 500, fontSize: 13, color: COLORS.textDark }}>{comment.author}</span>
                         <span style={{ fontSize: 11, color: '#aaa' }}>{formatTime(comment.createdAt)}</span>
                       </div>
-                      {user && comment.authorId === user.id && (
-                        <button onClick={() => handleDeleteComment(comment.id)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 11 }}>🗑️</button>
-                      )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {user && (
+                          <button onClick={() => setReplyTo({ id: comment.id, author: comment.author })} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 11 }}>回复</button>
+                        )}
+                        {user && comment.authorId === user.id && (
+                          <button onClick={() => handleDeleteComment(comment.id)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 11 }}>🗑️</button>
+                        )}
+                      </div>
                     </div>
+                    {/* 回复提示 */}
+                    {comment.replyToUser && (
+                      <div style={{ fontSize: 11, color: '#888', paddingLeft: 32, marginBottom: 2 }}>
+                        ↩️ 回复 <span style={{ color: COLORS.accent }}>@{comment.replyToUser}</span>
+                      </div>
+                    )}
                     <div style={{ fontSize: 13, color: '#333', paddingLeft: 32 }}>{comment.content}</div>
                   </div>
                 ))
@@ -748,9 +792,16 @@ export default function App() {
             
             {/* 发表评论 */}
             <div style={{ padding: 16, borderTop: `1px solid #eee`, background: 'white' }}>
+              {/* 回复提示 */}
+              {replyTo && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f5f5f5', borderRadius: 6, padding: '6px 10px', marginBottom: 8 }}>
+                  <span style={{ fontSize: 12, color: '#666' }}>↩️ 回复 <span style={{ color: COLORS.accent, fontWeight: 500 }}>@{replyTo.author}</span></span>
+                  <button onClick={() => setReplyTo(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', padding: 0 }}><X size={14} /></button>
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 10 }}>
                 <input
-                  placeholder={user ? "发表评论..." : "登录后发表评论"}
+                  placeholder={user ? (replyTo ? `回复 @${replyTo.author}...` : "发表评论...") : "登录后发表评论"}
                   value={newComment}
                   onChange={e => setNewComment(e.target.value)}
                   disabled={!user}
