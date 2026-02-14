@@ -264,6 +264,10 @@ export default function App() {
     setNewComment('')
     setReplyTo(null)
     fetchComments(post.id)
+    // 放大地图到帖子位置
+    if (mapRef) {
+      mapRef.setView([post.latitude, post.longitude], 14)
+    }
   }
 
   // 发表评论（支持回复）
