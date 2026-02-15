@@ -260,6 +260,7 @@ body {
 
 .leaflet-container {
   background: #e8e8e8 !important;
+  cursor: default !important;
 }
 
 /* 地图控制 */
