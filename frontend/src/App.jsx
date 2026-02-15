@@ -29,39 +29,64 @@ const COLORS = {
 }
 
 const createIcon = (type, isNew = false, isMyPost = false, zoom = 10) => {
-  // 简洁舒服的配色
+  // 单色调亮眼配色 - 饱和度高、视觉舒服
+  // 打卡图标 - 专业设计，直观易懂
   const config = {
-    post: { gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', icon: '📍' },
-    food: { gradient: 'linear-gradient(135deg, #ff6b6b 0%, #ffa07a 100%)', icon: '🍜' },
-    hotel: { gradient: 'linear-gradient(135deg, #4ecdc4 0%, #44a8c4 100%)', icon: '🏨' },
-    shop: { gradient: 'linear-gradient(135deg, #f9d423 0%, #ff4e50 100%)', icon: '🛍️' },
+    post: { 
+      color: '#3b82f6',       // 明亮蓝
+      glowColor: 'rgba(59,130,246,0.4)',
+      // 定位针图标 - 打卡地标感
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`
+    },
+    food: { 
+      color: '#f97316',       // 明亮橙
+      glowColor: 'rgba(249,115,22,0.4)',
+      // 餐盘图标 - 美食更直观
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>`
+    },
+    hotel: { 
+      color: '#8b5cf6',       // 明亮紫
+      glowColor: 'rgba(139,92,246,0.4)',
+      // 酒店建筑图标 - 住宿更直观
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path><path d="M9 9v.01"></path><path d="M9 12v.01"></path><path d="M9 15v.01"></path><path d="M9 18v.01"></path></svg>`
+    },
+    shop: { 
+      color: '#ec4899',       // 明亮粉
+      glowColor: 'rgba(236,72,153,0.4)',
+      // 手提袋图标 - 购物更时尚
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 11V7a4 4 0 0 0-8 0v4"></path><path d="M5 9h14l1 12H4L5 9z"></path></svg>`
+    },
   }
   const c = config[type] || config.post
-  const border = isMyPost ? '3px solid #ffd700' : '2px solid rgba(255,255,255,0.85)'
-  const shadow = isMyPost ? '0 0 12px rgba(255,215,0,0.4), 0 3px 8px rgba(0,0,0,0.15)' : '0 3px 8px rgba(0,0,0,0.15)'
   
   // 根据缩放级别计算大小
-  let size, fontSize
-  if (zoom <= 4) { size = 28; fontSize = 11 }
-  else if (zoom <= 8) { size = 36; fontSize = 14 }
-  else { size = 44; fontSize = 17 }
+  let size, iconSize, starSize
+  if (zoom <= 4) { size = 26; iconSize = 12; starSize = 12 }
+  else if (zoom <= 8) { size = 34; iconSize = 14; starSize = 14 }
+  else { size = 44; iconSize = 16; starSize = 16 }
+  
+  // 我的帖子用金色边框+金色光晕，普通帖子用白色边框+同色光晕
+  const border = '3px solid white'
+  const shadow = `0 0 12px ${c.glowColor}, 0 4px 12px rgba(0,0,0,0.2)`
   
   return L.divIcon({
     className: 'custom-marker',
-    html: `<div style="
-      width: ${size}px; height: ${size}px;
-      background: ${c.gradient};
-      border-radius: 50% 50% 50% 0;
-      transform: rotate(-45deg);
-      border: ${border};
-      box-shadow: ${shadow};
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      transition: transform 0.2s;
-      ${isNew ? 'animation: pulse 1s infinite;' : ''}
-    ">
-      ${isMyPost ? `<div style="position:absolute;top:-5px;right:-5px;width:14px;height:14px;background:#ffd700;border-radius:50%;border:2px solid white;font-size:8px;display:flex;align-items:center;justify-content:center;">⭐</div>` : ''}
-      <span style="transform: rotate(45deg); font-size: ${fontSize}px;">${c.icon}</span>
+    html: `
+    <div style="position:relative;">
+      <div style="
+        width: ${size}px; height: ${size}px;
+        background: ${c.color};
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        border: ${border};
+        box-shadow: ${shadow};
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        ${isNew ? 'animation: bounce 0.6s infinite;' : ''}
+      ">
+        <div style="transform: rotate(45deg); width: ${iconSize}px; height: ${iconSize}px; display: flex; align-items: center; justify-content: center;">${c.icon}</div>
+      </div>
     </div>`,
     iconSize: [size, size],
     iconAnchor: [size/2, size],
@@ -479,11 +504,11 @@ export default function App() {
               {/* 类型筛选 */}
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {[
-                  { key: 'all', label: '全部', icon: '🌐' },
-                  { key: 'post', label: '日常', icon: '📝' },
-                  { key: 'food', label: '美食', icon: '🍜' },
-                  { key: 'hotel', label: '住宿', icon: '🏨' },
-                  { key: 'shop', label: '购物', icon: '🛍️' },
+                  { key: 'all', label: '全部' },
+                  { key: 'post', label: '📍 日常' },
+                  { key: 'food', label: '🍽️ 美食' },
+                  { key: 'hotel', label: '🏨 住宿' },
+                  { key: 'shop', label: '🛍️ 购物' },
                 ].map(type => (
                   <button
                     key={type.key}
@@ -550,14 +575,27 @@ export default function App() {
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                       <div style={{
                         width: 44, height: 44,
-                        background: `linear-gradient(135deg, ${post.type === 'food' ? '#ef4444' : post.type === 'hotel' ? '#8b5cf6' : post.type === 'shop' ? '#f59e0b' : '#3b82f6'} 0%, ${post.type === 'food' ? '#dc2626' : post.type === 'hotel' ? '#7c3aed' : post.type === 'shop' ? '#d97706' : '#2563eb'} 100%)`,
+                        background: `linear-gradient(135deg, ${post.type === 'food' ? '#f97316' : post.type === 'hotel' ? '#8b5cf6' : post.type === 'shop' ? '#ec4899' : '#3b82f6'} 0%, ${post.type === 'food' ? '#ea580c' : post.type === 'hotel' ? '#7c3aed' : post.type === 'shop' ? '#db2777' : '#2563eb'} 100%)`,
                         borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 20, flexShrink: 0,
-                      }}>{post.type === 'food' ? '🍜' : post.type === 'hotel' ? '🏨' : post.type === 'shop' ? '🛍️' : '📝'}</div>
+                        flexShrink: 0,
+                      }}>
+                        {post.type === 'food' ? (
+                          // 美食 - 餐盘
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+                        ) : post.type === 'hotel' ? (
+                          // 住宿 - 酒店建筑
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path><path d="M9 9v.01"></path><path d="M9 12v.01"></path><path d="M9 15v.01"></path><path d="M9 18v.01"></path></svg>
+                        ) : post.type === 'shop' ? (
+                          // 购物 - 手提袋
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 11V7a4 4 0 0 0-8 0v4"></path><path d="M5 9h14l1 12H4L5 9z"></path></svg>
+                        ) : (
+                          // 日常打卡 - 定位针
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        )}
+                      </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                           {post.id === newPostId && <span style={{ background: COLORS.accent, color: '#fff', padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>NEW</span>}
-                          {user && post.authorId === user.id && <span style={{ color: COLORS.gold, fontSize: 12 }}>⭐</span>}
                           <span style={{ fontWeight: 600, fontSize: 14, color: COLORS.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.title}</span>
                         </div>
                         <div style={{ fontSize: 12, color: '#888', marginBottom: 6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.content}</div>
@@ -630,7 +668,6 @@ export default function App() {
                 <div style={{ minWidth: 240, maxWidth: 280, padding: 8 }}>
                   <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                     {item.id === newPostId && <span style={{ background: COLORS.accent, color: '#fff', padding: '2px 6px', borderRadius: 4, fontSize: 10 }}>NEW</span>}
-                    {user && item.authorId === user.id && <span style={{ color: COLORS.gold }}>⭐</span>}
                     {item.title}
                   </div>
                   <div style={{ fontSize: 12, color: '#666', marginBottom: 6, lineHeight: 1.4 }}>{item.content?.substring(0, 80)}{item.content?.length > 80 ? '...' : ''}</div>
@@ -727,7 +764,7 @@ export default function App() {
             </div>
             <div style={{ padding: 20 }}>
               <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-                {[{ type: 'post', label: '📝 日常' }, { type: 'food', label: '🍜 美食' }, { type: 'hotel', label: '🏨 住宿' }, { type: 'shop', label: '🛍️ 购物' }].map(item => (
+                {[{ type: 'post', label: '📍 日常' }, { type: 'food', label: '🍽️ 美食' }, { type: 'hotel', label: '🏨 住宿' }, { type: 'shop', label: '🛍️ 购物' }].map(item => (
                   <button key={item.type} onClick={() => setPostForm({ ...postForm, type: item.type })} style={{ padding: '10px 16px', background: postForm.type === item.type ? `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)` : '#f5f5f5', border: 'none', borderRadius: 10, color: postForm.type === item.type ? 'white' : '#666', cursor: 'pointer', fontWeight: 500, fontSize: 13 }}>{item.label}</button>
                 ))}
               </div>
@@ -826,8 +863,16 @@ export default function App() {
             <div style={{ padding: 20, borderBottom: `1px solid #eee` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 40, height: 40, background: `linear-gradient(135deg, ${showPostDetail.type === 'food' ? '#ef4444' : showPostDetail.type === 'hotel' ? '#8b5cf6' : showPostDetail.type === 'shop' ? '#f59e0b' : '#3b82f6'} 0%, ${showPostDetail.type === 'food' ? '#dc2626' : showPostDetail.type === 'hotel' ? '#7c3aed' : showPostDetail.type === 'shop' ? '#d97706' : '#2563eb'} 100%)`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-                    {showPostDetail.type === 'food' ? '🍜' : showPostDetail.type === 'hotel' ? '🏨' : showPostDetail.type === 'shop' ? '🛍️' : '📝'}
+                  <div style={{ width: 40, height: 40, background: `linear-gradient(135deg, ${showPostDetail.type === 'food' ? '#f97316' : showPostDetail.type === 'hotel' ? '#8b5cf6' : showPostDetail.type === 'shop' ? '#ec4899' : '#3b82f6'} 0%, ${showPostDetail.type === 'food' ? '#ea580c' : showPostDetail.type === 'hotel' ? '#7c3aed' : showPostDetail.type === 'shop' ? '#db2777' : '#2563eb'} 100%)`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {showPostDetail.type === 'food' ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+                    ) : showPostDetail.type === 'hotel' ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path><path d="M9 9v.01"></path><path d="M9 12v.01"></path><path d="M9 15v.01"></path><path d="M9 18v.01"></path></svg>
+                    ) : showPostDetail.type === 'shop' ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 11V7a4 4 0 0 0-8 0v4"></path><path d="M5 9h14l1 12H4L5 9z"></path></svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    )}
                   </div>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: 16, color: COLORS.textDark }}>{showPostDetail.title}</div>
