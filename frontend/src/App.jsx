@@ -67,7 +67,7 @@ const createIcon = (type, isNew = false, isMyPost = false, zoom = 10) => {
   
   // 我的帖子用金色边框+金色光晕，普通帖子用白色边框+同色光晕
   const border = '3px solid white'
-  const shadow = `0 0 12px ${c.glowColor}, 0 4px 12px rgba(0,0,0,0.2)`
+  const shadow = `0 0 20px ${c.glowColor}, 0 0 40px ${c.glowColor}, 0 4px 15px rgba(0,0,0,0.3)`
   
   return L.divIcon({
     className: 'custom-marker',
