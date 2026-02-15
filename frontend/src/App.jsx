@@ -764,8 +764,33 @@ export default function App() {
             </div>
             <div style={{ padding: 20 }}>
               <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-                {[{ type: 'post', label: '📍 日常' }, { type: 'food', label: '🍽️ 美食' }, { type: 'hotel', label: '🏨 住宿' }, { type: 'shop', label: '🛍️ 购物' }].map(item => (
-                  <button key={item.type} onClick={() => setPostForm({ ...postForm, type: item.type })} style={{ padding: '10px 16px', background: postForm.type === item.type ? `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)` : '#f5f5f5', border: 'none', borderRadius: 10, color: postForm.type === item.type ? 'white' : '#666', cursor: 'pointer', fontWeight: 500, fontSize: 13 }}>{item.label}</button>
+                {[
+                  { type: 'post', label: '日常', color: '#3b82f6', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> },
+                  { type: 'food', label: '美食', color: '#f97316', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg> },
+                  { type: 'hotel', label: '住宿', color: '#8b5cf6', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg> },
+                  { type: 'shop', label: '购物', color: '#ec4899', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 11V7a4 4 0 0 0-8 0v4"></path><path d="M5 9h14l1 12H4L5 9z"></path></svg> }
+                ].map(item => (
+                  <button 
+                    key={item.type} 
+                    onClick={() => setPostForm({ ...postForm, type: item.type })} 
+                    style={{ 
+                      padding: '10px 16px', 
+                      background: postForm.type === item.type ? item.color : '#f5f5f5', 
+                      border: postForm.type === item.type ? 'none' : '1px solid #e0e0e0', 
+                      borderRadius: 10, 
+                      color: postForm.type === item.type ? 'white' : '#666', 
+                      cursor: 'pointer', 
+                      fontWeight: 500, 
+                      fontSize: 13,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </button>
                 ))}
               </div>
               <input placeholder="标题 *" value={postForm.title} onChange={e => setPostForm({ ...postForm, title: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} />
