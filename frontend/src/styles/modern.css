@@ -263,10 +263,13 @@ body {
   cursor: default !important;
 }
 
-/* 地图标记hover效果 */
-.custom-marker:hover div > div {
+/* 地图标记hover效果 - 只放大不旋转 */
+.custom-marker:hover > div > div:first-child {
   transform: rotate(-45deg) scale(1.2) !important;
-  box-shadow: 0 0 30px rgba(59,130,246,0.6), 0 0 60px rgba(59,130,246,0.4), 0 6px 20px rgba(0,0,0,0.3) !important;
+}
+
+.custom-marker:hover > div {
+  filter: brightness(1.1);
 }
 
 /* 地图控制 */
