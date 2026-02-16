@@ -44,17 +44,35 @@ const createIcon = (type, isNew = false, isMyPost = false, zoom = 10) => {
       // 叉子勺子图标 - 美食更直观
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path></svg>`
     },
-    hotel: { 
-      color: '#8b5cf6',       // 明亮紫
+    hotel: {
+      color: '#8b5cf6',
       glowColor: 'rgba(139,92,246,0.4)',
-      // 酒店建筑图标 - 住宿更直观
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z"></path><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg>`
     },
-    shop: { 
-      color: '#ec4899',       // 明亮粉
+    shop: {
+      color: '#ec4899',
       glowColor: 'rgba(236,72,153,0.4)',
-      // 购物车图标 - 购物更直观
       icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg>`
+    },
+    scenic: {
+      color: '#10b981',
+      glowColor: 'rgba(16,185,129,0.4)',
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v2"></path><path d="M12 3v2"></path><path d="M16 3v2"></path><path d="M3 8h18"></path><path d="M4 11h16"></path><path d="M5 14h14"></path><path d="M6 17h12"></path><path d="M7 20h10"></path></svg>`
+    },
+    transport: {
+      color: '#06b6d4',
+      glowColor: 'rgba(6,182,212,0.4)',
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18 10l-1.5-3.4C16.1 5.6 15.1 5 14 5H10c-1.1 0-2.1.6-2.5 1.6L6 10l-2.5 1.1C2.7 11.3 2 12.1 2 13v3c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><circle cx="17" cy="17" r="2"></circle></svg>`
+    },
+    entertainment: {
+      color: '#f59e0b',
+      glowColor: 'rgba(245,158,11,0.4)',
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>`
+    },
+    work: {
+      color: '#6366f1',
+      glowColor: 'rgba(99,102,241,0.4)',
+      icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`
     },
   }
   const c = config[type] || config.post
@@ -94,12 +112,29 @@ const createIcon = (type, isNew = false, isMyPost = false, zoom = 10) => {
   })
 }
 
-function MapEvents({ onClick, onReady, onZoom }) {
+// 获取帖子类型配置
+const getTypeConfig = (type) => {
+  const configs = {
+    post: { color: '#3b82f6', colorDark: '#2563eb', icon: '📍' },
+    food: { color: '#f97316', colorDark: '#ea580c', icon: '🍽️' },
+    hotel: { color: '#8b5cf6', colorDark: '#7c3aed', icon: '🏨' },
+    shop: { color: '#ec4899', colorDark: '#db2777', icon: '🛍️' },
+    scenic: { color: '#10b981', colorDark: '#059669', icon: '🏞️' },
+    transport: { color: '#06b6d4', colorDark: '#0891b2', icon: '🚗' },
+    entertainment: { color: '#f59e0b', colorDark: '#d97706', icon: '🎭' },
+    work: { color: '#6366f1', colorDark: '#4f46e5', icon: '💼' },
+  }
+  return configs[type] || configs.post
+}
+
+function MapEvents({ onClick, onReady, onZoom, onMouseMove }) {
   const map = useMap()
   useEffect(() => { if (onReady) onReady(map) }, [map, onReady])
-  useMapEvents({ 
-    click: (e) => { if (onClick) onClick(e.latlng) }, 
-    zoomend: () => { if (onZoom) onZoom(map.getZoom()) } 
+  useMapEvents({
+    click: (e) => { if (onClick) onClick(e.latlng) },
+    zoomend: () => { if (onZoom) onZoom(map.getZoom()) },
+    mousemove: (e) => { if (onMouseMove) onMouseMove(e.latlng) },
+    mouseout: () => { if (onMouseMove) onMouseMove(null) }
   })
   return null
 }
@@ -146,6 +181,9 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('all')
   const [filterType, setFilterType] = useState('all')
   const [submitting, setSubmitting] = useState(false)
+  const [mouseCoords, setMouseCoords] = useState(null) // 鼠标经纬度
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null) // 删除确认弹框 { id, type: 'post'|'comment' }
+  const [deleting, setDeleting] = useState(false) // 删除中状态
 
   // 检测移动端
   useEffect(() => {
@@ -171,6 +209,21 @@ export default function App() {
     }
     setLoading(false)
   }, [token])
+
+  // 逆地理编码（根据经纬度获取地点名称）
+  const reverseGeocode = async (lat, lng) => {
+    try {
+      const response = await fetch(`/api/geocode/reverse?location=${lng},${lat}`)
+      const data = await response.json()
+      if (data.regeocode?.formatted_address) {
+        return data.regeocode.formatted_address
+      }
+      return null
+    } catch (error) {
+      console.error('逆地理编码失败:', error)
+      return null
+    }
+  }
 
   // 获取帖子
   const fetchPosts = async () => {
@@ -326,16 +379,33 @@ export default function App() {
     }
   }
 
-  // 删除评论
-  const handleDeleteComment = async (commentId) => {
+  // 删除评论（打开确认弹框）
+  const handleDeleteComment = (commentId) => {
     if (!user) return
-    if (!confirm('确定要删除这条评论吗？')) return
-    
+    const comment = comments.find(c => c.id === commentId)
+    if (comment.authorId !== user.id) return
+    setShowDeleteConfirm({ id: commentId, type: 'comment', title: comment.content?.substring(0, 20) + '...' })
+  }
+
+  // 确认删除评论
+  const confirmDeleteComment = async () => {
+    if (!showDeleteConfirm) return
+    setDeleting(true)
     try {
-      await api(`/comments/${commentId}`, { method: 'DELETE' })
-      setComments(prev => prev.filter(c => c.id !== commentId))
+      await api(`/comments/${showDeleteConfirm.id}`, { method: 'DELETE' })
+      setComments(prev => prev.filter(c => c.id !== showDeleteConfirm.id))
+      setCommentCounts(prev => {
+        const newCounts = { ...prev }
+        if (showPostDetail) {
+          newCounts[showPostDetail.id] = Math.max(0, (newCounts[showPostDetail.id] || 0) - 1)
+        }
+        return newCounts
+      })
+      setShowDeleteConfirm(null)
     } catch (error) {
       alert(error.message)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -369,18 +439,27 @@ export default function App() {
     }
   }
 
-  // 删除帖子
-  const handleDeletePost = async (id) => {
+  // 删除帖子（打开确认弹框）
+  const handleDeletePost = (id) => {
     if (!user) return
     const post = posts.find(p => p.id === id)
     if (post.authorId !== user.id) return
-    if (!confirm('确定要删除这篇帖子吗？')) return
-    
+    setShowDeleteConfirm({ id, type: 'post', title: post.title })
+  }
+
+  // 确认删除帖子
+  const confirmDeletePost = async () => {
+    if (!showDeleteConfirm) return
+    setDeleting(true)
     try {
-      await api(`/posts/${id}`, { method: 'DELETE' })
+      await api(`/posts/${showDeleteConfirm.id}`, { method: 'DELETE' })
+      setShowDeleteConfirm(null)
+      setShowPostDetail(null)
       fetchPosts()
     } catch (error) {
       alert(error.message)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -509,6 +588,10 @@ export default function App() {
                   { key: 'food', label: '🍽️ 美食' },
                   { key: 'hotel', label: '🏨 住宿' },
                   { key: 'shop', label: '🛍️ 购物' },
+                  { key: 'scenic', label: '🏞️ 景点' },
+                  { key: 'transport', label: '🚗 交通' },
+                  { key: 'entertainment', label: '🎭 娱乐' },
+                  { key: 'work', label: '💼 工作' },
                 ].map(type => (
                   <button
                     key={type.key}
@@ -521,7 +604,7 @@ export default function App() {
                       color: filterType === type.key ? COLORS.accent : '#888',
                       fontSize: 12, transition: 'all 0.2s',
                     }}
-                  >{type.icon} {type.label}</button>
+                  >{type.label}</button>
                 ))}
               </div>
             </div>
@@ -575,23 +658,11 @@ export default function App() {
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                       <div style={{
                         width: 44, height: 44,
-                        background: `linear-gradient(135deg, ${post.type === 'food' ? '#f97316' : post.type === 'hotel' ? '#8b5cf6' : post.type === 'shop' ? '#ec4899' : '#3b82f6'} 0%, ${post.type === 'food' ? '#ea580c' : post.type === 'hotel' ? '#7c3aed' : post.type === 'shop' ? '#db2777' : '#2563eb'} 100%)`,
+                        background: `linear-gradient(135deg, ${getTypeConfig(post.type).color} 0%, ${getTypeConfig(post.type).colorDark} 100%)`,
                         borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        flexShrink: 0,
+                        flexShrink: 0, fontSize: 22,
                       }}>
-                        {post.type === 'food' ? (
-                          // 美食 - 叉子勺子
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path></svg>
-                        ) : post.type === 'hotel' ? (
-                          // 住宿 - 酒店建筑
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z"></path><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg>
-                        ) : post.type === 'shop' ? (
-                          // 购物 - 购物车
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg>
-                        ) : (
-                          // 日常打卡 - 定位针
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                        )}
+                        {getTypeConfig(post.type).icon}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
@@ -649,10 +720,21 @@ export default function App() {
             updateWhenZooming={false}
             crossOrigin="anonymous"
           />
-          <MapEvents onClick={(latlng) => { 
+          <MapEvents onClick={async (latlng) => {
             // 点击地图空白区域直接打卡
-            if (user) { setPostCoords(latlng); setShowPost(true) } else { setShowLogin(true) }
-          }} onReady={setMapRef} onZoom={setMapZoom} />
+            if (!user) { setShowLogin(true); return }
+
+            // 先设置坐标
+            setPostCoords(latlng)
+
+            // 尝试获取地点名称
+            const locationName = await reverseGeocode(latlng.lat, latlng.lng)
+            if (locationName) {
+              setPostForm(prev => ({ ...prev, location_name: locationName }))
+            }
+
+            setShowPost(true)
+          }} onReady={setMapRef} onZoom={setMapZoom} onMouseMove={setMouseCoords} />
           {posts.map(item => (
             <Marker 
               key={`post-${item.id}`} 
@@ -730,7 +812,19 @@ export default function App() {
         </div>
 
         {/* 底部提示 */}
-        <div style={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: COLORS.cardBg, padding: '10px 20px', borderRadius: 20, boxShadow: '0 2px 10px rgba(0,0,0,0.1)', fontSize: 13, color: '#666', zIndex: 1000 }}>📍 点击地图添加新地点</div>
+        {/* 底部提示/经纬度显示 */}
+        <div style={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: COLORS.cardBg, padding: '10px 20px', borderRadius: 20, boxShadow: '0 2px 10px rgba(0,0,0,0.1)', fontSize: 13, color: '#666', zIndex: 1000, display: 'flex', alignItems: 'center', gap: 8, minWidth: 200, justifyContent: 'center' }}>
+          {mouseCoords ? (
+            <>
+              <span style={{ color: COLORS.accent }}>📍</span>
+              <span style={{ fontFamily: 'monospace', fontSize: 12 }}>
+                {mouseCoords.lat.toFixed(4)}, {mouseCoords.lng.toFixed(4)}
+              </span>
+            </>
+          ) : (
+            '📍 点击地图添加新地点'
+          )}
+        </div>
       </div>
 
       {/* 登录弹窗 */}
@@ -765,10 +859,14 @@ export default function App() {
             <div style={{ padding: 20 }}>
               <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
                 {[
-                  { type: 'post', label: '日常', color: '#3b82f6', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> },
-                  { type: 'food', label: '美食', color: '#f97316', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path></svg> },
-                  { type: 'hotel', label: '住宿', color: '#8b5cf6', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z"></path><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg> },
-                  { type: 'shop', label: '购物', color: '#ec4899', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg> }
+                  { type: 'post', label: '📍 日常', color: '#3b82f6' },
+                  { type: 'food', label: '🍽️ 美食', color: '#f97316' },
+                  { type: 'hotel', label: '🏨 住宿', color: '#8b5cf6' },
+                  { type: 'shop', label: '🛍️ 购物', color: '#ec4899' },
+                  { type: 'scenic', label: '🏞️ 景点', color: '#10b981' },
+                  { type: 'transport', label: '🚗 交通', color: '#06b6d4' },
+                  { type: 'entertainment', label: '🎭 娱乐', color: '#f59e0b' },
+                  { type: 'work', label: '💼 工作', color: '#6366f1' }
                 ].map(item => (
                   <button 
                     key={item.type} 
@@ -888,16 +986,8 @@ export default function App() {
             <div style={{ padding: 20, borderBottom: `1px solid #eee` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 40, height: 40, background: `linear-gradient(135deg, ${showPostDetail.type === 'food' ? '#f97316' : showPostDetail.type === 'hotel' ? '#8b5cf6' : showPostDetail.type === 'shop' ? '#ec4899' : '#3b82f6'} 0%, ${showPostDetail.type === 'food' ? '#ea580c' : showPostDetail.type === 'hotel' ? '#7c3aed' : showPostDetail.type === 'shop' ? '#db2777' : '#2563eb'} 100%)`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {showPostDetail.type === 'food' ? (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path></svg>
-                    ) : showPostDetail.type === 'hotel' ? (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z"></path><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg>
-                    ) : showPostDetail.type === 'shop' ? (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg>
-                    ) : (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                    )}
+                  <div style={{ width: 40, height: 40, background: `linear-gradient(135deg, ${getTypeConfig(showPostDetail.type).color} 0%, ${getTypeConfig(showPostDetail.type).colorDark} 100%)`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                    {getTypeConfig(showPostDetail.type).icon}
                   </div>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: 16, color: COLORS.textDark }}>{showPostDetail.title}</div>
@@ -991,6 +1081,56 @@ export default function App() {
                   {submittingComment ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={18} />}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 删除确认弹框 */}
+      {showDeleteConfirm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => !deleting && setShowDeleteConfirm(null)}>
+          <div style={{ background: COLORS.cardBg, borderRadius: 16, width: '100%', maxWidth: 340, overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: 24, textAlign: 'center' }}>
+              <div style={{ width: 56, height: 56, background: '#fef2f2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+              </div>
+              <div style={{ fontWeight: 600, fontSize: 18, color: COLORS.textDark, marginBottom: 8 }}>
+                确定删除{showDeleteConfirm.type === 'post' ? '帖子' : '评论'}？
+              </div>
+              <div style={{ fontSize: 14, color: '#666', lineHeight: 1.5 }}>
+                {showDeleteConfirm.type === 'post' 
+                  ? '删除后将无法恢复，相关的评论也会一起删除。' 
+                  : '删除后将无法恢复。'}
+              </div>
+              {showDeleteConfirm.title && (
+                <div style={{ marginTop: 12, padding: '8px 12px', background: '#f5f5f5', borderRadius: 8, fontSize: 12, color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  "{showDeleteConfirm.title}"
+                </div>
+              )}
+            </div>
+            <div style={{ padding: '16px 20px', borderTop: `1px solid ${COLORS.border}`, display: 'flex', gap: 10 }}>
+              <button 
+                onClick={() => setShowDeleteConfirm(null)} 
+                disabled={deleting}
+                style={{ flex: 1, padding: 14, background: '#f5f5f5', border: 'none', borderRadius: 10, cursor: deleting ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 500, opacity: deleting ? 0.6 : 1 }}
+              >取消</button>
+              <button 
+                onClick={showDeleteConfirm.type === 'post' ? confirmDeletePost : confirmDeleteComment} 
+                disabled={deleting}
+                style={{ flex: 1, padding: 14, background: deleting ? '#fca5a5' : '#ef4444', color: 'white', border: 'none', borderRadius: 10, cursor: deleting ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                    删除中...
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path></svg>
+                    确定删除
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

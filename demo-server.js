@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const PORT = 8080;
+const PORT = process.env.PORT || 3002;
 
 // 中间件
 app.use(cors());
@@ -338,6 +338,113 @@ app.get('/api/v1/spots/bounds', (req, res) => {
 // 健康检查
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// POI 搜索 API（模拟高德数据，返回附近的兴趣点）
+app.get('/api/pois', (req, res) => {
+  const location = req.query.location; // "lng,lat"
+  const radius = parseInt(req.query.radius) || 3000;
+
+  if (!location) {
+    return res.status(400).json({ error: '缺少 location 参数' });
+  }
+
+  const [lng, lat] = location.split(',').map(parseFloat);
+
+  // 模拟 POI 数据（实际项目中应调用高德 API）
+  // 这里返回一些随机生成的附近 POI
+  const poiTypes = [
+    { type: 'restaurant', typeName: '餐饮', names: ['肯德基', '麦当劳', '星巴克', '瑞幸咖啡', '海底捞', '呷哺呷哺', '必胜客', '真功夫'] },
+    { type: 'hotel', typeName: '酒店', names: ['如家酒店', '汉庭酒店', '7天酒店', '锦江之星', '全季酒店', '亚朵酒店'] },
+    { type: 'shopping', typeName: '购物', names: ['万达广场', '华润万家', '永辉超市', '盒马鲜生', '名创优品', '屈臣氏'] },
+    { type: 'scenic', typeName: '景点', names: ['人民公园', '中心广场', '历史博物馆', '科技馆', '海洋世界', '动物园'] },
+    { type: 'entertainment', typeName: '娱乐', names: ['万达影城', 'KTV', '网吧', '健身房', '游泳馆', '游乐场'] }
+  ];
+
+  // 生成 20-40 个随机 POI
+  const count = Math.floor(Math.random() * 20) + 20;
+  const pois = [];
+
+  for (let i = 0; i < count; i++) {
+    const poiType = poiTypes[Math.floor(Math.random() * poiTypes.length)];
+    const name = poiType.names[Math.floor(Math.random() * poiType.names.length)];
+
+    // 在中心点附近随机偏移（根据半径计算）
+    const offsetLat = (Math.random() - 0.5) * (radius / 111000); // 1度纬度约111km
+    const offsetLng = (Math.random() - 0.5) * (radius / 111000 / Math.cos(lat * Math.PI / 180));
+
+    pois.push({
+      id: `poi_${Date.now()}_${i}`,
+      name: `${name}(${Math.floor(Math.random() * 100) + 1}号店)`,
+      type: poiType.type,
+      typeName: poiType.typeName,
+      latitude: lat + offsetLat,
+      longitude: lng + offsetLng,
+      address: `某某路${Math.floor(Math.random() * 999) + 1}号`,
+      distance: Math.floor(Math.random() * radius)
+    });
+  }
+
+  // 按距离排序
+  pois.sort((a, b) => a.distance - b.distance);
+
+  res.json({ pois });
+});
+
+// 逆地理编码 API（根据经纬度获取地点名称）
+app.get('/api/geocode/reverse', (req, res) => {
+  const location = req.query.location; // "lng,lat"
+
+  if (!location) {
+    return res.status(400).json({ error: '缺少 location 参数' });
+  }
+
+  const [lng, lat] = location.split(',').map(parseFloat);
+
+  // 模拟逆地理编码（实际项目中应调用高德 API）
+  // 根据经纬度返回一个模拟的地点名称
+  const cities = [
+    { name: '北京', latRange: [39.5, 41], lngRange: [115.5, 117.5] },
+    { name: '上海', latRange: [30.5, 31.5], lngRange: [121, 122] },
+    { name: '广州', latRange: [22.5, 23.5], lngRange: [113, 113.8] },
+    { name: '深圳', latRange: [22.4, 22.9], lngRange: [113.8, 114.5] },
+    { name: '杭州', latRange: [30, 30.5], lngRange: [120, 120.5] },
+    { name: '成都', latRange: [30.5, 31], lngRange: [103.8, 104.2] },
+    { name: '武汉', latRange: [30.3, 30.8], lngRange: [114, 114.5] },
+    { name: '西安', latRange: [34.2, 34.4], lngRange: [108.8, 109.1] },
+    { name: '南京', latRange: [31.9, 32.2], lngRange: [118.6, 119] },
+    { name: '重庆', latRange: [29.4, 29.8], lngRange: [106.3, 106.7] },
+  ];
+
+  let cityName = '未知城市';
+  for (const city of cities) {
+    if (lat >= city.latRange[0] && lat <= city.latRange[1] &&
+        lng >= city.lngRange[0] && lng <= city.lngRange[1]) {
+      cityName = city.name;
+      break;
+    }
+  }
+
+  // 生成模拟的详细地址
+  const streets = ['中山路', '人民路', '解放路', '建设路', '和平路', '光明路', '幸福路', '文化路'];
+  const street = streets[Math.floor(Math.random() * streets.length)];
+  const number = Math.floor(Math.random() * 999) + 1;
+
+  const address = `${cityName}市某区${street}${number}号`;
+
+  res.json({
+    status: '1',
+    info: 'OK',
+    regeocode: {
+      formatted_address: address,
+      addressComponent: {
+        city: cityName,
+        district: '某区',
+        street: street,
+        number: number + '号'
+      }
+    }
+  });
 });
 
 // 启动服务器
