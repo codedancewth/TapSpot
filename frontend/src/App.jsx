@@ -189,6 +189,7 @@ export default function App() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [showUserSpace, setShowUserSpace] = useState(null) // 查看用户空间 { user, posts }
   const [loadingUserSpace, setLoadingUserSpace] = useState(false)
+  const [navigatingToPost, setNavigatingToPost] = useState(false) // 正在导航到帖子（阻止地图点击事件）
 
   // 检测移动端
   useEffect(() => {
@@ -717,8 +718,15 @@ export default function App() {
                 posts.map(post => (
                   <div
                     key={post.id}
-                    onClick={() => {
-                      if (mapRef) mapRef.setView([post.latitude, post.longitude], 12)
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      // 设置导航标志，防止地图点击事件干扰
+                      setNavigatingToPost(true)
+                      if (mapRef) {
+                        mapRef.setView([post.latitude, post.longitude], 13)
+                      }
+                      // 延迟重置标志，确保地图移动完成
+                      setTimeout(() => setNavigatingToPost(false), 500)
                       if (isMobile) setShowSidebar(false)
                     }}
                     style={{
@@ -799,6 +807,9 @@ export default function App() {
             crossOrigin="anonymous"
           />
           <MapEvents onClick={async (latlng) => {
+            // 如果正在导航到帖子，忽略地图点击
+            if (navigatingToPost) return
+            
             // 点击地图空白区域直接打卡
             if (!user) { setShowLogin(true); return }
 
@@ -1071,7 +1082,13 @@ export default function App() {
                   <div>
                     <div style={{ fontWeight: 600, fontSize: 16, color: COLORS.textDark }}>{showPostDetail.title}</div>
                     <div 
-                      onClick={() => { setShowPostDetail(null); openUserSpace(showPostDetail.authorId, showPostDetail.author) }}
+                      onClick={(e) => { 
+                        e.stopPropagation()
+                        setShowPostDetail(null)
+                        setNavigatingToPost(true)
+                        openUserSpace(showPostDetail.authorId, showPostDetail.author)
+                        setTimeout(() => setNavigatingToPost(false), 500)
+                      }}
                       style={{ fontSize: 12, color: COLORS.accent, cursor: 'pointer' }}
                     >@{showPostDetail.author} · {formatTime(showPostDetail.createdAt)}</div>
                   </div>
@@ -1107,7 +1124,13 @@ export default function App() {
                   <div key={comment.id} style={{ background: 'white', borderRadius: 10, padding: 12, marginBottom: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div 
-                        onClick={() => { setShowPostDetail(null); openUserSpace(comment.authorId, comment.author) }}
+                        onClick={(e) => { 
+                          e.stopPropagation()
+                          setShowPostDetail(null)
+                          setNavigatingToPost(true)
+                          openUserSpace(comment.authorId, comment.author)
+                          setTimeout(() => setNavigatingToPost(false), 500)
+                        }}
                         style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, cursor: 'pointer' }}
                       >
                         <div style={{ width: 24, height: 24, background: COLORS.secondary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>👤</div>
@@ -1403,9 +1426,14 @@ export default function App() {
                     showUserSpace.posts.map(post => (
                       <div
                         key={post.id}
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation()
                           setShowUserSpace(null)
-                          if (mapRef) mapRef.setView([post.latitude, post.longitude], 12)
+                          setNavigatingToPost(true)
+                          if (mapRef) {
+                            mapRef.setView([post.latitude, post.longitude], 13)
+                          }
+                          setTimeout(() => setNavigatingToPost(false), 500)
                         }}
                         style={{
                           background: '#f8f8f8', borderRadius: 12, padding: 14, marginBottom: 10, cursor: 'pointer',
