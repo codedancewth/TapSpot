@@ -31,7 +31,7 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ error: '请先登录' })
     }
     const decoded = jwt.verify(token, JWT_SECRET)
-    const [users] = await pool.execute('SELECT id, username, nickname FROM users WHERE id = ?', [decoded.userId])
+    const [users] = await pool.execute('SELECT id, username, nickname, avatar, gender, bio FROM users WHERE id = ?', [decoded.userId])
     if (users.length === 0) {
       return res.status(401).json({ error: '用户不存在' })
     }
@@ -142,7 +142,7 @@ app.get('/api/me', auth, (req, res) => {
 // 更新用户资料
 app.put('/api/me', auth, async (req, res) => {
   try {
-    const { nickname, avatar } = req.body
+    const { nickname, avatar, gender, bio } = req.body
     
     if (nickname && nickname.length < 1) {
       return res.status(400).json({ error: '昵称不能为空' })
@@ -150,18 +150,32 @@ app.put('/api/me', auth, async (req, res) => {
     if (nickname && nickname.length > 20) {
       return res.status(400).json({ error: '昵称不能超过20个字符' })
     }
+    if (bio && bio.length > 200) {
+      return res.status(400).json({ error: '个人简介不能超过200个字符' })
+    }
+    if (gender && !['male', 'female', 'secret'].includes(gender)) {
+      return res.status(400).json({ error: '性别参数无效' })
+    }
 
     // 更新用户资料
     const updateFields = []
     const params = []
     
-    if (nickname) {
+    if (nickname !== undefined) {
       updateFields.push('nickname = ?')
       params.push(nickname)
     }
     if (avatar !== undefined) {
       updateFields.push('avatar = ?')
       params.push(avatar)
+    }
+    if (gender !== undefined) {
+      updateFields.push('gender = ?')
+      params.push(gender)
+    }
+    if (bio !== undefined) {
+      updateFields.push('bio = ?')
+      params.push(bio)
     }
     
     if (updateFields.length === 0) {
@@ -172,7 +186,7 @@ app.put('/api/me', auth, async (req, res) => {
     await pool.execute(`UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`, params)
 
     // 返回更新后的用户信息
-    const [users] = await pool.execute('SELECT id, username, nickname, avatar FROM users WHERE id = ?', [req.user.id])
+    const [users] = await pool.execute('SELECT id, username, nickname, avatar, gender, bio FROM users WHERE id = ?', [req.user.id])
     res.json({ success: true, user: users[0] })
   } catch (error) {
     console.error('Update user error:', error)
@@ -184,7 +198,7 @@ app.put('/api/me', auth, async (req, res) => {
 app.get('/api/users/:id', async (req, res) => {
   try {
     const [users] = await pool.execute(
-      'SELECT id, username, nickname, avatar, created_at FROM users WHERE id = ?',
+      'SELECT id, username, nickname, avatar, gender, bio, created_at FROM users WHERE id = ?',
       [req.params.id]
     )
     
@@ -213,6 +227,8 @@ app.get('/api/users/:id', async (req, res) => {
         username: user.username,
         nickname: user.nickname,
         avatar: user.avatar,
+        gender: user.gender,
+        bio: user.bio,
         createdAt: user.created_at,
         postsCount: postCount[0].count,
         likesCount: likeCount[0].count

@@ -185,7 +185,7 @@ export default function App() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null) // 删除确认弹框 { id, type: 'post'|'comment' }
   const [deleting, setDeleting] = useState(false) // 删除中状态
   const [showUserProfile, setShowUserProfile] = useState(false) // 编辑个人资料弹窗
-  const [profileForm, setProfileForm] = useState({ nickname: '' })
+  const [profileForm, setProfileForm] = useState({ nickname: '', gender: 'secret', bio: '' })
   const [savingProfile, setSavingProfile] = useState(false)
   const [showUserSpace, setShowUserSpace] = useState(null) // 查看用户空间 { user, posts }
   const [loadingUserSpace, setLoadingUserSpace] = useState(false)
@@ -508,7 +508,11 @@ export default function App() {
   // 打开个人资料编辑弹窗
   const openUserProfile = () => {
     if (user) {
-      setProfileForm({ nickname: user.nickname || '' })
+      setProfileForm({ 
+        nickname: user.nickname || '', 
+        gender: user.gender || 'secret',
+        bio: user.bio || ''
+      })
       setShowUserProfile(true)
       setShowUserMenu(false)
     }
@@ -523,7 +527,11 @@ export default function App() {
     try {
       const data = await api('/me', {
         method: 'PUT',
-        body: JSON.stringify({ nickname: profileForm.nickname.trim() })
+        body: JSON.stringify({ 
+          nickname: profileForm.nickname.trim(),
+          gender: profileForm.gender,
+          bio: profileForm.bio.trim()
+        })
       })
       setUser(data.user)
       setShowUserProfile(false)
@@ -532,6 +540,19 @@ export default function App() {
     } finally {
       setSavingProfile(false)
     }
+  }
+
+  // 性别显示文本
+  const getGenderText = (gender) => {
+    const map = { male: '男', female: '女', secret: '保密' }
+    return map[gender] || '保密'
+  }
+
+  // 性别图标
+  const getGenderIcon = (gender) => {
+    if (gender === 'male') return '👨'
+    if (gender === 'female') return '👩'
+    return '🤫'
   }
 
   // 查看用户空间（获取用户信息和帖子列表）
@@ -1203,12 +1224,25 @@ export default function App() {
       {/* 用户资料编辑弹窗 */}
       {showUserProfile && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowUserProfile(false)}>
-          <div style={{ background: COLORS.cardBg, borderRadius: 16, width: '100%', maxWidth: 360, overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: COLORS.cardBg, borderRadius: 16, width: '100%', maxWidth: 400, maxHeight: '90vh', overflow: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: 20, borderBottom: `1px solid ${COLORS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <b style={{ fontSize: 18, color: COLORS.textDark }}>编辑资料</b>
               <button onClick={() => setShowUserProfile(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             <div style={{ padding: 20 }}>
+              {/* 头像预览 */}
+              <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                <div style={{ 
+                  width: 80, height: 80, 
+                  background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, 
+                  borderRadius: '50%', 
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 36,
+                  boxShadow: `0 4px 20px ${COLORS.accent}40`
+                }}>👤</div>
+              </div>
+
+              {/* 用户名 */}
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: 'block', fontSize: 13, color: '#666', marginBottom: 6 }}>用户名</label>
                 <input 
@@ -1218,8 +1252,10 @@ export default function App() {
                 />
                 <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>用户名不可修改</div>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, color: '#666', marginBottom: 6 }}>昵称</label>
+
+              {/* 昵称 */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 13, color: '#666', marginBottom: 6 }}>昵称 *</label>
                 <input 
                   placeholder="输入你的昵称"
                   value={profileForm.nickname} 
@@ -1227,6 +1263,51 @@ export default function App() {
                   maxLength={20}
                   style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, fontSize: 15, boxSizing: 'border-box' }} 
                 />
+                <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>{profileForm.nickname.length}/20</div>
+              </div>
+
+              {/* 性别 */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 13, color: '#666', marginBottom: 6 }}>性别</label>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  {[
+                    { value: 'male', label: '男', icon: '👨' },
+                    { value: 'female', label: '女', icon: '👩' },
+                    { value: 'secret', label: '保密', icon: '🤫' },
+                  ].map(item => (
+                    <button
+                      key={item.value}
+                      onClick={() => setProfileForm({ ...profileForm, gender: item.value })}
+                      style={{
+                        flex: 1, padding: 12,
+                        background: profileForm.gender === item.value ? `${COLORS.accent}15` : '#f5f5f5',
+                        border: profileForm.gender === item.value ? `2px solid ${COLORS.accent}` : '2px solid transparent',
+                        borderRadius: 10, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                        color: profileForm.gender === item.value ? COLORS.accent : '#666',
+                        fontWeight: 500, fontSize: 14,
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <span style={{ fontSize: 18 }}>{item.icon}</span>
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 个人简介 */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 13, color: '#666', marginBottom: 6 }}>个人简介</label>
+                <textarea 
+                  placeholder="介绍一下自己吧~"
+                  value={profileForm.bio} 
+                  onChange={e => setProfileForm({ ...profileForm, bio: e.target.value })}
+                  maxLength={200}
+                  rows={3}
+                  style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, fontSize: 15, resize: 'none', boxSizing: 'border-box' }} 
+                />
+                <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>{profileForm.bio.length}/200</div>
               </div>
             </div>
             <div style={{ padding: 20, borderTop: `1px solid ${COLORS.border}`, display: 'flex', gap: 10 }}>
@@ -1267,7 +1348,12 @@ export default function App() {
                         boxShadow: `0 4px 15px ${COLORS.accent}40`
                       }}>👤</div>
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: 20 }}>{showUserSpace.user.nickname}</div>
+                        <div style={{ fontWeight: 700, fontSize: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {showUserSpace.user.nickname}
+                          {showUserSpace.user.gender && (
+                            <span style={{ fontSize: 16 }}>{getGenderIcon(showUserSpace.user.gender)}</span>
+                          )}
+                        </div>
                         <div style={{ fontSize: 12, color: '#aaa' }}>@{showUserSpace.user.username}</div>
                       </div>
                     </div>
@@ -1275,6 +1361,20 @@ export default function App() {
                       <X size={18} color={COLORS.text} />
                     </button>
                   </div>
+                  
+                  {/* 个人简介 */}
+                  {showUserSpace.user.bio && (
+                    <div style={{ 
+                      marginBottom: 16, 
+                      padding: '10px 14px', 
+                      background: 'rgba(255,255,255,0.1)', 
+                      borderRadius: 10,
+                      fontSize: 13,
+                      lineHeight: 1.5
+                    }}>
+                      {showUserSpace.user.bio}
+                    </div>
+                  )}
                   
                   {/* 统计数据 */}
                   <div style={{ display: 'flex', gap: 24 }}>
