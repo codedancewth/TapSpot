@@ -131,7 +131,10 @@ function MapEvents({ onClick, onReady, onZoom, onMouseMove }) {
   const map = useMap()
   useEffect(() => { if (onReady) onReady(map) }, [map, onReady])
   useMapEvents({
-    click: (e) => { if (onClick) onClick(e.latlng) },
+    click: (e) => { 
+      // 传递原始事件，用于判断点击目标
+      if (onClick) onClick(e.latlng, e.originalEvent) 
+    },
     zoomend: () => { if (onZoom) onZoom(map.getZoom()) },
     mousemove: (e) => { if (onMouseMove) onMouseMove(e.latlng) },
     mouseout: () => { if (onMouseMove) onMouseMove(null) }
@@ -189,7 +192,6 @@ export default function App() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [showUserSpace, setShowUserSpace] = useState(null) // 查看用户空间 { user, posts }
   const [loadingUserSpace, setLoadingUserSpace] = useState(false)
-  const [navigatingToPost, setNavigatingToPost] = useState(false) // 正在导航到帖子（阻止地图点击事件）
 
   // 检测移动端
   useEffect(() => {
@@ -720,13 +722,10 @@ export default function App() {
                     key={post.id}
                     onClick={(e) => {
                       e.stopPropagation()
-                      // 设置导航标志，防止地图点击事件干扰
-                      setNavigatingToPost(true)
+                      // 直接导航到帖子位置，不受任何状态影响
                       if (mapRef) {
-                        mapRef.setView([post.latitude, post.longitude], 13)
+                        mapRef.setView([post.latitude, post.longitude], 13, { animate: false })
                       }
-                      // 延迟重置标志，确保地图移动完成
-                      setTimeout(() => setNavigatingToPost(false), 500)
                       if (isMobile) setShowSidebar(false)
                     }}
                     style={{
@@ -806,12 +805,19 @@ export default function App() {
             updateWhenZooming={false}
             crossOrigin="anonymous"
           />
-          <MapEvents onClick={async (latlng) => {
-            // 如果正在导航到帖子，忽略地图点击
-            if (navigatingToPost) return
-            
-            // 点击地图空白区域直接打卡
+          <MapEvents onClick={async (latlng, originalEvent) => {
+            // 如果点击的是 Marker 或 Popup，不处理（由 Leaflet 判断）
+            // 只有点击真正的地图空白区域才打开发帖弹窗
             if (!user) { setShowLogin(true); return }
+
+            // 检查是否点击在 Marker 或 Popup 上
+            if (originalEvent && (
+              originalEvent.target?.closest('.leaflet-marker-icon') ||
+              originalEvent.target?.closest('.leaflet-popup') ||
+              originalEvent.target?.closest('.leaflet-control')
+            )) {
+              return
+            }
 
             // 先设置坐标
             setPostCoords(latlng)
@@ -1085,9 +1091,7 @@ export default function App() {
                       onClick={(e) => { 
                         e.stopPropagation()
                         setShowPostDetail(null)
-                        setNavigatingToPost(true)
                         openUserSpace(showPostDetail.authorId, showPostDetail.author)
-                        setTimeout(() => setNavigatingToPost(false), 500)
                       }}
                       style={{ fontSize: 12, color: COLORS.accent, cursor: 'pointer' }}
                     >@{showPostDetail.author} · {formatTime(showPostDetail.createdAt)}</div>
@@ -1127,9 +1131,7 @@ export default function App() {
                         onClick={(e) => { 
                           e.stopPropagation()
                           setShowPostDetail(null)
-                          setNavigatingToPost(true)
                           openUserSpace(comment.authorId, comment.author)
-                          setTimeout(() => setNavigatingToPost(false), 500)
                         }}
                         style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, cursor: 'pointer' }}
                       >
@@ -1429,11 +1431,9 @@ export default function App() {
                         onClick={(e) => {
                           e.stopPropagation()
                           setShowUserSpace(null)
-                          setNavigatingToPost(true)
                           if (mapRef) {
-                            mapRef.setView([post.latitude, post.longitude], 13)
+                            mapRef.setView([post.latitude, post.longitude], 13, { animate: false })
                           }
-                          setTimeout(() => setNavigatingToPost(false), 500)
                         }}
                         style={{
                           background: '#f8f8f8', borderRadius: 12, padding: 14, marginBottom: 10, cursor: 'pointer',
