@@ -139,6 +139,127 @@ app.get('/api/me', auth, (req, res) => {
   res.json({ user: req.user })
 })
 
+// 更新用户资料
+app.put('/api/me', auth, async (req, res) => {
+  try {
+    const { nickname, avatar } = req.body
+    
+    if (nickname && nickname.length < 1) {
+      return res.status(400).json({ error: '昵称不能为空' })
+    }
+    if (nickname && nickname.length > 20) {
+      return res.status(400).json({ error: '昵称不能超过20个字符' })
+    }
+
+    // 更新用户资料
+    const updateFields = []
+    const params = []
+    
+    if (nickname) {
+      updateFields.push('nickname = ?')
+      params.push(nickname)
+    }
+    if (avatar !== undefined) {
+      updateFields.push('avatar = ?')
+      params.push(avatar)
+    }
+    
+    if (updateFields.length === 0) {
+      return res.status(400).json({ error: '没有需要更新的内容' })
+    }
+
+    params.push(req.user.id)
+    await pool.execute(`UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`, params)
+
+    // 返回更新后的用户信息
+    const [users] = await pool.execute('SELECT id, username, nickname, avatar FROM users WHERE id = ?', [req.user.id])
+    res.json({ success: true, user: users[0] })
+  } catch (error) {
+    console.error('Update user error:', error)
+    res.status(500).json({ error: '更新失败' })
+  }
+})
+
+// 获取用户公开信息（根据用户ID）
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const [users] = await pool.execute(
+      'SELECT id, username, nickname, avatar, created_at FROM users WHERE id = ?',
+      [req.params.id]
+    )
+    
+    if (users.length === 0) {
+      return res.status(404).json({ error: '用户不存在' })
+    }
+
+    const user = users[0]
+    
+    // 获取用户帖子数
+    const [postCount] = await pool.execute(
+      'SELECT COUNT(*) as count FROM posts WHERE user_id = ?',
+      [req.params.id]
+    )
+    
+    // 获取用户收到的点赞数
+    const [likeCount] = await pool.execute(`
+      SELECT COUNT(*) as count FROM likes l
+      JOIN posts p ON l.post_id = p.id
+      WHERE p.user_id = ?
+    `, [req.params.id])
+
+    res.json({
+      user: {
+        id: user.id,
+        username: user.username,
+        nickname: user.nickname,
+        avatar: user.avatar,
+        createdAt: user.created_at,
+        postsCount: postCount[0].count,
+        likesCount: likeCount[0].count
+      }
+    })
+  } catch (error) {
+    console.error('Get user error:', error)
+    res.status(500).json({ error: '获取用户信息失败' })
+  }
+})
+
+// 获取用户的帖子列表
+app.get('/api/users/:id/posts', async (req, res) => {
+  try {
+    const { limit = 50, offset = 0 } = req.query
+    
+    const [posts] = await pool.execute(`
+      SELECT p.*, u.username, u.nickname,
+        (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count
+      FROM posts p
+      JOIN users u ON p.user_id = u.id
+      WHERE p.user_id = ?
+      ORDER BY p.created_at DESC
+      LIMIT ? OFFSET ?
+    `, [req.params.id, parseInt(limit), parseInt(offset)])
+
+    const formattedPosts = posts.map(post => ({
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      type: post.type,
+      location_name: post.location_name,
+      latitude: parseFloat(post.latitude),
+      longitude: parseFloat(post.longitude),
+      likes: post.like_count,
+      author: post.nickname || post.username,
+      authorId: post.user_id,
+      createdAt: post.created_at
+    }))
+
+    res.json({ posts: formattedPosts })
+  } catch (error) {
+    console.error('Get user posts error:', error)
+    res.status(500).json({ error: '获取用户帖子失败' })
+  }
+})
+
 // ============ 帖子相关 API ============
 
 // 获取帖子列表

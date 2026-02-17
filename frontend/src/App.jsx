@@ -184,6 +184,11 @@ export default function App() {
   const [mouseCoords, setMouseCoords] = useState(null) // 鼠标经纬度
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null) // 删除确认弹框 { id, type: 'post'|'comment' }
   const [deleting, setDeleting] = useState(false) // 删除中状态
+  const [showUserProfile, setShowUserProfile] = useState(false) // 编辑个人资料弹窗
+  const [profileForm, setProfileForm] = useState({ nickname: '' })
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [showUserSpace, setShowUserSpace] = useState(null) // 查看用户空间 { user, posts }
+  const [loadingUserSpace, setLoadingUserSpace] = useState(false)
 
   // 检测移动端
   useEffect(() => {
@@ -500,6 +505,55 @@ export default function App() {
 
   const myPostsCount = user ? posts.filter(p => p.authorId === user.id).length : 0
 
+  // 打开个人资料编辑弹窗
+  const openUserProfile = () => {
+    if (user) {
+      setProfileForm({ nickname: user.nickname || '' })
+      setShowUserProfile(true)
+      setShowUserMenu(false)
+    }
+  }
+
+  // 保存个人资料
+  const handleSaveProfile = async () => {
+    if (!profileForm.nickname.trim()) {
+      return alert('昵称不能为空')
+    }
+    setSavingProfile(true)
+    try {
+      const data = await api('/me', {
+        method: 'PUT',
+        body: JSON.stringify({ nickname: profileForm.nickname.trim() })
+      })
+      setUser(data.user)
+      setShowUserProfile(false)
+    } catch (error) {
+      alert(error.message)
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  // 查看用户空间（获取用户信息和帖子列表）
+  const openUserSpace = async (userId, authorName) => {
+    setLoadingUserSpace(true)
+    try {
+      const [userData, postsData] = await Promise.all([
+        api(`/users/${userId}`),
+        api(`/users/${userId}/posts`)
+      ])
+      setShowUserSpace({
+        user: userData.user,
+        posts: postsData.posts
+      })
+    } catch (error) {
+      console.error('获取用户空间失败:', error)
+      alert('获取用户信息失败')
+    } finally {
+      setLoadingUserSpace(false)
+    }
+  }
+
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', background: COLORS.cardBgDark }}>
       
@@ -677,7 +731,10 @@ export default function App() {
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: `1px solid ${COLORS.border}` }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div 
+                        onClick={(e) => { e.stopPropagation(); openUserSpace(post.authorId, post.author) }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+                      >
                         <div style={{ width: 20, height: 20, background: COLORS.secondary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>👤</div>
                         <span style={{ fontSize: 12, color: '#888' }}>{post.author}</span>
                       </div>
@@ -794,6 +851,7 @@ export default function App() {
               {showUserMenu && (
                 <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 8, background: COLORS.cardBg, borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', minWidth: 160, overflow: 'hidden', zIndex: 1002 }}>
                   <div style={{ padding: 12, borderBottom: `1px solid ${COLORS.border}`, fontSize: 12, color: '#666' }}>@{user.username}</div>
+                  <button onClick={openUserProfile} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.textDark, fontSize: 13 }}><User size={16} /> 编辑资料</button>
                   <button onClick={handleLogout} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.accent, fontSize: 13 }}><LogOut size={16} /> 退出登录</button>
                 </div>
               )}
@@ -991,7 +1049,10 @@ export default function App() {
                   </div>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: 16, color: COLORS.textDark }}>{showPostDetail.title}</div>
-                    <div style={{ fontSize: 12, color: '#888' }}>@{showPostDetail.author} · {formatTime(showPostDetail.createdAt)}</div>
+                    <div 
+                      onClick={() => { setShowPostDetail(null); openUserSpace(showPostDetail.authorId, showPostDetail.author) }}
+                      style={{ fontSize: 12, color: COLORS.accent, cursor: 'pointer' }}
+                    >@{showPostDetail.author} · {formatTime(showPostDetail.createdAt)}</div>
                   </div>
                 </div>
                 <button onClick={() => setShowPostDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={20} /></button>
@@ -1024,7 +1085,10 @@ export default function App() {
                 comments.map(comment => (
                   <div key={comment.id} style={{ background: 'white', borderRadius: 10, padding: 12, marginBottom: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <div 
+                        onClick={() => { setShowPostDetail(null); openUserSpace(comment.authorId, comment.author) }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, cursor: 'pointer' }}
+                      >
                         <div style={{ width: 24, height: 24, background: COLORS.secondary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>👤</div>
                         <span style={{ fontWeight: 500, fontSize: 13, color: COLORS.textDark }}>{comment.author}</span>
                         <span style={{ fontSize: 11, color: '#aaa' }}>{formatTime(comment.createdAt)}</span>
@@ -1132,6 +1196,150 @@ export default function App() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 用户资料编辑弹窗 */}
+      {showUserProfile && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowUserProfile(false)}>
+          <div style={{ background: COLORS.cardBg, borderRadius: 16, width: '100%', maxWidth: 360, overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: 20, borderBottom: `1px solid ${COLORS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <b style={{ fontSize: 18, color: COLORS.textDark }}>编辑资料</b>
+              <button onClick={() => setShowUserProfile(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+            </div>
+            <div style={{ padding: 20 }}>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 13, color: '#666', marginBottom: 6 }}>用户名</label>
+                <input 
+                  value={user?.username || ''} 
+                  disabled 
+                  style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, fontSize: 15, background: '#f5f5f5', color: '#999', boxSizing: 'border-box' }} 
+                />
+                <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>用户名不可修改</div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, color: '#666', marginBottom: 6 }}>昵称</label>
+                <input 
+                  placeholder="输入你的昵称"
+                  value={profileForm.nickname} 
+                  onChange={e => setProfileForm({ ...profileForm, nickname: e.target.value })}
+                  maxLength={20}
+                  style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, fontSize: 15, boxSizing: 'border-box' }} 
+                />
+              </div>
+            </div>
+            <div style={{ padding: 20, borderTop: `1px solid ${COLORS.border}`, display: 'flex', gap: 10 }}>
+              <button onClick={() => setShowUserProfile(false)} style={{ flex: 1, padding: 14, background: '#f5f5f5', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 14 }}>取消</button>
+              <button onClick={handleSaveProfile} disabled={savingProfile} style={{ flex: 1, padding: 14, background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, color: 'white', border: 'none', borderRadius: 10, cursor: savingProfile ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: savingProfile ? 0.7 : 1 }}>
+                {savingProfile ? '保存中...' : '保存'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 用户空间弹窗 */}
+      {(showUserSpace || loadingUserSpace) && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => !loadingUserSpace && setShowUserSpace(null)}>
+          <div style={{ background: COLORS.cardBg, borderRadius: 16, width: '100%', maxWidth: 420, maxHeight: '85vh', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+            {loadingUserSpace ? (
+              <div style={{ padding: 60, textAlign: 'center' }}>
+                <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: COLORS.accent }} />
+                <div style={{ marginTop: 12, color: '#666' }}>加载中...</div>
+              </div>
+            ) : showUserSpace && (
+              <>
+                {/* 用户信息头部 */}
+                <div style={{ 
+                  padding: 24, 
+                  background: `linear-gradient(135deg, ${COLORS.secondary} 0%, ${COLORS.primary} 100%)`,
+                  color: COLORS.text
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                      <div style={{ 
+                        width: 56, height: 56, 
+                        background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, 
+                        borderRadius: '50%', 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 24,
+                        boxShadow: `0 4px 15px ${COLORS.accent}40`
+                      }}>👤</div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 20 }}>{showUserSpace.user.nickname}</div>
+                        <div style={{ fontSize: 12, color: '#aaa' }}>@{showUserSpace.user.username}</div>
+                      </div>
+                    </div>
+                    <button onClick={() => setShowUserSpace(null)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, cursor: 'pointer', padding: 6 }}>
+                      <X size={18} color={COLORS.text} />
+                    </button>
+                  </div>
+                  
+                  {/* 统计数据 */}
+                  <div style={{ display: 'flex', gap: 24 }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontWeight: 700, fontSize: 22 }}>{showUserSpace.user.postsCount}</div>
+                      <div style={{ fontSize: 12, color: '#aaa' }}>打卡</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontWeight: 700, fontSize: 22 }}>{showUserSpace.user.likesCount}</div>
+                      <div style={{ fontSize: 12, color: '#aaa' }}>获赞</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 帖子列表 */}
+                <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: '#333' }}>
+                    📍 TA的打卡 ({showUserSpace.posts.length})
+                  </div>
+                  {showUserSpace.posts.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: 40, color: '#888' }}>
+                      <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
+                      <div>还没有打卡记录</div>
+                    </div>
+                  ) : (
+                    showUserSpace.posts.map(post => (
+                      <div
+                        key={post.id}
+                        onClick={() => {
+                          setShowUserSpace(null)
+                          if (mapRef) mapRef.setView([post.latitude, post.longitude], 12)
+                        }}
+                        style={{
+                          background: '#f8f8f8', borderRadius: 12, padding: 14, marginBottom: 10, cursor: 'pointer',
+                          border: '1px solid #eee', transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.borderColor = COLORS.accent}
+                        onMouseLeave={(e) => e.currentTarget.style.borderColor = '#eee'}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                          <div style={{
+                            width: 40, height: 40,
+                            background: `linear-gradient(135deg, ${getTypeConfig(post.type).color} 0%, ${getTypeConfig(post.type).colorDark} 100%)`,
+                            borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            flexShrink: 0, fontSize: 18,
+                          }}>
+                            {getTypeConfig(post.type).icon}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 600, fontSize: 14, color: COLORS.textDark, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.title}</div>
+                            <div style={{ fontSize: 12, color: '#888', marginBottom: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.content}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: '#666' }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><MapPin size={11} /> {post.location_name || '未知地点'}</span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Heart size={11} /> {post.likes}</span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Clock size={11} /> {formatTime(post.createdAt)}</span>
+                            </div>
+                          </div>
+                          <ChevronRight size={16} color="#ccc" />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
