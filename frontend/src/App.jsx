@@ -1172,61 +1172,9 @@ export default function App() {
             
             {/* 评论区 */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px', background: '#fafafa' }}>
-              {/* 最佳评论区域 - PK胜出者 */}
-              {bestComment && (
-                <div style={{ 
-                  background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', 
-                  borderRadius: 12, 
-                  padding: 14, 
-                  marginBottom: 16,
-                  border: '2px solid #f59e0b',
-                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                    <span style={{ fontSize: 16 }}>🏆</span>
-                    <span style={{ fontWeight: 700, fontSize: 13, color: '#92400e' }}>最佳评论</span>
-                    <span style={{ 
-                      fontSize: 10, 
-                      background: pkResult?.winner === 'comment' ? '#10b981' : '#3b82f6',
-                      color: 'white', 
-                      padding: '2px 6px', 
-                      borderRadius: 4 
-                    }}>
-                      {pkResult?.winner === 'comment' ? '评论胜出' : '帖子胜出'}
-                    </span>
-                  </div>
-                  <div style={{ 
-                    background: 'rgba(255,255,255,0.6)', 
-                    borderRadius: 8, 
-                    padding: 10 
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                      <div style={{ width: 24, height: 24, background: COLORS.accent, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>👤</div>
-                      <span style={{ fontWeight: 500, fontSize: 12, color: '#333' }}>{bestComment.author}</span>
-                      {bestComment.type === 'comment' && bestComment.replyToUser && (
-                        <span style={{ fontSize: 10, color: '#888' }}>回复 @{bestComment.replyToUser}</span>
-                      )}
-                    </div>
-                    <div style={{ fontSize: 13, color: '#333', marginBottom: 6 }}>
-                      {bestComment.type === 'post' && bestComment.title && (
-                        <div style={{ fontWeight: 600, marginBottom: 4 }}>{bestComment.title}</div>
-                      )}
-                      {bestComment.content}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: '#666' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                        <Heart size={12} fill="#f59e0b" color="#f59e0b" /> {bestComment.likeCount}
-                      </span>
-                      <span style={{ fontSize: 10, color: '#888' }}>
-                        {pkResult?.reason}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
               <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: '#333' }}>
                 💬 评论 ({comments.length})
+                {bestComment && <span style={{ fontSize: 11, color: '#888', fontWeight: 400, marginLeft: 8 }}>🏆 最佳评论已置顶</span>}
               </div>
               {loadingComments ? (
                 <div style={{ textAlign: 'center', padding: 20, color: '#888' }}>
@@ -1237,57 +1185,91 @@ export default function App() {
                   暂无评论，来说点什么吧~
                 </div>
               ) : (
-                comments.map(comment => (
-                  <div key={comment.id} style={{ background: 'white', borderRadius: 10, padding: 12, marginBottom: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div 
-                        onClick={(e) => { 
-                          e.stopPropagation()
-                          setShowPostDetail(null)
-                          openUserSpace(comment.authorId, comment.author)
-                        }}
-                        style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, cursor: 'pointer' }}
-                      >
-                        <div style={{ width: 24, height: 24, background: COLORS.secondary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>👤</div>
-                        <span style={{ fontWeight: 500, fontSize: 13, color: COLORS.textDark }}>{comment.author}</span>
-                        <span style={{ fontSize: 11, color: '#aaa' }}>{formatTime(comment.createdAt)}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        {/* 评论点赞按钮 */}
-                        <button 
-                          onClick={() => handleCommentLike(comment.id)} 
-                          style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: 3, 
-                            background: likedComments.has(comment.id) ? `${COLORS.accent}15` : 'none', 
-                            border: 'none', 
-                            color: likedComments.has(comment.id) ? COLORS.accent : '#888', 
-                            cursor: 'pointer', 
-                            fontSize: 11,
-                            padding: '2px 6px',
-                            borderRadius: 4
+                comments.map((comment, index) => {
+                  // 判断是否为最佳评论（评论列表中的第一条且是PK胜出者）
+                  const isBestComment = bestComment && 
+                    bestComment.type === 'comment' && 
+                    index === 0 && 
+                    comment.id === bestComment.id
+                  
+                  return (
+                    <div 
+                      key={comment.id} 
+                      style={{ 
+                        background: isBestComment ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'white', 
+                        borderRadius: 10, 
+                        padding: 12, 
+                        marginBottom: 8, 
+                        boxShadow: isBestComment ? '0 2px 8px rgba(245, 158, 11, 0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
+                        border: isBestComment ? '2px solid #f59e0b' : 'none'
+                      }}
+                    >
+                      {/* 最佳评论标识 */}
+                      {isBestComment && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                          <span style={{ fontSize: 14 }}>🏆</span>
+                          <span style={{ fontWeight: 700, fontSize: 12, color: '#92400e' }}>最佳评论</span>
+                          <span style={{ 
+                            fontSize: 10, 
+                            background: '#10b981',
+                            color: 'white', 
+                            padding: '2px 6px', 
+                            borderRadius: 4 
+                          }}>
+                            评论胜出
+                          </span>
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div 
+                          onClick={(e) => { 
+                            e.stopPropagation()
+                            setShowPostDetail(null)
+                            openUserSpace(comment.authorId, comment.author)
                           }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, cursor: 'pointer' }}
                         >
-                          <Heart size={12} fill={likedComments.has(comment.id) ? COLORS.accent : 'none'} /> {comment.likes || 0}
-                        </button>
-                        {user && (
-                          <button onClick={() => setReplyTo({ id: comment.id, author: comment.author })} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 11 }}>回复</button>
-                        )}
-                        {user && comment.authorId === user.id && (
-                          <button onClick={() => handleDeleteComment(comment.id)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 11 }}>🗑️</button>
-                        )}
+                          <div style={{ width: 24, height: 24, background: isBestComment ? COLORS.accent : COLORS.secondary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>👤</div>
+                          <span style={{ fontWeight: 500, fontSize: 13, color: COLORS.textDark }}>{comment.author}</span>
+                          <span style={{ fontSize: 11, color: '#aaa' }}>{formatTime(comment.createdAt)}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          {/* 评论点赞按钮 */}
+                          <button 
+                            onClick={() => handleCommentLike(comment.id)} 
+                            style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: 3, 
+                              background: likedComments.has(comment.id) ? `${COLORS.accent}15` : 'none', 
+                              border: 'none', 
+                              color: likedComments.has(comment.id) ? COLORS.accent : '#888', 
+                              cursor: 'pointer', 
+                              fontSize: 11,
+                              padding: '2px 6px',
+                              borderRadius: 4
+                            }}
+                          >
+                            <Heart size={12} fill={likedComments.has(comment.id) ? COLORS.accent : 'none'} /> {comment.likes || 0}
+                          </button>
+                          {user && (
+                            <button onClick={() => setReplyTo({ id: comment.id, author: comment.author })} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 11 }}>回复</button>
+                          )}
+                          {user && comment.authorId === user.id && (
+                            <button onClick={() => handleDeleteComment(comment.id)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 11 }}>🗑️</button>
+                          )}
+                        </div>
                       </div>
+                      {/* 回复提示 */}
+                      {comment.replyToUser && (
+                        <div style={{ fontSize: 11, color: '#888', paddingLeft: 32, marginBottom: 2 }}>
+                          ↩️ 回复 <span style={{ color: COLORS.accent }}>@{comment.replyToUser}</span>
+                        </div>
+                      )}
+                      <div style={{ fontSize: 13, color: '#333', paddingLeft: 32 }}>{comment.content}</div>
                     </div>
-                    {/* 回复提示 */}
-                    {comment.replyToUser && (
-                      <div style={{ fontSize: 11, color: '#888', paddingLeft: 32, marginBottom: 2 }}>
-                        ↩️ 回复 <span style={{ color: COLORS.accent }}>@{comment.replyToUser}</span>
-                      </div>
-                    )}
-                    <div style={{ fontSize: 13, color: '#333', paddingLeft: 32 }}>{comment.content}</div>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
             
