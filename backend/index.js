@@ -501,15 +501,16 @@ app.get('/api/likes/my', auth, async (req, res) => {
 
 // ============ 评论相关 API ============
 
-// 获取帖子评论（含评论数统计）
+// 获取帖子评论（含评论数统计和点赞数）
 app.get('/api/posts/:id/comments', async (req, res) => {
   try {
     const [comments] = await pool.execute(`
-      SELECT c.*, u.username, u.nickname
+      SELECT c.*, u.username, u.nickname,
+        (SELECT COUNT(*) FROM comment_likes WHERE comment_id = c.id) as like_count
       FROM comments c
       JOIN users u ON c.user_id = u.id
       WHERE c.post_id = ?
-      ORDER BY c.created_at ASC
+      ORDER BY like_count DESC, c.created_at ASC
     `, [req.params.id])
 
     res.json({
@@ -520,6 +521,7 @@ app.get('/api/posts/:id/comments', async (req, res) => {
         authorId: c.user_id,
         replyToId: c.reply_to_id,
         replyToUser: c.reply_to_user,
+        likes: c.like_count,
         createdAt: c.created_at
       }))
     })
@@ -608,6 +610,342 @@ app.delete('/api/comments/:id', auth, async (req, res) => {
   } catch (error) {
     console.error('Delete comment error:', error)
     res.status(500).json({ error: '删除失败' })
+  }
+})
+
+// ============ 评论点赞相关 API ============
+
+// 评论点赞/取消点赞
+app.post('/api/comments/:id/like', auth, async (req, res) => {
+  try {
+    const commentId = req.params.id
+    const userId = req.user.id
+
+    // 检查评论是否存在
+    const [comments] = await pool.execute('SELECT id FROM comments WHERE id = ?', [commentId])
+    if (comments.length === 0) {
+      return res.status(404).json({ error: '评论不存在' })
+    }
+
+    // 检查是否已点赞
+    const [existing] = await pool.execute(
+      'SELECT id FROM comment_likes WHERE user_id = ? AND comment_id = ?',
+      [userId, commentId]
+    )
+
+    if (existing.length > 0) {
+      // 取消点赞
+      await pool.execute('DELETE FROM comment_likes WHERE user_id = ? AND comment_id = ?', [userId, commentId])
+      res.json({ success: true, liked: false })
+    } else {
+      // 添加点赞
+      await pool.execute('INSERT INTO comment_likes (user_id, comment_id) VALUES (?, ?)', [userId, commentId])
+      res.json({ success: true, liked: true })
+    }
+  } catch (error) {
+    console.error('Comment like error:', error)
+    res.status(500).json({ error: '操作失败' })
+  }
+})
+
+// 获取用户是否点赞了某些评论
+app.get('/api/comments/likes/check', auth, async (req, res) => {
+  try {
+    const { commentIds } = req.query
+    if (!commentIds) {
+      return res.json({ liked: [] })
+    }
+
+    const ids = commentIds.split(',').map(id => parseInt(id)).filter(id => !isNaN(id))
+    if (ids.length === 0) {
+      return res.json({ liked: [] })
+    }
+
+    const placeholders = ids.map(() => '?').join(',')
+    const [likes] = await pool.execute(
+      `SELECT comment_id FROM comment_likes WHERE user_id = ? AND comment_id IN (${placeholders})`,
+      [req.user.id, ...ids]
+    )
+
+    res.json({ liked: likes.map(l => l.comment_id) })
+  } catch (error) {
+    console.error('Check comment likes error:', error)
+    res.status(500).json({ error: '检查失败' })
+  }
+})
+
+// 获取多个评论的点赞数
+app.get('/api/comments/likes/count', async (req, res) => {
+  try {
+    const { commentIds } = req.query
+    if (!commentIds) return res.json({ counts: {} })
+    
+    const ids = commentIds.split(',').map(id => parseInt(id)).filter(id => !isNaN(id))
+    if (ids.length === 0) return res.json({ counts: {} })
+
+    const placeholders = ids.map(() => '?').join(',')
+    const [rows] = await pool.execute(
+      `SELECT comment_id, COUNT(*) as count FROM comment_likes WHERE comment_id IN (${placeholders}) GROUP BY comment_id`,
+      ids
+    )
+    
+    const counts = {}
+    rows.forEach(r => { counts[r.comment_id] = r.count })
+    res.json({ counts })
+  } catch (error) {
+    console.error('Get comment like counts error:', error)
+    res.status(500).json({ error: '获取失败' })
+  }
+})
+
+// ============ 最佳评论 PK 相关 API ============
+
+// 获取某帖子的最佳评论（PK逻辑：帖子点赞 vs 评论点赞）
+app.get('/api/posts/:id/best-comment', async (req, res) => {
+  try {
+    const postId = req.params.id
+    
+    // 获取帖子点赞数
+    const [postLikes] = await pool.execute(
+      'SELECT COUNT(*) as count FROM likes WHERE post_id = ?',
+      [postId]
+    )
+    const postLikeCount = postLikes[0].count
+    
+    // 获取该帖子下点赞最高的评论
+    const [comments] = await pool.execute(`
+      SELECT c.id, c.content, c.user_id, c.reply_to_user, c.created_at,
+        u.username, u.nickname,
+        (SELECT COUNT(*) FROM comment_likes WHERE comment_id = c.id) as like_count
+      FROM comments c
+      JOIN users u ON c.user_id = u.id
+      WHERE c.post_id = ?
+      ORDER BY like_count DESC
+      LIMIT 1
+    `, [postId])
+    
+    // 如果没有评论，返回帖子本身作为"最佳评论"
+    if (comments.length === 0) {
+      const [posts] = await pool.execute(`
+        SELECT p.id, p.content, p.title, p.user_id, p.created_at,
+          u.username, u.nickname,
+          (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count
+        FROM posts p
+        JOIN users u ON p.user_id = u.id
+        WHERE p.id = ?
+      `, [postId])
+      
+      if (posts.length === 0) {
+        return res.status(404).json({ error: '帖子不存在' })
+      }
+      
+      const post = posts[0]
+      return res.json({
+        bestComment: {
+          id: post.id,
+          content: post.content,
+          title: post.title,
+          author: post.nickname || post.username,
+          authorId: post.user_id,
+          likeCount: post.like_count,
+          type: 'post',
+          createdAt: post.created_at
+        },
+        pkResult: {
+          winner: 'post',
+          postLikes: post.like_count,
+          topCommentLikes: 0,
+          reason: '暂无评论，帖子本身为最佳内容'
+        }
+      })
+    }
+    
+    const topComment = comments[0]
+    const topCommentLikeCount = topComment.like_count
+    
+    // PK：比较帖子点赞和最高评论点赞
+    let winner, reason
+    if (postLikeCount > topCommentLikeCount) {
+      winner = 'post'
+      reason = '帖子点赞数更高，帖子胜出'
+    } else if (topCommentLikeCount > postLikeCount) {
+      winner = 'comment'
+      reason = '评论点赞数更高，评论胜出'
+    } else {
+      // 点赞数相同，优先展示帖子
+      winner = 'post'
+      reason = '点赞数相同，帖子优先'
+    }
+    
+    // 返回胜出者作为最佳评论
+    if (winner === 'post') {
+      const [posts] = await pool.execute(`
+        SELECT p.id, p.content, p.title, p.user_id, p.created_at,
+          u.username, u.nickname
+        FROM posts p
+        JOIN users u ON p.user_id = u.id
+        WHERE p.id = ?
+      `, [postId])
+      
+      const post = posts[0]
+      res.json({
+        bestComment: {
+          id: post.id,
+          content: post.content,
+          title: post.title,
+          author: post.nickname || post.username,
+          authorId: post.user_id,
+          likeCount: postLikeCount,
+          type: 'post',
+          createdAt: post.created_at
+        },
+        pkResult: {
+          winner: 'post',
+          postLikes: postLikeCount,
+          topCommentLikes: topCommentLikeCount,
+          reason
+        }
+      })
+    } else {
+      res.json({
+        bestComment: {
+          id: topComment.id,
+          content: topComment.content,
+          author: topComment.nickname || topComment.username,
+          authorId: topComment.user_id,
+          replyToUser: topComment.reply_to_user,
+          likeCount: topCommentLikeCount,
+          type: 'comment',
+          createdAt: topComment.created_at
+        },
+        pkResult: {
+          winner: 'comment',
+          postLikes: postLikeCount,
+          topCommentLikes: topCommentLikeCount,
+          reason
+        }
+      })
+    }
+  } catch (error) {
+    console.error('Get best comment error:', error)
+    res.status(500).json({ error: '获取失败' })
+  }
+})
+
+// 获取某地点附近的最佳评论（按经纬度聚合）
+app.get('/api/nearby/best-comments', async (req, res) => {
+  try {
+    const { lat, lng, radius = 1000 } = req.query
+    
+    if (!lat || !lng) {
+      return res.status(400).json({ error: '缺少经纬度参数' })
+    }
+    
+    const latitude = parseFloat(lat)
+    const longitude = parseFloat(lng)
+    const radiusMeters = parseInt(radius)
+    
+    // 计算经纬度范围（粗略计算，约111km/度）
+    const latRange = radiusMeters / 111000
+    const lngRange = radiusMeters / (111000 * Math.cos(latitude * Math.PI / 180))
+    
+    // 获取范围内的所有帖子
+    const [posts] = await pool.execute(`
+      SELECT p.id, p.title, p.content, p.location_name, p.latitude, p.longitude,
+        p.user_id, p.created_at,
+        u.nickname, u.username,
+        (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as post_like_count
+      FROM posts p
+      JOIN users u ON p.user_id = u.id
+      WHERE p.latitude BETWEEN ? AND ?
+        AND p.longitude BETWEEN ? AND ?
+      ORDER BY p.created_at DESC
+    `, [
+      latitude - latRange, latitude + latRange,
+      longitude - lngRange, longitude + lngRange
+    ])
+    
+    if (posts.length === 0) {
+      return res.json({ bestComments: [] })
+    }
+    
+    // 对每个帖子，获取最佳评论（PK逻辑）
+    const postIds = posts.map(p => p.id)
+    const placeholders = postIds.map(() => '?').join(',')
+    
+    // 获取所有评论及其点赞数
+    const [allComments] = await pool.execute(`
+      SELECT c.id, c.post_id, c.content, c.user_id, c.reply_to_user, c.created_at,
+        u.nickname, u.username,
+        (SELECT COUNT(*) FROM comment_likes WHERE comment_id = c.id) as like_count
+      FROM comments c
+      JOIN users u ON c.user_id = u.id
+      WHERE c.post_id IN (${placeholders})
+      ORDER BY c.post_id, like_count DESC
+    `, postIds)
+    
+    // 按帖子分组评论，取每个帖子点赞最高的评论
+    const commentsByPost = {}
+    allComments.forEach(c => {
+      if (!commentsByPost[c.post_id] || c.like_count > commentsByPost[c.post_id].like_count) {
+        commentsByPost[c.post_id] = c
+      }
+    })
+    
+    // PK：比较帖子点赞和最高评论点赞
+    const bestComments = posts.map(post => {
+      const postLikeCount = post.post_like_count
+      const topComment = commentsByPost[post.id]
+      const commentLikeCount = topComment ? topComment.like_count : 0
+      
+      let winner, bestContent
+      if (commentLikeCount > postLikeCount) {
+        winner = 'comment'
+        bestContent = {
+          id: topComment.id,
+          content: topComment.content,
+          author: topComment.nickname || topComment.username,
+          authorId: topComment.user_id,
+          likeCount: commentLikeCount,
+          type: 'comment',
+          postId: post.id,
+          postTitle: post.title,
+          location: post.location_name,
+          latitude: parseFloat(post.latitude),
+          longitude: parseFloat(post.longitude),
+          createdAt: topComment.created_at
+        }
+      } else {
+        winner = 'post'
+        bestContent = {
+          id: post.id,
+          content: post.content,
+          title: post.title,
+          author: post.nickname || post.username,
+          authorId: post.user_id,
+          likeCount: postLikeCount,
+          type: 'post',
+          location: post.location_name,
+          latitude: parseFloat(post.latitude),
+          longitude: parseFloat(post.longitude),
+          createdAt: post.created_at
+        }
+      }
+      
+      return bestContent
+    })
+    
+    // 按点赞数排序
+    bestComments.sort((a, b) => b.likeCount - a.likeCount)
+    
+    res.json({ 
+      bestComments,
+      total: bestComments.length,
+      radius: radiusMeters
+    })
+  } catch (error) {
+    console.error('Get nearby best comments error:', error)
+    res.status(500).json({ error: '获取失败' })
   }
 })
 

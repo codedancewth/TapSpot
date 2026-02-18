@@ -181,6 +181,9 @@ export default function App() {
   const [loadingComments, setLoadingComments] = useState(false)
   const [submittingComment, setSubmittingComment] = useState(false)
   const [replyTo, setReplyTo] = useState(null) // 回复对象
+  const [likedComments, setLikedComments] = useState(new Set()) // 评论点赞状态
+  const [bestComment, setBestComment] = useState(null) // 最佳评论（PK胜出者）
+  const [pkResult, setPkResult] = useState(null) // PK结果
   const [activeTab, setActiveTab] = useState('all')
   const [filterType, setFilterType] = useState('all')
   const [submitting, setSubmitting] = useState(false)
@@ -339,11 +342,32 @@ export default function App() {
     try {
       const data = await api(`/posts/${postId}/comments`)
       setComments(data.comments)
+      // 获取评论点赞状态
+      if (user && data.comments.length > 0) {
+        const commentIds = data.comments.map(c => c.id).join(',')
+        try {
+          const likeData = await api(`/comments/likes/check?commentIds=${commentIds}`)
+          setLikedComments(new Set(likeData.liked))
+        } catch (e) {
+          console.error('获取评论点赞状态失败:', e)
+        }
+      }
     } catch (error) {
       console.error('获取评论失败:', error)
       setComments([])
     } finally {
       setLoadingComments(false)
+    }
+  }
+
+  // 获取最佳评论（PK逻辑）
+  const fetchBestComment = async (postId) => {
+    try {
+      const data = await api(`/posts/${postId}/best-comment`)
+      setBestComment(data.bestComment)
+      setPkResult(data.pkResult)
+    } catch (error) {
+      console.error('获取最佳评论失败:', error)
     }
   }
 
@@ -353,7 +377,11 @@ export default function App() {
     setComments([])
     setNewComment('')
     setReplyTo(null)
+    setBestComment(null)
+    setPkResult(null)
+    setLikedComments(new Set())
     fetchComments(post.id)
+    fetchBestComment(post.id)
     // 放大地图到帖子位置
     if (mapRef) {
       mapRef.setView([post.latitude, post.longitude], 14)
@@ -376,14 +404,46 @@ export default function App() {
         method: 'POST',
         body: JSON.stringify(body)
       })
-      setComments(prev => [...prev, data.comment])
+      setComments(prev => [...prev, { ...data.comment, likes: 0 }])
       setCommentCounts(prev => ({ ...prev, [showPostDetail.id]: (prev[showPostDetail.id] || 0) + 1 }))
       setNewComment('')
       setReplyTo(null)
+      // 重新获取最佳评论
+      fetchBestComment(showPostDetail.id)
     } catch (error) {
       alert(error.message)
     } finally {
       setSubmittingComment(false)
+    }
+  }
+
+  // 评论点赞
+  const handleCommentLike = async (commentId) => {
+    if (!user) {
+      setShowLogin(true)
+      return
+    }
+    try {
+      const data = await api(`/comments/${commentId}/like`, { method: 'POST' })
+      if (data.liked) {
+        setLikedComments(prev => new Set([...prev, commentId]))
+      } else {
+        setLikedComments(prev => {
+          const next = new Set(prev)
+          next.delete(commentId)
+          return next
+        })
+      }
+      // 更新评论列表中的点赞数
+      setComments(prev => prev.map(c => 
+        c.id === commentId 
+          ? { ...c, likes: data.liked ? (c.likes || 0) + 1 : Math.max(0, (c.likes || 1) - 1) }
+          : c
+      ))
+      // 重新获取最佳评论
+      fetchBestComment(showPostDetail.id)
+    } catch (error) {
+      console.error('评论点赞失败:', error)
     }
   }
 
@@ -1112,6 +1172,59 @@ export default function App() {
             
             {/* 评论区 */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px', background: '#fafafa' }}>
+              {/* 最佳评论区域 - PK胜出者 */}
+              {bestComment && (
+                <div style={{ 
+                  background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', 
+                  borderRadius: 12, 
+                  padding: 14, 
+                  marginBottom: 16,
+                  border: '2px solid #f59e0b',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                    <span style={{ fontSize: 16 }}>🏆</span>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: '#92400e' }}>最佳评论</span>
+                    <span style={{ 
+                      fontSize: 10, 
+                      background: pkResult?.winner === 'comment' ? '#10b981' : '#3b82f6',
+                      color: 'white', 
+                      padding: '2px 6px', 
+                      borderRadius: 4 
+                    }}>
+                      {pkResult?.winner === 'comment' ? '评论胜出' : '帖子胜出'}
+                    </span>
+                  </div>
+                  <div style={{ 
+                    background: 'rgba(255,255,255,0.6)', 
+                    borderRadius: 8, 
+                    padding: 10 
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <div style={{ width: 24, height: 24, background: COLORS.accent, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>👤</div>
+                      <span style={{ fontWeight: 500, fontSize: 12, color: '#333' }}>{bestComment.author}</span>
+                      {bestComment.type === 'comment' && bestComment.replyToUser && (
+                        <span style={{ fontSize: 10, color: '#888' }}>回复 @{bestComment.replyToUser}</span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 13, color: '#333', marginBottom: 6 }}>
+                      {bestComment.type === 'post' && bestComment.title && (
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>{bestComment.title}</div>
+                      )}
+                      {bestComment.content}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: '#666' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <Heart size={12} fill="#f59e0b" color="#f59e0b" /> {bestComment.likeCount}
+                      </span>
+                      <span style={{ fontSize: 10, color: '#888' }}>
+                        {pkResult?.reason}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: '#333' }}>
                 💬 评论 ({comments.length})
               </div>
@@ -1140,6 +1253,24 @@ export default function App() {
                         <span style={{ fontSize: 11, color: '#aaa' }}>{formatTime(comment.createdAt)}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {/* 评论点赞按钮 */}
+                        <button 
+                          onClick={() => handleCommentLike(comment.id)} 
+                          style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: 3, 
+                            background: likedComments.has(comment.id) ? `${COLORS.accent}15` : 'none', 
+                            border: 'none', 
+                            color: likedComments.has(comment.id) ? COLORS.accent : '#888', 
+                            cursor: 'pointer', 
+                            fontSize: 11,
+                            padding: '2px 6px',
+                            borderRadius: 4
+                          }}
+                        >
+                          <Heart size={12} fill={likedComments.has(comment.id) ? COLORS.accent : 'none'} /> {comment.likes || 0}
+                        </button>
                         {user && (
                           <button onClick={() => setReplyTo({ id: comment.id, author: comment.author })} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 11 }}>回复</button>
                         )}
