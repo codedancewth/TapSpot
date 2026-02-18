@@ -87,7 +87,7 @@ go run main.go
 ## 🚀 生产环境部署
 
 ### 服务器信息
-- **服务器IP**: 43.130.53.168
+- **服务器IP**: localhost
 - **前端端口**: 3000
 - **后端端口**: 8080
 
@@ -171,7 +171,7 @@ export default defineConfig({
     host: '0.0.0.0',  // 允许外部访问
     proxy: {
       '/api': {
-        target: 'http://43.130.53.168:8080',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api/v1')
       }

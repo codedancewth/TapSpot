@@ -8,7 +8,7 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'http://43.130.53.168:8080',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api/v1')
       },
@@ -19,6 +19,6 @@ export default defineConfig({
     }
   },
   define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify('http://43.130.53.168:8080/api/v1')
+    'import.meta.env.VITE_API_URL': JSON.stringify('http://localhost:8080/api/v1')
   }
 })
