@@ -1,1 +1,45 @@
-🚀 TapSpot API running on http://localhost:3002
+2026/02/19 00:41:04 No .env file found, using system environment variables
+✅ Connected to MySQL database successfully!
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /api/health               --> tapspot/controllers.HealthCheck (4 handlers)
+[GIN-debug] POST   /api/register             --> tapspot/controllers.Register (4 handlers)
+[GIN-debug] POST   /api/login                --> tapspot/controllers.Login (4 handlers)
+[GIN-debug] GET    /api/posts                --> tapspot/controllers.GetPosts (4 handlers)
+[GIN-debug] GET    /api/posts/:id            --> tapspot/controllers.GetPost (4 handlers)
+[GIN-debug] GET    /api/posts/comments/count --> tapspot/controllers.GetCommentCounts (4 handlers)
+[GIN-debug] GET    /api/posts/:id/comments   --> tapspot/controllers.GetComments (4 handlers)
+[GIN-debug] GET    /api/posts/:id/best-comment --> tapspot/controllers.GetBestComment (4 handlers)
+[GIN-debug] GET    /api/comments/likes/count --> tapspot/controllers.GetCommentLikeCounts (4 handlers)
+[GIN-debug] GET    /api/pois                 --> tapspot/controllers.GetPOIs (4 handlers)
+[GIN-debug] GET    /api/geocode/reverse      --> tapspot/controllers.ReverseGeocode (4 handlers)
+[GIN-debug] GET    /api/me                   --> tapspot/controllers.GetMe (5 handlers)
+[GIN-debug] PUT    /api/me                   --> tapspot/controllers.UpdateCurrentUser (5 handlers)
+[GIN-debug] GET    /api/users/:id            --> tapspot/controllers.GetUserByID (5 handlers)
+[GIN-debug] GET    /api/users/:id/posts      --> tapspot/controllers.GetUserPosts (5 handlers)
+[GIN-debug] POST   /api/posts                --> tapspot/controllers.CreatePost (5 handlers)
+[GIN-debug] DELETE /api/posts/:id            --> tapspot/controllers.DeletePost (5 handlers)
+[GIN-debug] GET    /api/posts/my             --> tapspot/controllers.GetMyPosts (5 handlers)
+[GIN-debug] POST   /api/posts/:id/like       --> tapspot/controllers.PostLike (5 handlers)
+[GIN-debug] GET    /api/likes/check          --> tapspot/controllers.CheckPostLikes (5 handlers)
+[GIN-debug] GET    /api/likes/my             --> tapspot/controllers.GetMyLikes (5 handlers)
+[GIN-debug] POST   /api/posts/:id/comments   --> tapspot/controllers.CreateComment (5 handlers)
+[GIN-debug] DELETE /api/comments/:id         --> tapspot/controllers.DeleteComment (5 handlers)
+[GIN-debug] POST   /api/comments/:id/like    --> tapspot/controllers.CommentLike (5 handlers)
+[GIN-debug] GET    /api/comments/likes/check --> tapspot/controllers.CheckCommentLikes (5 handlers)
+
+2026/02/19 00:41:04 [31;1m/root/.openclaw/workspace/TapSpot/backend/controllers/auth.go:265 [35;1mError 1054 (42S22): Unknown column 'users.deleted_at' in 'where clause'
+[0m[33m[3.414ms] [34;1m[rows:0][0m SELECT * FROM `users` WHERE username = 'root' AND `users`.`deleted_at` IS NULL ORDER BY `users`.`id` LIMIT 1
+
+2026/02/19 00:41:04 [31;1m/root/.openclaw/workspace/TapSpot/backend/controllers/auth.go:273 [35;1mError 1054 (42S22): Unknown column 'updated_at' in 'field list'
+[0m[33m[0.576ms] [34;1m[rows:0][0m INSERT INTO `users` (`username`,`password`,`nickname`,`avatar`,`gender`,`bio`,`created_at`,`updated_at`,`deleted_at`) VALUES ('root','$2a$10$9ohpA5SDgxpknYs7cweK4.tsS1mR5azfc7bDLYild3ysmgnZg0bUC','管理员','','','','2026-02-19 00:41:04.78','2026-02-19 00:41:04.78',NULL)
+2026/02/19 00:41:04 🚀 TapSpot API running on http://localhost:8080
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on :8080
+[GIN] 2026/02/19 - 00:41:06 | 200 |      87.162µs |             ::1 | GET      "/api/health"
+[GIN] 2026/02/19 - 01:05:47 | 404 |       6.141µs |    204.76.203.8 | GET      "/geoserver/wfs?request=ListStoredQueries&service=wfs&version=2.0.0"

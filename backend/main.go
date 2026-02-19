@@ -20,12 +20,7 @@ func main() {
 
 	// 初始化数据库
 	config.InitDB()
-	
-	// 自动迁移数据库表
-	config.DB.AutoMigrate(&models.User{}, &models.Post{}, &models.Spot{}, &models.Review{})
-
-	// 创建测试用户 root/root
-	controllers.CreateTestUser()
+	models.DB = config.DB // 设置全局DB
 
 	// 创建Gin引擎
 	r := gin.Default()
@@ -42,8 +37,11 @@ func main() {
 	// 注册路由
 	routes.SetupRoutes(r)
 
+	// 创建测试用户 root/root
+	controllers.CreateTestUser()
+
 	// 启动服务器
-	log.Println("Server starting on :8080")
+	log.Println("🚀 TapSpot API running on http://localhost:8080")
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
