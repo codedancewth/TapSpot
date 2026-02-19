@@ -1,6 +1,5 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react" alt="React">
-  <img src="https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js" alt="Node.js">
+  <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=for-the-badge&logo=go" alt="Go">
   <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql" alt="MySQL">
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
 </p>
@@ -16,8 +15,7 @@
   <a href="#-核心特性">核心特性</a> •
   <a href="#-技术架构">技术架构</a> •
   <a href="#-快速开始">快速开始</a> •
-  <a href="#-api-文档">API 文档</a> •
-  <a href="#-贡献指南">贡献指南</a>
+  <a href="#-api-文档">API 文档</a>
 </p>
 
 ---
@@ -40,7 +38,7 @@
 |:---:|:---|
 | **智能地图交互** | 基于高德/OpenStreetMap的流畅地图体验，支持多级缩放与平滑过渡 |
 | **精准地理定位** | 一键获取当前位置，或通过地图选点精确定位目标区域 |
-| **动态标记系统** | 8种精心设计的分类图标，根据缩放级别自适应大小，悬停时光晕流转 |
+| **动态标记系统** | 8种精心设计的分类图标，根据缩放级别自适应大小 |
 | **个性化标识** | 用户的打卡以金色边框高亮显示，一眼识别自己的足迹 |
 
 ### 👤 完整的用户生态
@@ -62,8 +60,6 @@
 
 ### 🏆 创新的内容竞争机制
 
-这是 TapSpot 最具创新性的核心功能：
-
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    最佳评论 PK 系统                       │
@@ -73,14 +69,8 @@
 │                           ↓                             │
 │              点赞数更高者 → 🏆 最佳内容                   │
 │                                                         │
-│    核心理念：帖子和评论都是"内容"，让用户决定谁更有价值    │
 └─────────────────────────────────────────────────────────┘
 ```
-
-**展示规则：**
-- 帖子详情页顶部显著展示"最佳评论"区域
-- 金色渐变背景 + 奖杯图标，突出PK胜出者
-- 实时显示PK结果与获胜原因
 
 ### ❤️ 立体的互动体系
 
@@ -99,10 +89,9 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        Frontend Layer                        │
+│                        Client Layer                          │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  React 18 + Vite + Leaflet + Lucide Icons           │   │
-│  │  • 响应式设计 • 组件化架构 • 状态管理 • 路由控制      │   │
+│  │  Mobile App / Web Browser                           │   │
 │  └─────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -110,8 +99,8 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                        API Gateway                           │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  Nginx Reverse Proxy + Load Balancing               │   │
-│  │  • 静态资源服务 • API代理 • SSL终止 • 缓存优化       │   │
+│  │  Nginx Reverse Proxy                                │   │
+│  │  • 静态资源服务 • API代理 • SSL终止 • 负载均衡       │   │
 │  └─────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -119,7 +108,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                        Backend Layer                         │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  Node.js + Express + MySQL2                         │   │
+│  │  Go + Gin + GORM                                    │   │
 │  │  • RESTful API • JWT认证 • 连接池 • 中间件链         │   │
 │  └─────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
@@ -136,35 +125,23 @@
 
 ### 技术栈详解
 
-#### Frontend Technologies
-
-| 技术 | 版本 | 用途 |
-|:---|:---:|:---|
-| **React** | 18.x | 声明式UI框架，组件化开发 |
-| **Vite** | 5.x | 下一代前端构建工具，极速HMR |
-| **Leaflet** | 1.9.x | 轻量级开源地图库 |
-| **react-leaflet** | 4.x | React地图组件封装 |
-| **Lucide React** | latest | 精美的开源图标库 |
-| **Axios** | 1.x | Promise based HTTP客户端 |
-
 #### Backend Technologies
 
 | 技术 | 版本 | 用途 |
 |:---|:---:|:---|
-| **Node.js** | 18+ | JavaScript运行时 |
-| **Express** | 4.x | 极简Web框架 |
-| **MySQL2** | 3.x | MySQL客户端（支持Promise） |
-| **bcryptjs** | 2.x | 密码哈希加密 |
-| **jsonwebtoken** | 9.x | JWT认证令牌 |
-| **cors** | 2.x | 跨域资源共享 |
+| **Go** | 1.21+ | 高性能编程语言 |
+| **Gin** | latest | 轻量级Web框架 |
+| **GORM** | latest | ORM库 |
+| **jwt-go** | latest | JWT认证 |
+| **bcrypt** | latest | 密码加密 |
 
 #### DevOps & Infrastructure
 
 | 技术 | 用途 |
 |:---|:---|
 | **Nginx** | 反向代理、静态资源服务、负载均衡 |
+| **Docker** | 容器化部署 |
 | **Git** | 版本控制与协作 |
-| **PM2** | 进程管理（生产环境推荐） |
 
 ---
 
@@ -172,29 +149,25 @@
 
 ```
 TapSpot/
-├── 📂 backend/                    # 后端服务
-│   ├── 📄 index.js                   # Express应用入口
-│   ├── 📄 package.json               # 依赖配置
-│   └── 📂 node_modules/              # 依赖包
-│
-├── 📂 frontend/                   # 前端应用
-│   ├── 📂 src/                       # 源代码
-│   │   ├── 📄 App.jsx                   # 主应用组件
-│   │   └── 📂 styles/                   # 样式文件
-│   ├── 📂 dist/                      # 构建产物
-│   ├── 📄 vite.config.js             # Vite配置
-│   └── 📄 package.json               # 依赖配置
-│
-├── 📂 docs/                       # 项目文档
-│   ├── 📄 location-best-comment-feature.md  # 需求文档
-│   └── 📄 tapspot-公众号文章.md              # 宣传文章
+├── 📂 backend/                    # 后端服务 (Go)
+│   ├── 📄 main.go                    # 应用入口
+│   ├── 📄 go.mod                     # Go模块配置
+│   ├── 📄 go.sum                     # 依赖锁定
+│   ├── 📂 config/                    # 配置文件
+│   ├── 📂 controllers/               # 控制器
+│   ├── 📂 models/                    # 数据模型
+│   └── 📂 routes/                    # 路由定义
 │
 ├── 📂 database/                   # 数据库脚本
 │
-├── 📄 start.sh                    # 启动脚本
+├── 📂 docs/                       # 项目文档
+│
+├── 📂 nginx/                      # Nginx配置
+│
+├── 📄 docker-compose.yml          # Docker编排
 ├── 📄 deploy.sh                   # 部署脚本
-├── 📄 README.md                   # 项目说明
-└── 📄 LICENSE                     # 开源协议
+├── 📄 start.sh                    # 启动脚本
+└── 📄 README.md                   # 项目说明
 ```
 
 ---
@@ -205,9 +178,8 @@ TapSpot/
 
 | 依赖 | 版本要求 |
 |:---|:---:|
-| Node.js | ≥ 18.0.0 |
+| Go | ≥ 1.21 |
 | MySQL | ≥ 8.0 |
-| npm / yarn | latest |
 
 ### 安装步骤
 
@@ -216,32 +188,25 @@ TapSpot/
 git clone https://github.com/codedancewth/TapSpot.git
 cd TapSpot
 
-# 2️⃣ 安装后端依赖
-cd backend
-npm install
-
-# 3️⃣ 配置数据库
+# 2️⃣ 配置数据库
 # 创建MySQL数据库: CREATE DATABASE tapspot;
-# 修改 index.js 中的数据库连接配置
+# 修改 backend/config/database.go 中的数据库连接配置
 
-# 4️⃣ 启动后端服务 (端口 3002)
-node index.js
+# 3️⃣ 安装依赖并运行
+cd backend
+go mod download
+go run main.go
 
-# 5️⃣ 安装前端依赖
-cd ../frontend
-npm install
-
-# 6️⃣ 启动前端服务 (端口 3000)
-npm run dev
+# 或者编译后运行
+go build -o tapspot
+./tapspot
 ```
 
 ### 访问应用
 
 | 服务 | 地址 |
 |:---|:---|
-| 前端应用 | http://localhost:3000 |
-| 后端API | http://localhost:3002/api |
-| 测试账号 | root / root |
+| 后端API | http://localhost:8080/api |
 
 ---
 
@@ -324,31 +289,6 @@ GET /api/geocode/reverse    # 逆地理编码
 
 ---
 
-## 🎨 设计亮点
-
-### 1. 内容竞争机制
-
-首创的"最佳评论PK"系统，打破传统的内容层级关系，让帖子和评论在同一维度竞争。用户用点赞投票，最有价值的内容自然浮现。
-
-### 2. 视觉体验
-
-- **8种精心设计的图标**：每种打卡类型都有独特的SVG图标
-- **动态响应式标记**：根据地图缩放级别自动调整大小
-- **光晕悬停效果**：鼠标悬停时标记发光，增强交互反馈
-- **金色标识系统**：用户的打卡以金色边框突出显示
-
-### 3. 地理聚合算法
-
-基于经纬度的智能聚合，在指定半径范围内自动计算"最佳内容"，为用户提供该地点最有价值的信息。
-
-### 4. 安全架构
-
-- **JWT Token认证**：无状态认证，支持分布式部署
-- **Bcrypt密码加密**：10轮salt，防止彩虹表攻击
-- **输入校验**：前后端双重验证，防止注入攻击
-
----
-
 ## 📈 开发路线
 
 ### ✅ 已完成
@@ -390,33 +330,11 @@ GET /api/geocode/reverse    # 逆地理编码
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 提交 **Pull Request**
 
-### 代码规范
-
-- 遵循 ESLint 规则
-- 提交信息遵循 [Conventional Commits](https://www.conventionalcommits.org/)
-- 保持代码简洁，添加必要注释
-
 ---
 
 ## 📄 开源协议
 
 本项目基于 **MIT License** 开源协议。
-
-```
-MIT License
-
-Copyright (c) 2026 TapSpot Team
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-```
 
 ---
 

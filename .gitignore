@@ -22,7 +22,10 @@ Thumbs.db
 
 # Logs
 *.log
-npm-debug.log*
 
-# Binary
+# Go binary
 backend/tapspot
+tapspot
+
+# Frontend (removed, keeping structure)
+frontend/
