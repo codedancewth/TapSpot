@@ -7,47 +7,59 @@ import (
 )
 
 func SetupRoutes(r *gin.Engine) {
-	api := r.Group("/api/v1")
+	// 使用 /api 而不是 /api/v1，与前端保持一致
+	api := r.Group("/api")
 	{
+		// 健康检查
+		api.GET("/health", controllers.HealthCheck)
+
 		// 认证路由（不需要登录）
 		api.POST("/register", controllers.Register)
 		api.POST("/login", controllers.Login)
 
 		// 帖子路由（公开）
 		api.GET("/posts", controllers.GetPosts)
+		api.GET("/posts/:id", controllers.GetPost)
+		api.GET("/posts/comments/count", controllers.GetCommentCounts)
 
-		// Spot 相关路由
-		api.GET("/spots", controllers.GetSpots)
-		api.GET("/spots/:id", controllers.GetSpot)
-		api.POST("/spots", controllers.CreateSpot)
-		api.PUT("/spots/:id", controllers.UpdateSpot)
-		api.DELETE("/spots/:id", controllers.DeleteSpot)
-		api.GET("/spots/nearby", controllers.GetNearbySpots)
-		api.GET("/spots/bounds", controllers.GetSpotsInBounds)
+		// 评论路由（公开）
+		api.GET("/posts/:id/comments", controllers.GetComments)
+		api.GET("/posts/:id/best-comment", controllers.GetBestComment)
 
-		// Review 相关路由
-		api.GET("/spots/:id/reviews", controllers.GetSpotReviews)
-		api.POST("/spots/:id/reviews", controllers.CreateReview)
-		api.PUT("/reviews/:id", controllers.UpdateReview)
-		api.DELETE("/reviews/:id", controllers.DeleteReview)
-		api.POST("/reviews/:id/like", controllers.LikeReview)
+		// 点赞相关（公开）
+		api.GET("/comments/likes/count", controllers.GetCommentLikeCounts)
 
-		// 统计路由
-		api.GET("/stats", controllers.GetStats)
-		api.GET("/countries", controllers.GetCountries)
+		// POI相关
+		api.GET("/pois", controllers.GetPOIs)
+		api.GET("/geocode/reverse", controllers.ReverseGeocode)
 
 		// 需要登录的路由
 		auth := api.Group("")
 		auth.Use(controllers.AuthMiddleware())
 		{
 			// 用户信息
-			auth.GET("/user/me", controllers.GetCurrentUser)
+			auth.GET("/me", controllers.GetMe)
+			auth.PUT("/me", controllers.UpdateCurrentUser)
+			auth.GET("/users/:id", controllers.GetUserByID)
+			auth.GET("/users/:id/posts", controllers.GetUserPosts)
 
 			// 帖子操作
 			auth.POST("/posts", controllers.CreatePost)
-			auth.GET("/posts/my", controllers.GetMyPosts)
-			auth.POST("/posts/:id/like", controllers.LikePost)
 			auth.DELETE("/posts/:id", controllers.DeletePost)
+			auth.GET("/posts/my", controllers.GetMyPosts)
+
+			// 帖子点赞
+			auth.POST("/posts/:id/like", controllers.PostLike)
+			auth.GET("/likes/check", controllers.CheckPostLikes)
+			auth.GET("/likes/my", controllers.GetMyLikes)
+
+			// 评论操作
+			auth.POST("/posts/:id/comments", controllers.CreateComment)
+			auth.DELETE("/comments/:id", controllers.DeleteComment)
+
+			// 评论点赞
+			auth.POST("/comments/:id/like", controllers.CommentLike)
+			auth.GET("/comments/likes/check", controllers.CheckCommentLikes)
 		}
 	}
 }
