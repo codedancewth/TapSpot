@@ -75,19 +75,18 @@
 
 ```
 TapSpot/
-├── backend/              # Node.js 后端
-│   ├── index.js              # Express服务器入口
-│   └── package.json
-├── frontend/             # React 前端
-│   ├── src/
-│   │   ├── App.jsx           # 主应用组件
-│   │   └── styles/           # 样式文件
-│   ├── dist/                 # 构建产物
-│   └── package.json
+├── backend/              # Go 后端
+│   ├── main.go               # Go服务器入口
+│   ├── go.mod                # Go模块配置
+│   ├── config/               # 配置文件
+│   ├── controllers/          # 控制器
+│   ├── models/               # 数据模型
+│   └── routes/               # 路由定义
 ├── docs/                 # 文档
 │   ├── location-best-comment-feature.md  # 最佳评论需求文档
 │   └── tapspot-公众号文章.md              # 本文档
 ├── database/             # 数据库脚本
+├── nginx/                # Nginx配置
 ├── start.sh              # 启动脚本
 └── README.md             # 项目说明
 ```
@@ -100,30 +99,19 @@ TapSpot/
 
 | 技术 | 用途 |
 |------|------|
-| **Node.js** | 运行环境 |
-| **Express** | Web框架 |
+| **Go** | 高性能编程语言 |
+| **Gin** | 轻量级Web框架 |
+| **GORM** | ORM库 |
 | **MySQL** | 数据库 |
-| **mysql2/promise** | MySQL连接池 |
-| **bcryptjs** | 密码加密 |
-| **jsonwebtoken** | JWT认证 |
-
-### 前端技术
-
-| 技术 | 用途 |
-|------|------|
-| **React 18** | UI框架 |
-| **Vite** | 构建工具 |
-| **Leaflet** | 地图库 |
-| **react-leaflet** | React地图组件 |
-| **Lucide React** | 图标库 |
-| **Axios** | HTTP请求 |
+| **jwt-go** | JWT认证 |
+| **bcrypt** | 密码加密 |
 
 ### 部署技术
 
 | 技术 | 用途 |
 |------|------|
 | **Nginx** | 静态资源服务、反向代理 |
-| **PM2** | 进程管理（可选） |
+| **Docker** | 容器化部署 |
 
 ---
 
@@ -304,36 +292,30 @@ cde7690d Add tile download script and fix map tiles URL
 git clone https://github.com/codedancewth/TapSpot.git
 cd TapSpot
 
-# 安装后端依赖
+# 配置数据库
+# 创建MySQL数据库: CREATE DATABASE tapspot;
+# 修改 backend/config/database.go 中的数据库连接配置
+
+# 安装依赖并运行后端
 cd backend
-npm install
+go mod download
+go run main.go
 
-# 启动后端（端口3002）
-node index.js
-
-# 安装前端依赖
-cd ../frontend
-npm install
-
-# 启动前端（端口3000）
-npm run dev
+# 后端运行在端口8080
 ```
 
 ### 生产环境
 
 ```bash
-# 构建前端
-cd frontend
-npm run build
+# 编译Go后端
+cd backend
+go build -o tapspot
 
-# 复制构建产物到Nginx目录
-cp -r dist/* /var/www/tapspot/
+# 运行
+./tapspot
 
-# 重载Nginx
-nginx -s reload
-
-# 后端使用PM2管理
-pm2 start backend/index.js --name tapspot-api
+# 或使用Docker
+docker-compose up -d
 ```
 
 ### Nginx配置示例
@@ -342,15 +324,9 @@ pm2 start backend/index.js --name tapspot-api
 server {
     listen 80;
     server_name your-domain.com;
-    root /var/www/tapspot;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
 
     location /api/ {
-        proxy_pass http://127.0.0.1:3002/api/;
+        proxy_pass http://127.0.0.1:8080/api/;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
