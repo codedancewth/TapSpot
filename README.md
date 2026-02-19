@@ -422,6 +422,7 @@ copies or substantial portions of the Software.
 
 ## 📞 联系我们
 
+- **微信**: wutianh4099
 - **GitHub**: [https://github.com/codedancewth/TapSpot](https://github.com/codedancewth/TapSpot)
 - **Issues**: [提交问题](https://github.com/codedancewth/TapSpot/issues)
 
