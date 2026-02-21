@@ -19,6 +19,11 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+// GetJWTSecret 获取JWT密钥（供其他包使用）
+func GetJWTSecret() []byte {
+	return jwtSecret
+}
+
 // RegisterRequest 注册请求
 type RegisterRequest struct {
 	Username string `json:"username" binding:"required,min=3,max=50"`

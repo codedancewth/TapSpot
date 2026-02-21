@@ -102,3 +102,30 @@ type Review struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 }
+
+// Message 私信消息
+type Message struct {
+	ID         uint           `json:"id" gorm:"primaryKey"`
+	SenderID   uint           `json:"sender_id" gorm:"not null;index"`
+	Sender     User           `json:"sender,omitempty" gorm:"foreignKey:SenderID"`
+	ReceiverID uint           `json:"receiver_id" gorm:"not null;index"`
+	Receiver   User           `json:"receiver,omitempty" gorm:"foreignKey:ReceiverID"`
+	Content    string         `json:"content" gorm:"type:text;not null"`
+	PostID     *uint          `json:"post_id,omitempty"` // 关联的帖子ID（可选）
+	IsRead     bool           `json:"is_read" gorm:"default:false"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	DeletedAt  gorm.DeletedAt `json:"-" gorm:"index"`
+}
+
+// Conversation 会话（用于快速获取用户的会话列表）
+type Conversation struct {
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	UserID      uint      `json:"user_id" gorm:"not null;index:idx_user_peer,unique"`
+	PeerID      uint      `json:"peer_id" gorm:"not null;index:idx_user_peer,unique"`
+	LastMessage string    `json:"last_message" gorm:"type:text"`
+	LastMsgTime time.Time `json:"last_msg_time"`
+	UnreadCount int       `json:"unread_count" gorm:"default:0"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
