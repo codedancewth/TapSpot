@@ -27,5 +27,6 @@ Thumbs.db
 backend/tapspot
 tapspot
 
-# Frontend (removed, keeping structure)
-frontend/
+# Frontend - ignore build and deps, keep source
+frontend/node_modules/
+frontend/dist/
