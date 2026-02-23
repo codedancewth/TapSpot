@@ -1,0 +1,68 @@
+/**
+ * TapSpot 现代化样式
+ */
+
+/* 动画 */
+@keyframes bounce {
+  0%, 100% { transform: rotate(-45deg) translateY(0); }
+  50% { transform: rotate(-45deg) translateY(-5px); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3d3d5c;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4d4d6c;
+}
+
+/* 输入框聚焦样式 */
+input:focus, textarea:focus {
+  outline: none;
+  border-color: #e94560 !important;
+}
+
+/* 按钮悬停效果 */
+button {
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* 动画工具类 */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* 隐藏 Leaflet 默认属性 */
+.leaflet-control-attribution {
+  font-size: 10px;
+  background: rgba(255,255,255,0.8) !important;
+}
+
+/* 弹窗样式优化 */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.leaflet-popup-content {
+  margin: 0;
+}
