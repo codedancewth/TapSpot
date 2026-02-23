@@ -27,7 +27,7 @@ func GetJWTSecret() []byte {
 // RegisterRequest 注册请求
 type RegisterRequest struct {
 	Username string `json:"username" binding:"required,min=3,max=50"`
-	Password string `json:"password" binding:"required,min=6,max=100"`
+	Password string `json:"password" binding:"required,min=3,max=100"`
 	Nickname string `json:"nickname"`
 }
 
@@ -50,9 +50,20 @@ func GetUserID(c *gin.Context) uint {
 func Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		// 友好的错误消息
+		errMsg := "请填写完整信息"
+		if req.Username == "" {
+			errMsg = "用户名不能为空"
+		} else if len(req.Username) < 3 {
+			errMsg = "用户名至少3个字符"
+		} else if req.Password == "" {
+			errMsg = "密码不能为空"
+		} else if len(req.Password) < 3 {
+			errMsg = "密码至少3个字符"
+		}
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": "请填写完整信息: " + err.Error(),
+			"message": errMsg,
 		})
 		return
 	}
@@ -125,7 +136,14 @@ func Register(c *gin.Context) {
 func Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "请输入用户名和密码"})
+		// 友好的错误消息
+		errMsg := "请输入用户名和密码"
+		if req.Username == "" {
+			errMsg = "用户名不能为空"
+		} else if req.Password == "" {
+			errMsg = "密码不能为空"
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": errMsg})
 		return
 	}
 

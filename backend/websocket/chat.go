@@ -38,12 +38,15 @@ type Hub struct {
 
 // Message WebSocket 消息格式
 type Message struct {
-	Type       string `json:"type"`        // "chat", "read", "typing"
-	SenderID   uint   `json:"sender_id"`
-	ReceiverID uint   `json:"receiver_id"`
-	Content    string `json:"content"`
-	PostID     *uint  `json:"post_id,omitempty"`
-	CreatedAt  string `json:"created_at"`
+	Type           string `json:"type"`           // "chat", "read", "typing"
+	ConversationID uint   `json:"conversation_id"` // 会话ID
+	SenderID       uint   `json:"sender_id"`
+	SenderName     string `json:"sender_name"`    // 发送者昵称
+	ReceiverID     uint   `json:"receiver_id"`
+	Content        string `json:"content"`
+	PostID         *uint  `json:"post_id,omitempty"`
+	CreatedAt      string `json:"created_at"`
+	IsMe           bool   `json:"is_me"`          // 是否是自己发的
 }
 
 // NewHub 创建一个新的 Hub
@@ -76,23 +79,47 @@ func (h *Hub) Run() {
 			log.Printf("👤 用户 %d 已断开 WebSocket", client.ID)
 
 		case message := <-h.Broadcast:
+			log.Printf("广播消息: sender=%d, receiver=%d", message.SenderID, message.ReceiverID)
 			h.mu.RLock()
 			// 发送给接收者
 			if client, ok := h.Clients[message.ReceiverID]; ok {
+				log.Printf("接收者 %d 在线，发送消息", message.ReceiverID)
+				// 接收者收到的消息 is_me = false
+				msgCopy := *message
+				msgCopy.IsMe = false
+				// 查找接收者的会话 ID
+				var receiverConv models.Conversation
+				if err := models.DB.Where("user_id = ? AND peer_id = ?", message.ReceiverID, message.SenderID).First(&receiverConv).Error; err == nil {
+					msgCopy.ConversationID = receiverConv.ID
+				}
+				msgBytes := h.serializeMessage(&msgCopy)
+				log.Printf("发送给接收者的消息: %s", string(msgBytes))
 				select {
-				case client.Send <- h.serializeMessage(message):
+				case client.Send <- msgBytes:
+					log.Printf("消息已发送到接收者的 Send channel")
 				default:
 					close(client.Send)
 					delete(h.Clients, client.ID)
+					log.Printf("接收者 channel 满了，关闭连接")
 				}
+			} else {
+				log.Printf("接收者 %d 不在线", message.ReceiverID)
 			}
 			// 也发送给发送者（用于同步）
 			if client, ok := h.Clients[message.SenderID]; ok {
+				log.Printf("发送者 %d 在线，发送消息同步", message.SenderID)
+				// 发送者收到的消息 is_me = true
+				msgCopy := *message
+				msgCopy.IsMe = true
+				msgBytes := h.serializeMessage(&msgCopy)
+				log.Printf("发送给发送者的消息: %s", string(msgBytes))
 				select {
-				case client.Send <- h.serializeMessage(message):
+				case client.Send <- msgBytes:
+					log.Printf("消息已发送到发送者的 Send channel")
 				default:
 					close(client.Send)
 					delete(h.Clients, client.ID)
+					log.Printf("发送者 channel 满了，关闭连接")
 				}
 			}
 			h.mu.RUnlock()
@@ -185,12 +212,16 @@ func (c *Client) readPump() {
 			break
 		}
 
+		log.Printf("收到 WebSocket 消息: %s", string(message))
+
 		// 解析消息
 		var msg Message
 		if err := json.Unmarshal(message, &msg); err != nil {
 			log.Printf("消息解析错误: %v", err)
 			continue
 		}
+
+		log.Printf("解析后: type=%s, sender=%d, receiver=%d, content=%s", msg.Type, c.ID, msg.ReceiverID, msg.Content)
 
 		// 设置发送者
 		msg.SenderID = c.ID
@@ -199,6 +230,7 @@ func (c *Client) readPump() {
 		// 处理不同类型的消息
 		switch msg.Type {
 		case "chat":
+			log.Printf("处理聊天消息: %+v", msg)
 			// 保存消息到数据库
 			dbMsg := models.Message{
 				SenderID:   msg.SenderID,
@@ -211,12 +243,26 @@ func (c *Client) readPump() {
 				log.Printf("保存消息失败: %v", err)
 				continue
 			}
+			log.Printf("消息已保存到数据库, ID=%d", dbMsg.ID)
 
-			// 更新或创建会话
-			updateConversation(msg.SenderID, msg.ReceiverID, msg.Content)
+			// 更新或创建会话，并获取会话ID
+			convID := updateConversation(msg.SenderID, msg.ReceiverID, msg.Content)
+			msg.ConversationID = convID
+
+			// 获取发送者昵称
+			var sender models.User
+			if err := models.DB.First(&sender, msg.SenderID).Error; err == nil {
+				if sender.Nickname != "" {
+					msg.SenderName = sender.Nickname
+				} else {
+					msg.SenderName = sender.Username
+				}
+			}
 
 			// 广播消息
+			log.Printf("准备广播消息: sender=%d, receiver=%d, convID=%d", msg.SenderID, msg.ReceiverID, msg.ConversationID)
 			c.Hub.Broadcast <- &msg
+			log.Printf("消息已加入广播队列")
 
 		case "read":
 			// 标记消息为已读
@@ -259,8 +305,8 @@ func (c *Client) writePump() {
 	}
 }
 
-// updateConversation 更新会话
-func updateConversation(userID, peerID uint, lastMessage string) {
+// updateConversation 更新会话，返回会话ID
+func updateConversation(userID, peerID uint, lastMessage string) uint {
 	now := time.Now()
 
 	// 更新发送者的会话
@@ -300,4 +346,6 @@ func updateConversation(userID, peerID uint, lastMessage string) {
 		peerConv.UnreadCount++
 		models.DB.Save(&peerConv)
 	}
+
+	return conv.ID
 }

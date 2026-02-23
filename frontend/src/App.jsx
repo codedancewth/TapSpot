@@ -207,6 +207,7 @@ export default function App() {
   const [unreadCount, setUnreadCount] = useState(0)
   const wsRef = useRef(null)
   const chatEndRef = useRef(null)
+  const activeConversationRef = useRef(null) // 用于 WebSocket 回调中获取当前会话
 
   // 检测移动端
   useEffect(() => {
@@ -689,13 +690,23 @@ export default function App() {
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data)
+        console.log('收到WebSocket消息:', msg)
         if (msg.type === 'chat') {
+          // 使用 ref 获取当前会话
+          const currentConv = activeConversationRef.current
           // 如果当前正在查看该会话，添加消息
-          if (activeConversation && 
-              (activeConversation.id === msg.conversation_id ||
-               (msg.sender_id === activeConversation.other_user?.id || 
-                msg.receiver_id === activeConversation.other_user?.id))) {
-            setChatMessages(prev => [...prev, msg])
+          if (currentConv && 
+              (currentConv.id === msg.conversation_id ||
+               (msg.sender_id === currentConv.other_user?.id || 
+                msg.receiver_id === currentConv.other_user?.id))) {
+            setChatMessages(prev => [...prev, {
+              id: msg.id || Date.now(),
+              sender_id: msg.sender_id,
+              sender_name: msg.sender_name,
+              content: msg.content,
+              created_at: msg.created_at,
+              is_me: msg.is_me
+            }])
           }
           // 刷新会话列表
           fetchConversations()
@@ -795,6 +806,7 @@ export default function App() {
       const conversation = data.conversation
 
       setActiveConversation(conversation)
+      activeConversationRef.current = conversation // 同步更新 ref
       setShowChat(true)
       setShowUserSpace(null) // 关闭用户空间弹窗
 
@@ -818,12 +830,14 @@ export default function App() {
     }
     setShowChat(true)
     setActiveConversation(null)
+    activeConversationRef.current = null
     fetchConversations()
   }
 
   // 选择会话
   const selectConversation = async (conversation) => {
     setActiveConversation(conversation)
+    activeConversationRef.current = conversation
     fetchChatMessages(conversation.id)
     // 标记为已读
     await api(`/conversations/${conversation.id}/read`, { method: 'POST' })

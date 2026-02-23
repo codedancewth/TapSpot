@@ -28,9 +28,9 @@ func main() {
 	// 自动迁移数据库表
 	migrateDB()
 
-	// 创建WebSocket Hub
-	wsHub := websocket.NewHub()
-	go wsHub.Run()
+	// 创建WebSocket Hub 并设置为全局实例
+	websocket.GlobalHub = websocket.NewHub()
+	go websocket.GlobalHub.Run()
 
 	// 设置token验证函数（解决循环导入问题）
 	websocket.ValidateTokenFunc = func(tokenString string) (uint, error) {
@@ -51,7 +51,7 @@ func main() {
 	}))
 
 	// 注册路由
-	routes.SetupRoutes(r, wsHub)
+	routes.SetupRoutes(r)
 
 	// 创建测试用户 root/root
 	controllers.CreateTestUser()
@@ -68,6 +68,11 @@ func main() {
 func migrateDB() {
 	log.Println("🔄 正在迁移数据库...")
 	config.DB.AutoMigrate(
+		&models.User{},
+		&models.Post{},
+		&models.Comment{},
+		&models.Like{},
+		&models.CommentLike{},
 		&models.Conversation{},
 		&models.Message{},
 	)

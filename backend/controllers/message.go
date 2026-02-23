@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 	"tapspot/models"
+	"tapspot/websocket"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -61,6 +63,32 @@ func SendMessage(c *gin.Context) {
 	// 更新会话
 	updateConversationHTTP(userID, req.ReceiverID, req.Content)
 
+	// 通过 WebSocket 广播消息（如果接收者在线）
+	if websocket.GlobalHub != nil && websocket.GlobalHub.IsUserOnline(req.ReceiverID) {
+		wsMsg := &websocket.Message{
+			Type:       "chat",
+			SenderID:   userID,
+			ReceiverID: req.ReceiverID,
+			Content:    req.Content,
+			CreatedAt:  message.CreatedAt.Format("2006-01-02 15:04:05"),
+		}
+		// 获取发送者昵称
+		var sender models.User
+		if err := models.DB.First(&sender, userID).Error; err == nil {
+			if sender.Nickname != "" {
+				wsMsg.SenderName = sender.Nickname
+			} else {
+				wsMsg.SenderName = sender.Username
+			}
+		}
+		// 获取会话 ID
+		var conv models.Conversation
+		if err := models.DB.Where("user_id = ? AND peer_id = ?", userID, req.ReceiverID).First(&conv).Error; err == nil {
+			wsMsg.ConversationID = conv.ID
+		}
+		websocket.GlobalHub.Broadcast <- wsMsg
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": gin.H{
@@ -85,14 +113,21 @@ func GetConversations(c *gin.Context) {
 		Find(&conversations)
 
 	// 获取对方用户信息
+	type OtherUser struct {
+		ID       uint   `json:"id"`
+		Nickname string `json:"nickname"`
+		Avatar   string `json:"avatar"`
+	}
+	
 	type ConversationResponse struct {
-		ID          uint   `json:"id"`
-		PeerID      uint   `json:"peer_id"`
-		PeerName    string `json:"peer_name"`
-		PeerAvatar  string `json:"peer_avatar"`
-		LastMessage string `json:"last_message"`
-		LastMsgTime string `json:"last_msg_time"`
-		UnreadCount int    `json:"unread_count"`
+		ID          uint      `json:"id"`
+		PeerID      uint      `json:"peer_id"`
+		PeerName    string    `json:"peer_name"`
+		PeerAvatar  string    `json:"peer_avatar"`
+		LastMessage string    `json:"last_message"`
+		LastMsgTime string    `json:"last_msg_time"`
+		UnreadCount int       `json:"unread_count"`
+		OtherUser   OtherUser `json:"other_user"`
 	}
 
 	var result []ConversationResponse
@@ -113,6 +148,11 @@ func GetConversations(c *gin.Context) {
 			LastMessage: conv.LastMessage,
 			LastMsgTime: conv.LastMsgTime.Format("2006-01-02 15:04:05"),
 			UnreadCount: conv.UnreadCount,
+			OtherUser: OtherUser{
+				ID:       peer.ID,
+				Nickname: peerName,
+				Avatar:   peer.Avatar,
+			},
 		})
 	}
 
@@ -124,11 +164,25 @@ func GetConversations(c *gin.Context) {
 // GetMessages 获取与某个用户的消息历史
 func GetMessages(c *gin.Context) {
 	userID := c.GetUint("userID")
-	peerIDStr := c.Param("userId")
-	peerID, err := strconv.ParseUint(peerIDStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "用户ID格式错误"})
-		return
+	param := c.Param("userId")
+	
+	// 尝试解析为会话ID（优先）或用户ID
+	var messages []models.Message
+	var peerID uint
+	
+	// 首先尝试作为会话ID查找
+	var conversation models.Conversation
+	if err := models.DB.Where("id = ? AND user_id = ?", param, userID).First(&conversation).Error; err == nil {
+		// 是会话ID，获取对方的用户ID
+		peerID = conversation.PeerID
+	} else {
+		// 不是会话ID，尝试作为用户ID
+		peerIDUint, err := strconv.ParseUint(param, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "参数格式错误"})
+			return
+		}
+		peerID = uint(peerIDUint)
 	}
 
 	// 分页参数
@@ -142,7 +196,6 @@ func GetMessages(c *gin.Context) {
 	}
 	offset := (page - 1) * pageSize
 
-	var messages []models.Message
 	models.DB.Preload("Sender").Preload("Receiver").
 		Where("(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)",
 			userID, peerID, peerID, userID).
@@ -217,8 +270,135 @@ func GetUnreadCount(c *gin.Context) {
 	})
 }
 
+// GetOrCreateConversation 获取或创建会话
+func GetOrCreateConversation(c *gin.Context) {
+	userID := c.GetUint("userID")
+	peerIDStr := c.Query("user_id")
+	
+	peerID, err := strconv.ParseUint(peerIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "用户ID格式错误"})
+		return
+	}
+	
+	// 不能和自己创建会话
+	if uint(peerID) == userID {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "不能和自己聊天"})
+		return
+	}
+	
+	// 验证对方用户是否存在
+	var peer models.User
+	if err := models.DB.First(&peer, peerID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "用户不存在"})
+		return
+	}
+	
+	// 查找或创建会话
+	var conversation models.Conversation
+	err = models.DB.Where("user_id = ? AND peer_id = ?", userID, peerID).First(&conversation).Error
+	
+	if err != nil {
+		// 创建新会话
+		conversation = models.Conversation{
+			UserID:      userID,
+			PeerID:      uint(peerID),
+			LastMessage: "",
+			UnreadCount: 0,
+		}
+		models.DB.Create(&conversation)
+	}
+	
+	peerName := peer.Nickname
+	if peerName == "" {
+		peerName = peer.Username
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"conversation": gin.H{
+			"id":           conversation.ID,
+			"peer_id":      peer.ID,
+			"peer_name":    peerName,
+			"peer_avatar":  peer.Avatar,
+			"last_message": conversation.LastMessage,
+			"last_msg_time": conversation.LastMsgTime.Format("2006-01-02 15:04:05"),
+			"unread_count": conversation.UnreadCount,
+			// 添加 other_user 对象，兼容前端格式
+			"other_user": gin.H{
+				"id":       peer.ID,
+				"nickname": peerName,
+				"avatar":   peer.Avatar,
+			},
+		},
+	})
+}
+
+// MarkConversationAsRead 标记会话为已读
+func MarkConversationAsRead(c *gin.Context) {
+	userID := c.GetUint("userID")
+	convID := c.Param("id")
+	
+	var conversation models.Conversation
+	if err := models.DB.Where("id = ? AND user_id = ?", convID, userID).First(&conversation).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "会话不存在"})
+		return
+	}
+	
+	// 重置未读数
+	models.DB.Model(&conversation).Update("unread_count", 0)
+	
+	// 标记消息为已读
+	models.DB.Model(&models.Message{}).
+		Where("sender_id = ? AND receiver_id = ? AND is_read = ?", conversation.PeerID, userID, false).
+		Update("is_read", true)
+	
+	c.JSON(http.StatusOK, gin.H{"success": true})
+}
+
 // updateConversationHTTP HTTP方式更新会话
 func updateConversationHTTP(userID, peerID uint, lastMessage string) {
-	// 这个函数在 websocket/chat.go 中也有实现
-	// 这里简化处理，实际项目中应该复用逻辑
+	now := time.Now()
+	
+	// 更新发送方的会话
+	var conv models.Conversation
+	err := models.DB.Where("user_id = ? AND peer_id = ?", userID, peerID).First(&conv).Error
+	if err != nil {
+		// 创建新会话
+		conv = models.Conversation{
+			UserID:      userID,
+			PeerID:      peerID,
+			LastMessage: lastMessage,
+			LastMsgTime: now,
+			UnreadCount: 0,
+		}
+		models.DB.Create(&conv)
+	} else {
+		// 更新会话
+		models.DB.Model(&conv).Updates(map[string]interface{}{
+			"last_message":  lastMessage,
+			"last_msg_time": now,
+		})
+	}
+	
+	// 更新接收方的会话（增加未读数）
+	var peerConv models.Conversation
+	err = models.DB.Where("user_id = ? AND peer_id = ?", peerID, userID).First(&peerConv).Error
+	if err != nil {
+		// 为接收方创建会话
+		peerConv = models.Conversation{
+			UserID:      peerID,
+			PeerID:      userID,
+			LastMessage: lastMessage,
+			LastMsgTime: now,
+			UnreadCount: 1,
+		}
+		models.DB.Create(&peerConv)
+	} else {
+		// 更新接收方会话，增加未读数
+		models.DB.Model(&peerConv).Updates(map[string]interface{}{
+			"last_message":  lastMessage,
+			"last_msg_time": now,
+			"unread_count":  peerConv.UnreadCount + 1,
+		})
+	}
 }
