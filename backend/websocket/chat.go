@@ -87,11 +87,15 @@ func (h *Hub) Run() {
 				// 接收者收到的消息 is_me = false
 				msgCopy := *message
 				msgCopy.IsMe = false
-				// 查找接收者的会话 ID
+				// 查找接收者的会话 ID（接收者与发送者的会话）
 				var receiverConv models.Conversation
 				if err := models.DB.Where("user_id = ? AND peer_id = ?", message.ReceiverID, message.SenderID).First(&receiverConv).Error; err == nil {
 					msgCopy.ConversationID = receiverConv.ID
+					log.Printf("接收者的会话 ID: %d", receiverConv.ID)
+				} else {
+					log.Printf("未找到接收者会话: user_id=%d, peer_id=%d, err=%v", message.ReceiverID, message.SenderID, err)
 				}
+				// 同时添加接收者需要用来匹配的字段
 				msgBytes := h.serializeMessage(&msgCopy)
 				log.Printf("发送给接收者的消息: %s", string(msgBytes))
 				select {

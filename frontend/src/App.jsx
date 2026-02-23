@@ -694,11 +694,17 @@ export default function App() {
         if (msg.type === 'chat') {
           // 使用 ref 获取当前会话
           const currentConv = activeConversationRef.current
-          // 如果当前正在查看该会话，添加消息
-          if (currentConv && 
-              (currentConv.id === msg.conversation_id ||
-               (msg.sender_id === currentConv.other_user?.id || 
-                msg.receiver_id === currentConv.other_user?.id))) {
+          console.log('当前会话:', currentConv, '消息发送者:', msg.sender_id, '接收者:', msg.receiver_id)
+
+          // 判断是否与当前会话相关
+          // 条件：当前会话存在，且消息的对方就是当前会话的对方
+          const isRelatedToCurrentConv = currentConv && currentConv.other_user && (
+            msg.sender_id === currentConv.other_user.id ||  // 对方发来的消息
+            msg.receiver_id === currentConv.other_user.id   // 我发给对方的消息
+          )
+
+          if (isRelatedToCurrentConv) {
+            console.log('消息与当前会话相关，添加到聊天列表')
             setChatMessages(prev => [...prev, {
               id: msg.id || Date.now(),
               sender_id: msg.sender_id,
@@ -707,6 +713,8 @@ export default function App() {
               created_at: msg.created_at,
               is_me: msg.is_me
             }])
+          } else {
+            console.log('消息与当前会话无关，不添加')
           }
           // 刷新会话列表
           fetchConversations()
@@ -745,38 +753,25 @@ export default function App() {
   const sendChatMessage = async () => {
     if (!newChatMessage.trim() || !activeConversation) return
 
-    const message = {
-      type: 'chat',
-      conversation_id: activeConversation.id,
-      sender_id: user.id,
-      receiver_id: activeConversation.other_user.id,
-      content: newChatMessage.trim(),
-      created_at: new Date().toISOString()
-    }
+    const content = newChatMessage.trim()
+    setNewChatMessage('') // 先清空输入框
 
-    // 通过WebSocket发送
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(message))
-    } else {
-      // 如果WebSocket未连接，使用HTTP发送
-      try {
-        await api('/messages', {
-          method: 'POST',
-          body: JSON.stringify({
-            receiver_id: activeConversation.other_user.id,
-            content: newChatMessage.trim()
-          })
+    try {
+      // 统一使用 HTTP 发送，更可靠
+      await api('/messages', {
+        method: 'POST',
+        body: JSON.stringify({
+          receiver_id: activeConversation.other_user.id,
+          content: content
         })
-        // 刷新消息列表
-        fetchChatMessages(activeConversation.id)
-      } catch (error) {
-        console.error('发送消息失败:', error)
-        alert('发送消息失败')
-        return
-      }
+      })
+      // 发送后立即刷新消息列表
+      fetchChatMessages(activeConversation.id)
+    } catch (error) {
+      console.error('发送消息失败:', error)
+      alert('发送消息失败')
+      setNewChatMessage(content) // 恢复输入内容
     }
-
-    setNewChatMessage('')
   }
 
   // 获取聊天消息
@@ -860,6 +855,37 @@ export default function App() {
       disconnectWebSocket()
     }
   }, [user])
+
+  // 聊天页面轮询刷新消息（每2秒检查一次）
+  useEffect(() => {
+    if (!activeConversation || !showChat) return
+
+    const pollInterval = setInterval(() => {
+      if (activeConversation) {
+        // 静默刷新消息，对比去重
+        api(`/conversations/${activeConversation.id}/messages`).then(data => {
+          const newMessages = data.messages || []
+          setChatMessages(prev => {
+            // 合并新旧消息，去重
+            const existingIds = new Set(prev.map(m => m.id))
+            const merged = [...prev]
+            for (const msg of newMessages) {
+              if (!existingIds.has(msg.id)) {
+                merged.push(msg)
+              }
+            }
+            // 按时间排序
+            merged.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+            return merged
+          })
+        }).catch(err => {
+          console.error('轮询消息失败:', err)
+        })
+      }
+    }, 2000) // 每2秒轮询一次
+
+    return () => clearInterval(pollInterval)
+  }, [activeConversation, showChat])
 
   // 滚动到底部
   useEffect(() => {
