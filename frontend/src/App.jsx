@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 're
 import L from 'leaflet'
 import { Heart, X, Plus, ZoomIn, ZoomOut, Compass, User, LogOut, MapPin, Clock, ChevronRight, Search, Loader2, MessageCircle, Send, Mail } from 'lucide-react'
 import './styles/modern.css'
-import { ChatWindow, ConversationList } from './components/Chat.jsx'
+import { MessageCenter } from './components/Chat/MessageCenter.jsx'
 
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -176,6 +176,12 @@ export default function App() {
   const [likedPosts, setLikedPosts] = useState(new Set())
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showPostDetail, setShowPostDetail] = useState(null)
+  const [searchType, setSearchType] = useState('posts') // 'posts' | 'users'
+  const [userSearchResults, setUserSearchResults] = useState([])
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [userPosts, setUserPosts] = useState([])
+  const [loadingUsers, setLoadingUsers] = useState(false)
+  const [loadingUserPosts, setLoadingUserPosts] = useState(false)
   const [comments, setComments] = useState([])
   const [commentCounts, setCommentCounts] = useState({})
   const [newComment, setNewComment] = useState('')
@@ -200,6 +206,7 @@ export default function App() {
   // 聊天相关状态
   const [conversations, setConversations] = useState([])
   const [showChat, setShowChat] = useState(false)
+  const [initialChatPeer, setInitialChatPeer] = useState(null) // 初始聊天对象 { id, name }
   const [activeConversation, setActiveConversation] = useState(null)
   const [chatMessages, setChatMessages] = useState([])
   const [newChatMessage, setNewChatMessage] = useState('')
@@ -295,6 +302,45 @@ export default function App() {
     }, 300)
     return () => clearTimeout(timer)
   }, [searchQuery])
+
+  // 用户搜索
+  useEffect(() => {
+    if (searchType === 'users' && searchQuery.trim()) {
+      setLoadingUsers(true)
+      const timer = setTimeout(async () => {
+        try {
+          const data = await api(`/users/search?q=${encodeURIComponent(searchQuery)}`)
+          setUserSearchResults(data.users || [])
+        } catch (e) {
+          setUserSearchResults([])
+        } finally {
+          setLoadingUsers(false)
+        }
+      }, 300)
+      return () => clearTimeout(timer)
+    } else {
+      setUserSearchResults([])
+    }
+  }, [searchQuery, searchType])
+
+  // 获取用户帖子
+  const fetchUserPosts = async (userId) => {
+    setLoadingUserPosts(true)
+    try {
+      const data = await api(`/users/${userId}/posts`)
+      setUserPosts(data.posts || [])
+    } catch (e) {
+      setUserPosts([])
+    } finally {
+      setLoadingUserPosts(false)
+    }
+  }
+
+  // 选择用户查看其帖子
+  const handleSelectUser = (user) => {
+    setSelectedUser(user)
+    fetchUserPosts(user.id)
+  }
 
   // 登录
   const handleLogin = async () => {
@@ -796,21 +842,17 @@ export default function App() {
     }
 
     try {
-      // 获取或创建会话
+      // 获取或创建会话，并获取对方用户名
       const data = await api(`/conversations/with?user_id=${otherUserId}`)
       const conversation = data.conversation
 
-      setActiveConversation(conversation)
-      activeConversationRef.current = conversation // 同步更新 ref
+      // 设置初始聊天对象
+      setInitialChatPeer({
+        id: otherUserId,
+        name: conversation.other_user?.nickname || '用户'
+      })
       setShowChat(true)
       setShowUserSpace(null) // 关闭用户空间弹窗
-
-      // 获取消息历史
-      fetchChatMessages(conversation.id)
-
-      // 标记为已读
-      await api(`/conversations/${conversation.id}/read`, { method: 'POST' })
-      fetchUnreadCount()
     } catch (error) {
       console.error('打开聊天失败:', error)
       alert('打开聊天失败')
@@ -823,10 +865,8 @@ export default function App() {
       setShowLogin(true)
       return
     }
+    setInitialChatPeer(null) // 清除初始聊天对象，显示列表
     setShowChat(true)
-    setActiveConversation(null)
-    activeConversationRef.current = null
-    fetchConversations()
   }
 
   // 选择会话
@@ -1005,10 +1045,38 @@ export default function App() {
 
             {/* 搜索 */}
             <div style={{ padding: '12px 20px', borderBottom: `1px solid ${COLORS.border}` }}>
+              {/* 搜索类型切换 */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                <button
+                  onClick={() => { setSearchType('posts'); setSelectedUser(null); }}
+                  style={{
+                    flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 500,
+                    background: searchType === 'posts' ? COLORS.accent : 'transparent',
+                    color: searchType === 'posts' ? '#fff' : '#888',
+                    border: `1px solid ${searchType === 'posts' ? COLORS.accent : COLORS.border}`,
+                    cursor: 'pointer', transition: 'all 0.2s',
+                  }}
+                >
+                  📝 帖子
+                </button>
+                <button
+                  onClick={() => { setSearchType('users'); setSelectedUser(null); }}
+                  style={{
+                    flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 500,
+                    background: searchType === 'users' ? COLORS.accent : 'transparent',
+                    color: searchType === 'users' ? '#fff' : '#888',
+                    border: `1px solid ${searchType === 'users' ? COLORS.accent : COLORS.border}`,
+                    cursor: 'pointer', transition: 'all 0.2s',
+                  }}
+                >
+                  👤 用户
+                </button>
+              </div>
+              {/* 搜索输入框 */}
               <div style={{ position: 'relative' }}>
                 <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#666' }} />
                 <input
-                  placeholder="搜索帖子、地点..."
+                  placeholder={searchType === 'posts' ? "搜索帖子、地点..." : "搜索用户..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   style={{
@@ -1020,83 +1088,196 @@ export default function App() {
               </div>
             </div>
 
-            {/* 帖子列表 */}
+            {/* 帖子列表 / 用户搜索结果 */}
             <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
-              {loading ? (
-                <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
-                  <Loader2 size={32} className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
-                  <div style={{ marginTop: 12 }}>加载中...</div>
-                </div>
-              ) : posts.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
-                  <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
-                  <div>暂无帖子</div>
-                </div>
-              ) : (
-                posts.map(post => (
-                  <div
-                    key={post.id}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      // 直接导航到帖子位置，不受任何状态影响
-                      if (mapRef) {
-                        mapRef.setView([post.latitude, post.longitude], 13, { animate: false })
-                      }
-                      if (isMobile) setShowSidebar(false)
-                    }}
-                    style={{
-                      background: post.id === newPostId ? `${COLORS.accent}20` : COLORS.cardBgDark,
-                      borderRadius: 12, padding: 14, marginBottom: 10, cursor: 'pointer',
-                      border: post.id === newPostId ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => { if (post.id !== newPostId) e.currentTarget.style.borderColor = COLORS.accent }}
-                    onMouseLeave={(e) => { if (post.id !== newPostId) e.currentTarget.style.borderColor = COLORS.border }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                      <div style={{
-                        width: 44, height: 44,
-                        background: `linear-gradient(135deg, ${getTypeConfig(post.type).color} 0%, ${getTypeConfig(post.type).colorDark} 100%)`,
-                        borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        flexShrink: 0, fontSize: 22,
-                      }}>
-                        {getTypeConfig(post.type).icon}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                          {post.id === newPostId && <span style={{ background: COLORS.accent, color: '#fff', padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>NEW</span>}
-                          <span style={{ fontWeight: 600, fontSize: 14, color: COLORS.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.title}</span>
-                        </div>
-                        <div style={{ fontSize: 12, color: '#888', marginBottom: 6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.content}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: '#666' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><MapPin size={11} /> {post.location_name || '未知地点'}</span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Clock size={11} /> {formatTime(post.createdAt)}</span>
-                        </div>
+              {/* 用户搜索模式 */}
+              {searchType === 'users' ? (
+                selectedUser ? (
+                  /* 显示选中用户的帖子 */
+                  <div>
+                    <div 
+                      onClick={() => setSelectedUser(null)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, cursor: 'pointer', color: COLORS.accent, fontSize: 13 }}
+                    >
+                      ← 返回用户列表
+                    </div>
+                    <div style={{ 
+                      display: 'flex', alignItems: 'center', gap: 12, 
+                      padding: 14, marginBottom: 12, 
+                      background: COLORS.cardBgDark, borderRadius: 12, 
+                      border: `1px solid ${COLORS.border}` 
+                    }}>
+                      <div style={{ 
+                        width: 50, height: 50, background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.gold})`, 
+                        borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 24
+                      }}>👤</div>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 16, color: COLORS.text }}>{selectedUser.username}</div>
+                        <div style={{ fontSize: 12, color: '#888' }}>{selectedUser.bio || '暂无简介'}</div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: `1px solid ${COLORS.border}` }}>
-                      <div 
-                        onClick={(e) => { e.stopPropagation(); openUserSpace(post.authorId, post.author) }}
-                        style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
-                      >
-                        <div style={{ width: 20, height: 20, background: COLORS.secondary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>👤</div>
-                        <span style={{ fontSize: 12, color: '#888' }}>{post.author}</span>
+                    <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>帖子 ({userPosts.length})</div>
+                    {loadingUserPosts ? (
+                      <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
+                        <Loader2 size={24} className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <button onClick={(e) => { e.stopPropagation(); handleLike(post.id) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color: likedPosts.has(post.id) ? COLORS.accent : '#666', fontSize: 12 }}>
-                          <Heart size={14} fill={likedPosts.has(post.id) ? COLORS.accent : 'none'} /> {post.likes}
-                        </button>
-                        <button onClick={(e) => { e.stopPropagation(); openPostDetail(post) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: 12 }}>
-                          <MessageCircle size={14} /> 评论
-                        </button>
-                        {user && post.authorId === user.id && (
-                          <button onClick={(e) => { e.stopPropagation(); handleDeletePost(post.id) }} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: 11 }}>🗑️</button>
-                        )}
-                        <ChevronRight size={16} color="#444" />
-                      </div>
-                    </div>
+                    ) : userPosts.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: 20, color: '#666' }}>该用户暂无帖子</div>
+                    ) : (
+                      userPosts.map(post => (
+                        <div
+                          key={post.id}
+                          onClick={() => {
+                            if (mapRef) {
+                              mapRef.setView([post.latitude, post.longitude], 13, { animate: false })
+                            }
+                          }}
+                          style={{
+                            background: COLORS.cardBgDark, borderRadius: 10, padding: 12, marginBottom: 8,
+                            border: `1px solid ${COLORS.border}`, cursor: 'pointer',
+                          }}
+                        >
+                          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4, color: COLORS.text }}>{post.title}</div>
+                          <div style={{ fontSize: 11, color: '#888', display: '-webkit-box', WebkitLineClamp: 2, overflow: 'hidden' }}>{post.content}</div>
+                          <div style={{ fontSize: 10, color: '#666', marginTop: 6 }}>
+                            📍 {post.location_name} · {formatTime(post.createdAt)}
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
-                ))
+                ) : (
+                  /* 用户搜索结果列表 */
+                  <div>
+                    {loadingUsers ? (
+                      <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
+                        <Loader2 size={24} className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
+                        <div style={{ marginTop: 8 }}>搜索中...</div>
+                      </div>
+                    ) : !searchQuery.trim() ? (
+                      <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
+                        <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
+                        <div>输入关键词搜索用户</div>
+                      </div>
+                    ) : userSearchResults.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
+                        <div style={{ fontSize: 40, marginBottom: 12 }}>👤</div>
+                        <div>未找到相关用户</div>
+                      </div>
+                    ) : (
+                      userSearchResults.map(u => (
+                        <div
+                          key={u.id}
+                          onClick={() => handleSelectUser(u)}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 12,
+                            padding: 14, marginBottom: 8,
+                            background: COLORS.cardBgDark, borderRadius: 12,
+                            border: `1px solid ${COLORS.border}`, cursor: 'pointer',
+                            transition: 'border-color 0.2s',
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.borderColor = COLORS.accent}
+                          onMouseLeave={(e) => e.currentTarget.style.borderColor = COLORS.border}
+                        >
+                          <div style={{ 
+                            width: 44, height: 44, 
+                            background: u.avatar ? `url(${u.avatar})` : `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.gold})`,
+                            backgroundSize: 'cover', backgroundPosition: 'center',
+                            borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 20, color: '#fff'
+                          }}>{!u.avatar && '👤'}</div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 600, fontSize: 14, color: COLORS.text }}>{u.username}</div>
+                            <div style={{ fontSize: 12, color: '#888' }}>{u.bio || '暂无简介'}</div>
+                            <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>
+                              {u.postCount || 0} 帖子
+                            </div>
+                          </div>
+                          <ChevronRight size={16} color="#666" />
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )
+              ) : (
+                /* 帖子搜索模式（原有逻辑） */
+                loading ? (
+                  <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
+                    <Loader2 size={32} className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
+                    <div style={{ marginTop: 12 }}>加载中...</div>
+                  </div>
+                ) : posts.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
+                    <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
+                    <div>暂无帖子</div>
+                  </div>
+                ) : (
+                  posts.map(post => (
+                    <div
+                      key={post.id}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        // 直接导航到帖子位置，不受任何状态影响
+                        if (mapRef) {
+                          mapRef.setView([post.latitude, post.longitude], 13, { animate: false })
+                        }
+                        if (isMobile) setShowSidebar(false)
+                      }}
+                      style={{
+                        background: post.id === newPostId ? `${COLORS.accent}20` : COLORS.cardBgDark,
+                        borderRadius: 12, padding: 14, marginBottom: 10, cursor: 'pointer',
+                        border: post.id === newPostId ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={(e) => { if (post.id !== newPostId) e.currentTarget.style.borderColor = COLORS.accent }}
+                      onMouseLeave={(e) => { if (post.id !== newPostId) e.currentTarget.style.borderColor = COLORS.border }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                        <div style={{
+                          width: 44, height: 44,
+                          background: `linear-gradient(135deg, ${getTypeConfig(post.type).color} 0%, ${getTypeConfig(post.type).colorDark} 100%)`,
+                          borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0, fontSize: 22,
+                        }}>
+                          {getTypeConfig(post.type).icon}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                            {post.id === newPostId && <span style={{ background: COLORS.accent, color: '#fff', padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>NEW</span>}
+                            <span style={{ fontWeight: 600, fontSize: 14, color: COLORS.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.title}</span>
+                          </div>
+                          <div style={{ fontSize: 12, color: '#888', marginBottom: 6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.content}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: '#666' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><MapPin size={11} /> {post.location_name || '未知地点'}</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Clock size={11} /> {formatTime(post.createdAt)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: `1px solid ${COLORS.border}` }}>
+                        <div 
+                          onClick={(e) => { e.stopPropagation(); openUserSpace(post.authorId, post.author) }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+                        >
+                          <div style={{ width: 20, height: 20, background: COLORS.secondary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>👤</div>
+                          <span style={{ fontSize: 12, color: '#888' }}>{post.author}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <button onClick={(e) => { e.stopPropagation(); handleLike(post.id) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color: likedPosts.has(post.id) ? COLORS.accent : '#666', fontSize: 12 }}>
+                            <Heart size={14} fill={likedPosts.has(post.id) ? COLORS.accent : 'none'} /> {post.likes}
+                          </button>
+                          <button onClick={(e) => { e.stopPropagation(); openPostDetail(post) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: 12 }}>
+                            <MessageCircle size={14} /> 评论
+                          </button>
+                          {user && post.authorId === user.id && (
+                            <button onClick={(e) => { e.stopPropagation(); handleDeletePost(post.id) }} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: 11 }}>🗑️</button>
+                          )}
+                          <ChevronRight size={16} color="#444" />
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )
               )}
             </div>
           </>
@@ -1919,316 +2100,19 @@ export default function App() {
         </div>
       )}
 
-      {/* 聊天窗口 */}
+
+      {/* 消息中心 */}
       {showChat && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowChat(false)}>
-          <div style={{ 
-            background: COLORS.cardBg, 
-            borderRadius: 16, 
-            width: '100%', 
-            maxWidth: activeConversation ? 480 : 400, 
-            maxHeight: '85vh', 
-            overflow: 'hidden', 
-            boxShadow: '0 20px 50px rgba(0,0,0,0.3)', 
-            display: 'flex', 
-            flexDirection: 'column' 
-          }} onClick={e => e.stopPropagation()}>
-            {activeConversation ? (
-              <>
-                {/* 聊天头部 */}
-                <div style={{ 
-                  padding: 16, 
-                  borderBottom: `1px solid ${COLORS.border}`, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'space-between',
-                  background: COLORS.primary
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <button 
-                      onClick={() => setActiveConversation(null)}
-                      style={{ 
-                        background: 'none', 
-                        border: 'none', 
-                        cursor: 'pointer', 
-                        color: COLORS.text,
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}
-                    >
-                      ←
-                    </button>
-                    <div style={{ 
-                      width: 40, 
-                      height: 40, 
-                      background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, 
-                      borderRadius: '50%', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      fontSize: 18
-                    }}>
-                      👤
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 16, color: COLORS.text }}>{activeConversation.other_user?.nickname}</div>
-                      <div style={{ fontSize: 11, color: wsConnected ? '#10b981' : '#888' }}>
-                        {wsConnected ? '🟢 在线' : '⚪ 离线'}
-                      </div>
-                    </div>
-                  </div>
-                  <button onClick={() => setShowChat(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.text }}>
-                    <X size={20} />
-                  </button>
-                </div>
-
-                {/* 消息列表 */}
-                <div style={{ 
-                  flex: 1, 
-                  overflowY: 'auto', 
-                  padding: 16, 
-                  background: COLORS.cardBgDark,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 12
-                }}>
-                  {chatMessages.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: 40, color: '#888' }}>
-                      <div style={{ fontSize: 40, marginBottom: 12 }}>💬</div>
-                      <div>开始聊天吧~</div>
-                    </div>
-                  ) : (
-                    chatMessages.map((msg, index) => {
-                      const isMe = msg.sender_id === user?.id
-                      return (
-                        <div 
-                          key={index}
-                          style={{ 
-                            display: 'flex', 
-                            justifyContent: isMe ? 'flex-end' : 'flex-start',
-                            alignItems: 'flex-end',
-                            gap: 8
-                          }}
-                        >
-                          {!isMe && (
-                            <div style={{ 
-                              width: 32, 
-                              height: 32, 
-                              background: COLORS.secondary, 
-                              borderRadius: '50%', 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              justifyContent: 'center',
-                              fontSize: 14,
-                              flexShrink: 0
-                            }}>
-                              👤
-                            </div>
-                          )}
-                          <div style={{ 
-                            maxWidth: '70%',
-                            padding: '10px 14px',
-                            background: isMe ? COLORS.accent : COLORS.secondary,
-                            borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                            color: COLORS.text,
-                            fontSize: 14,
-                            lineHeight: 1.5,
-                            wordBreak: 'break-word'
-                          }}>
-                            {msg.content}
-                          </div>
-                          {isMe && (
-                            <div style={{ 
-                              width: 32, 
-                              height: 32, 
-                              background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, 
-                              borderRadius: '50%', 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              justifyContent: 'center',
-                              fontSize: 14,
-                              flexShrink: 0
-                            }}>
-                              👤
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })
-                  )}
-                  <div ref={chatEndRef} />
-                </div>
-
-                {/* 输入框 */}
-                <div style={{ 
-                  padding: 16, 
-                  borderTop: `1px solid ${COLORS.border}`, 
-                  background: COLORS.cardBg,
-                  display: 'flex',
-                  gap: 10
-                }}>
-                  <input
-                    placeholder="输入消息..."
-                    value={newChatMessage}
-                    onChange={e => setNewChatMessage(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage() } }}
-                    style={{ 
-                      flex: 1, 
-                      padding: 12, 
-                      border: `1px solid ${COLORS.border}`, 
-                      borderRadius: 24, 
-                      fontSize: 14,
-                      background: COLORS.cardBgDark,
-                      color: COLORS.text
-                    }}
-                  />
-                  <button
-                    onClick={sendChatMessage}
-                    disabled={!newChatMessage.trim()}
-                    style={{
-                      width: 44,
-                      height: 44,
-                      background: newChatMessage.trim() ? COLORS.accent : '#ccc',
-                      border: 'none',
-                      borderRadius: '50%',
-                      cursor: newChatMessage.trim() ? 'pointer' : 'not-allowed',
-                      color: '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <Send size={18} />
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                {/* 会话列表头部 */}
-                <div style={{ 
-                  padding: 20, 
-                  borderBottom: `1px solid ${COLORS.border}`, 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                  background: COLORS.primary
-                }}>
-                  <b style={{ fontSize: 18, color: COLORS.text }}>消息</b>
-                  <button onClick={() => setShowChat(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.text }}>
-                    <X size={20} />
-                  </button>
-                </div>
-
-                {/* 会话列表 */}
-                <div style={{ 
-                  flex: 1, 
-                  overflowY: 'auto', 
-                  padding: 12,
-                  background: COLORS.cardBgDark
-                }}>
-                  {conversations.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: 40, color: '#888' }}>
-                      <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
-                      <div>暂无消息</div>
-                      <div style={{ fontSize: 12, marginTop: 8, color: '#666' }}>点击用户头像可以发送消息</div>
-                    </div>
-                  ) : (
-                    conversations.map(conv => (
-                      <div
-                        key={conv.id}
-                        onClick={() => selectConversation(conv)}
-                        style={{
-                          padding: 12,
-                          background: COLORS.cardBg,
-                          borderRadius: 12,
-                          marginBottom: 8,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 12,
-                          border: `1px solid ${COLORS.border}`,
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = COLORS.accent
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = COLORS.border
-                        }}
-                      >
-                        <div style={{ 
-                          width: 48, 
-                          height: 48, 
-                          background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, 
-                          borderRadius: '50%', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center',
-                          fontSize: 20,
-                          flexShrink: 0
-                        }}>
-                          👤
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
-                            alignItems: 'center',
-                            marginBottom: 4
-                          }}>
-                            <span style={{ 
-                              fontWeight: 600, 
-                              fontSize: 14, 
-                              color: COLORS.text,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}>
-                              {conv.other_user?.nickname}
-                            </span>
-                            <span style={{ fontSize: 11, color: '#888', flexShrink: 0 }}>
-                              {formatTime(conv.last_msg_time)}
-                            </span>
-                          </div>
-                          <div style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                          }}>
-                            <span style={{ 
-                              fontSize: 13, 
-                              color: '#888',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              flex: 1
-                            }}>
-                              {conv.last_message || '暂无消息'}
-                            </span>
-                            {conv.unread_count > 0 && (
-                              <span style={{
-                                background: COLORS.accent,
-                                color: '#fff',
-                                fontSize: 11,
-                                fontWeight: 600,
-                                padding: '2px 8px',
-                                borderRadius: 10,
-                                marginLeft: 8,
-                                flexShrink: 0
-                              }}>
-                                {conv.unread_count}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+        <MessageCenter
+          user={user}
+          onClose={() => {
+            setShowChat(false)
+            setInitialChatPeer(null)
+          }}
+          onMessageSent={fetchConversations}
+          initialPeerId={initialChatPeer?.id}
+          initialPeerName={initialChatPeer?.name}
+        />
       )}
 
       <style>{`
@@ -2290,4 +2174,12 @@ export default function App() {
       `}</style>
     </div>
   )
+}
+
+// 渲染应用到 DOM
+import { createRoot } from 'react-dom/client'
+const container = document.getElementById('root')
+if (container) {
+  const root = createRoot(container)
+  root.render(<App />)
 }

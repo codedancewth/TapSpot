@@ -196,10 +196,22 @@ func GetMessages(c *gin.Context) {
 	}
 	offset := (page - 1) * pageSize
 
-	models.DB.Preload("Sender").Preload("Receiver").
+	// after_id 参数用于轮询新消息（获取 ID > after_id 的消息）
+	afterID := c.Query("after_id")
+
+	query := models.DB.Preload("Sender").Preload("Receiver").
 		Where("(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)",
-			userID, peerID, peerID, userID).
-		Order("created_at DESC").
+			userID, peerID, peerID, userID)
+	
+	// 如果有 after_id 参数，只获取新消息
+	if afterID != "" {
+		afterIDUint, err := strconv.ParseUint(afterID, 10, 32)
+		if err == nil {
+			query = query.Where("id > ?", afterIDUint)
+		}
+	}
+
+	query.Order("created_at DESC").
 		Limit(pageSize).
 		Offset(offset).
 		Find(&messages)
