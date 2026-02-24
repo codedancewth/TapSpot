@@ -2045,15 +2045,15 @@ export default function App() {
                 {/* 帖子列表 */}
                 <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
                   <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: '#333' }}>
-                    📍 TA的打卡 ({showUserSpace.posts.length})
+                    📍 TA的打卡 ({showUserSpace.posts?.length || 0})
                   </div>
-                  {showUserSpace.posts.length === 0 ? (
+                  {(showUserSpace.posts?.length || 0) === 0 ? (
                     <div style={{ textAlign: 'center', padding: 40, color: '#888' }}>
                       <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
                       <div>还没有打卡记录</div>
                     </div>
                   ) : (
-                    showUserSpace.posts.map(post => (
+                    showUserSpace.posts?.map(post => (
                       <div
                         key={post.id}
                         onClick={(e) => {
