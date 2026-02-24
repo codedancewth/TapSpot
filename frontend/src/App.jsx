@@ -1466,8 +1466,8 @@ export default function App() {
               <button onClick={() => setShowLogin(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             <div style={{ padding: 20 }}>
-              <input placeholder="用户名" value={loginForm.username} onChange={e => setLoginForm({ ...loginForm, username: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} />
-              <input type="password" placeholder="密码" value={loginForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} />
+              <input type="text" placeholder="用户名" value={loginForm.username} onChange={e => setLoginForm({ ...loginForm, username: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+              <input type="password" placeholder="密码" value={loginForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
               {!isRegister && <div style={{ padding: 12, background: '#e3f2fd', borderRadius: 8, fontSize: 12, color: '#1565c0' }}>🔑 测试账号: <b>root</b> / <b>root</b></div>}
             </div>
             <div style={{ padding: 20, borderTop: `1px solid ${COLORS.border}`, display: 'flex', flexDirection: 'column', gap: 10 }}>
