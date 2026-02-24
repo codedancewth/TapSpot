@@ -381,7 +381,7 @@ export default function App() {
       setShowLogin(false)
       setLoginForm({ username: '', password: '' })
     } catch (error) {
-      alert(error.message)
+      alert(error.message.includes("min") ? "用户名和密码都至少需要 3 个字符哦～" : error.message)
     }
   }
 

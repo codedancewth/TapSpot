@@ -45,25 +45,14 @@ func GetUserID(c *gin.Context) uint {
 	}
 	return userID.(uint)
 }
-
 // Register 用户注册
 func Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		// 友好的错误消息
-		errMsg := "请填写完整信息"
-		if req.Username == "" {
-			errMsg = "用户名不能为空"
-		} else if len(req.Username) < 3 {
-			errMsg = "用户名至少3个字符"
-		} else if req.Password == "" {
-			errMsg = "密码不能为空"
-		} else if len(req.Password) < 3 {
-			errMsg = "密码至少3个字符"
-		}
+		// 友好的错误消息 - 直接返回清晰的提示
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": errMsg,
+			"message": "用户名至少 3 个字符，密码至少 3 个字符",
 		})
 		return
 	}
