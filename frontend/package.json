@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "esbuild src/App.jsx --bundle --outfile=dist/assets/index-BfTq1_aG.js --format=iife --loader:.jsx=jsx --loader:.js=jsx --minify --define:process.env.NODE_ENV=\\\"production\\\""
+    "build": "esbuild src/App.jsx --bundle --outfile=dist/assets/index.js --format=iife --loader:.jsx=jsx --loader:.js=jsx --minify --define:process.env.NODE_ENV=\\\"production\\\""
   },
   "dependencies": {
     "leaflet": "^1.9.4",
