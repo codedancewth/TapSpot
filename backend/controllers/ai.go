@@ -64,17 +64,35 @@ func callAI(locationName string) (string, error) {
 	// API 端点（阿里云百炼）
 	apiURL := "https://coding.dashscope.aliyuncs.com/v1/chat/completions"
 
-	// 构建提示词
-	prompt := fmt.Sprintf(`请分析这个地方：%s
+	// 判断是地点名称还是文字描述
+	isTextAnalysis := len(locationName) > 30 || strings.ContainsAny(locationName, "。！？，、；：")
+	
+	var prompt string
+	if isTextAnalysis {
+		// 文字分析模式 - 解析可玩性
+		prompt = fmt.Sprintf(`请分析这段文字描述的地方的可玩性：%s
+
+要求：
+1. 分析该地方有什么好玩的、值得体验的
+2. 给出推荐理由或特色亮点
+3. 语言生动有趣，吸引人
+4. 不超过 80 个字
+5. 加 1-2 个 emoji 增加趣味性
+
+请直接输出分析内容，不要有其他说明。`, locationName)
+	} else {
+		// 地点名称模式 - 分析地方特色
+		prompt = fmt.Sprintf(`请分析这个地方：%s
 
 要求：
 1. 描述该地方的特色和亮点
 2. 给出游玩建议或注意事项
 3. 语言生动有趣，吸引人
 4. 不超过 80 个字
-5. 可以加 1-2 个 emoji 增加趣味性
+5. 加 1-2 个 emoji 增加趣味性
 
 请直接输出分析内容，不要有其他说明。`, locationName)
+	}
 
 	// 构建请求体（Qwen3-Coder-Plus）
 	requestBody := map[string]interface{}{

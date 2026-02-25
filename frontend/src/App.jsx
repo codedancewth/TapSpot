@@ -5,6 +5,7 @@ import { Heart, X, Plus, ZoomIn, ZoomOut, Compass, User, LogOut, MapPin, Clock, 
 import './styles/modern.css'
 import { MessageCenter } from './components/Chat/MessageCenter.jsx'
 import AIAssistant from './components/AIAssistant.jsx'
+import TextSelectionAI from './components/TextSelectionAI.jsx'
 
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -556,7 +557,26 @@ export default function App() {
         body: JSON.stringify({ location_name: locationName })
       })
       setAiAnalysis(data.analysis)
-      // 3 秒后自动隐藏
+      // 5 秒后自动隐藏
+      setTimeout(() => setAiAnalysis(''), 5000)
+    } catch (error) {
+      console.error('AI 分析失败:', error)
+      setAiAnalysis('AI 分析失败，请稍后重试')
+    } finally {
+      setAnalyzing(false)
+    }
+  }
+
+  // AI 分析选中的文字
+  const handleAnalyzeText = async (text) => {
+    setAnalyzing(true)
+    try {
+      const data = await api('/ai/analyze', {
+        method: 'POST',
+        body: JSON.stringify({ location_name: text })
+      })
+      setAiAnalysis(data.analysis)
+      // 5 秒后自动隐藏
       setTimeout(() => setAiAnalysis(''), 5000)
     } catch (error) {
       console.error('AI 分析失败:', error)
@@ -1409,6 +1429,9 @@ export default function App() {
           locationName={locationTitle}
           onAnalyze={handleAIAnalyze}
         />
+
+        {/* 文字选择 AI 分析 */}
+        <TextSelectionAI onAnalyzeText={handleAnalyzeText} />
 
         {/* 工具栏 */}
         <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 1000, display: 'flex', alignItems: 'center', gap: 10 }}>
