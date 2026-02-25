@@ -70,49 +70,53 @@ func callAI(locationName string) (string, error) {
 	var prompt string
 	var maxTokens int
 	if isTextAnalysis {
-		// 文字分析模式 - 解析可玩性（支持 500 字）
-		prompt = fmt.Sprintf(`请详细分析这段文字描述的地方的可玩性：%s
+		// 文字分析模式 - 解析可玩性（支持 800 字）
+		prompt = fmt.Sprintf(`请非常详细地分析这段文字描述的地方的可玩性：%s
 
 要求：
-1. 详细分析该地方有什么好玩的、值得体验的项目
+1. 详细分析该地方有什么好玩的、值得体验的项目（至少列举 3-5 个）
 2. 给出推荐理由、特色亮点、适合人群
-3. 可以提供游玩建议、注意事项、最佳时间等
-4. 语言生动有趣，吸引人，可以有适当的情感表达
-5. 可以加适量的 emoji 增加趣味性
-6. 字数控制在 200-500 字之间，内容要丰富详细
-7. 不要使用 markdown 格式，直接输出纯文本
-8. 确保输出完整，不要截断
+3. 提供详细的游玩建议、注意事项、最佳时间、交通方式等
+4. 可以介绍周边美食、住宿、购物等配套信息
+5. 语言生动有趣，吸引人，可以有适当的情感表达
+6. 可以加适量的 emoji 增加趣味性
+7. 字数控制在 400-800 字之间，内容要非常丰富详细
+8. 不要使用 markdown 格式，直接输出纯文本
+9. 确保输出完整，不要截断
 
 请直接输出分析内容，不要有其他说明。`, locationName)
-		maxTokens = 1000
+		maxTokens = 1500
 	} else {
-		// 地点名称模式 - 分析地方特色（简洁版）
-		prompt = fmt.Sprintf(`请分析这个地方：%s
+		// 地点名称模式 - 分析地方特色（详细版）
+		prompt = fmt.Sprintf(`你是一名专业的旅游博主，请为游客详细介绍这个地方：%s
 
-要求：
-1. 描述该地方的特色和亮点
-2. 给出游玩建议或注意事项
-3. 语言生动有趣，吸引人
-4. 不超过 100 个字
-5. 加 1-2 个 emoji 增加趣味性
-6. 不要使用 markdown 格式，直接输出纯文本
-7. 确保输出完整，不要截断
+请按照以下结构详细描写（必须写满 200 字以上）：
+【特色亮点】描述这个地方的独特之处（至少写 3 个亮点）
+【游玩体验】在这里可以做什么、玩什么（至少列举 3 个体验项目）
+【实用建议】最佳游览时间、注意事项、交通方式、门票信息等
+【周边推荐】附近的美食、住宿、购物等配套信息
 
-请直接输出分析内容，不要有其他说明。`, locationName)
-		maxTokens = 300
+写作要求：
+- 必须写满 200-400 字，内容要详细丰富
+- 语言生动有趣，像朋友推荐一样亲切自然
+- 可以加 2-3 个 emoji 增加趣味性
+- 直接输出纯文本，不要用标题和 markdown 格式
+- 确保内容完整，不要省略
+
+开始介绍：`, locationName)
+		maxTokens = 800
 	}
 
-	// 构建请求体（Qwen-Plus 平衡版）
+	// 构建请求体（Qwen-Turbo 快速版）
 	requestBody := map[string]interface{}{
-		"model": "qwen-plus",
+		"model": "qwen-turbo",
 		"messages": []map[string]string{
 			{"role": "user", "content": prompt},
 		},
 		"max_tokens": maxTokens,
-		"temperature": 0.5,
-		"top_p": 0.8,
+		"temperature": 0.7,
+		"top_p": 0.9,
 		"stream": false,
-		"enable_search": false,
 	}
 
 	jsonData, err := json.Marshal(requestBody)

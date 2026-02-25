@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-// AI 助手组件 - 阿尼亚 MOMO（表情优化版）
+// AI 助手组件 - 阿尼亚 MOMO（头戴式耳机 + 光圈动画版）
 export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTitle, onAnalyzeText, selectedText }) {
   const [isHovering, setIsHovering] = useState(false)
   const [emotion, setEmotion] = useState('happy')
@@ -16,32 +16,26 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
       setShowGreeting(false)
     } else if (analysis) {
       setEmotion('excited')
-      // 分析完成后 3 秒恢复微笑
       const timer = setTimeout(() => {
         setEmotion('happy')
       }, 3000)
       return () => clearTimeout(timer)
     }
-    // 不自动重置 emotion，保持当前状态
   }, [analyzing, analysis])
 
   // 点击阿尼亚
   const handleClick = () => {
-    // 点击时保持微笑
     setEmotion('happy')
     
     if (selectedText && !analyzing) {
-      // 有选中文字时，执行分析
       setIsDancing(true)
       onAnalyzeText(selectedText)
       setTimeout(() => setIsDancing(false), 2000)
     } else if (locationTitle && !analyzing) {
-      // 有位置标题时，执行位置分析
       setIsDancing(true)
       onAnalyze(locationTitle)
       setTimeout(() => setIsDancing(false), 2000)
     } else {
-      // 无选中内容时，显示问候语
       setShowGreeting(true)
       if (greetingTimer) clearTimeout(greetingTimer)
       const timer = setTimeout(() => setShowGreeting(false), 4000)
@@ -57,7 +51,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     }
   }
 
-  // 阿尼亚精致 SVG - 双马尾蓝眼睛
+  // 阿尼亚精致 SVG - 双马尾蓝眼睛 + 头戴式耳机
   const getAnyaSVG = () => {
     const hairPink = '#ff85b3'
     const hairShadow = '#ff5c8a'
@@ -66,11 +60,12 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     const blushColor = '#ffb6c1'
     const mouthColor = '#ff6b9d'
     const bowRed = '#ff4757'
+    const headphoneBlack = '#2d3436'
+    const headphoneAccent = '#ff6b9d'
 
     let expression = ''
     switch (emotion) {
       case 'thinking':
-        // 思考表情
         expression = `
           <ellipse cx="38" cy="55" rx="7" ry="9" fill="white"/>
           <ellipse cx="54" cy="55" rx="7" ry="9" fill="white"/>
@@ -83,7 +78,6 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         `
         break
       case 'excited':
-        // 兴奋表情（星星眼）
         expression = `
           <ellipse cx="38" cy="55" rx="8" ry="10" fill="white"/>
           <ellipse cx="54" cy="55" rx="8" ry="10" fill="white"/>
@@ -98,7 +92,6 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         `
         break
       default:
-        // 默认微笑表情
         expression = `
           <ellipse cx="38" cy="55" rx="7" ry="9" fill="white"/>
           <ellipse cx="54" cy="55" rx="7" ry="9" fill="white"/>
@@ -114,25 +107,58 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
 
     return `
       <svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
+        <!-- 头戴式耳机（头梁） -->
+        <path d="M 15 50 Q 15 25 45 25 Q 75 25 75 50" stroke="${headphoneBlack}" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M 15 50 Q 15 30 45 30 Q 75 30 75 50" stroke="${headphoneAccent}" stroke-width="2" fill="none" stroke-linecap="round"/>
+        
+        <!-- 后发 -->
         <ellipse cx="45" cy="45" rx="35" ry="32" fill="${hairShadow}"/>
+        
+        <!-- 头发主体 -->
         <ellipse cx="45" cy="42" rx="32" ry="28" fill="${hairPink}"/>
+        
+        <!-- 双马尾（左侧） -->
         <ellipse cx="18" cy="52" rx="10" ry="20" fill="${hairPink}"/>
         <ellipse cx="16" cy="70" rx="6" ry="12" fill="${hairPink}"/>
         <path d="M 12 58 L 8 52 L 16 56 Z" fill="${bowRed}"/>
         <path d="M 12 58 L 16 52 L 10 56 Z" fill="${bowRed}"/>
         <circle cx="12" cy="58" r="2" fill="#ff6b7a"/>
+        
+        <!-- 双马尾（右侧） -->
         <ellipse cx="72" cy="52" rx="10" ry="20" fill="${hairPink}"/>
         <ellipse cx="74" cy="70" rx="6" ry="12" fill="${hairPink}"/>
         <path d="M 78 58 L 82 52 L 74 56 Z" fill="${bowRed}"/>
         <path d="M 78 58 L 74 52 L 80 56 Z" fill="${bowRed}"/>
         <circle cx="78" cy="58" r="2" fill="#ff6b7a"/>
+        
+        <!-- 刘海 -->
         <path d="M 15 40 Q 25 30 35 42 Q 40 26 45 40 Q 50 26 55 42 Q 65 30 75 40" fill="${hairPink}"/>
+        
+        <!-- 脸 -->
         <ellipse cx="45" cy="58" rx="24" ry="22" fill="${skinColor}"/>
+        
+        <!-- 耳朵 -->
         <ellipse cx="21" cy="58" rx="5" ry="7" fill="${skinColor}"/>
         <ellipse cx="69" cy="58" rx="5" ry="7" fill="${skinColor}"/>
+        
+        <!-- 头戴式耳机（耳罩 - 左侧） -->
+        <ellipse cx="21" cy="58" rx="8" ry="10" fill="${headphoneBlack}"/>
+        <ellipse cx="21" cy="58" rx="5" ry="7" fill="#4a4a4a"/>
+        <circle cx="21" cy="58" r="3" fill="${headphoneAccent}" opacity="0.6"/>
+        
+        <!-- 头戴式耳机（耳罩 - 右侧） -->
+        <ellipse cx="69" cy="58" rx="8" ry="10" fill="${headphoneBlack}"/>
+        <ellipse cx="69" cy="58" rx="5" ry="7" fill="#4a4a4a"/>
+        <circle cx="69" cy="58" r="3" fill="${headphoneAccent}" opacity="0.6"/>
+        
+        <!-- 眉毛 -->
         <path d="M 33 46 Q 38 44 43 46" stroke="${hairShadow}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
         <path d="M 47 46 Q 52 44 57 46" stroke="${hairShadow}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+        
+        <!-- 表情 -->
         ${expression}
+        
+        <!-- 鼻子 -->
         <circle cx="45" cy="62" r="1" fill="${blushColor}" opacity="0.3"/>
       </svg>
     `
@@ -240,7 +266,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         </div>
       )}
 
-      {/* 阿尼亚形象 */}
+      {/* 阿尼亚形象 + 光圈动画 */}
       <div
         onMouseEnter={handleMouseEnter}
         onMouseLeave={() => setIsHovering(false)}
@@ -256,23 +282,30 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
           cursor: 'pointer',
           transition: 'all 0.3s ease',
           transform: isHovering ? 'scale(1.08)' : 'scale(1)',
-          boxShadow: analyzing ? '0 0 25px rgba(255, 133, 179, 0.5)' : '0 3px 12px rgba(0,0,0,0.15)',
-          animation: isDancing ? 'dance 0.6s ease infinite' : (analyzing ? 'pulse 1s infinite' : (isHovering ? 'bounce 0.5s ease' : 'none')),
+          boxShadow: analyzing ? '0 0 0 0 rgba(255, 133, 179, 0)' : '0 3px 12px rgba(0,0,0,0.15)',
+          animation: isDancing ? 'dance 0.6s ease infinite' : (analyzing ? 'glow 1.5s ease infinite' : (isHovering ? 'bounce 0.5s ease' : 'none')),
           position: 'relative',
           border: '2.5px solid #ff85b3',
-          overflow: 'hidden'
+          overflow: 'visible'
         }}
       >
-        <div dangerouslySetInnerHTML={{ __html: getAnyaSVG() }} style={{ width: '100%', height: '100%' }} />
+        {/* 光圈效果（分析时显示） */}
         {analyzing && (
           <div style={{
-            position: 'absolute', top: -4, right: -4,
-            width: 24, height: 24,
-            background: '#ff85b3', borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 14, animation: 'spin 1s linear infinite'
-          }}>⚡</div>
+            position: 'absolute',
+            top: -8,
+            left: -8,
+            right: -8,
+            bottom: -8,
+            borderRadius: '50%',
+            border: '3px solid transparent',
+            borderTopColor: '#ff85b3',
+            borderRightColor: '#ff85b3',
+            animation: 'spin 2s linear infinite'
+          }}/>
         )}
+        
+        <div dangerouslySetInnerHTML={{ __html: getAnyaSVG() }} style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }} />
       </div>
 
       {/* 提示文字 */}
@@ -286,9 +319,9 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
       </div>
 
       <style>{`
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); box-shadow: 0 0 25px rgba(255, 133, 179, 0.5); }
-          50% { transform: scale(1.05); box-shadow: 0 0 35px rgba(255, 133, 179, 0.7); }
+        @keyframes glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(255, 133, 179, 0.4), 0 0 30px rgba(255, 133, 179, 0.2); }
+          50% { box-shadow: 0 0 30px rgba(255, 133, 179, 0.6), 0 0 40px rgba(255, 133, 179, 0.4); }
         }
         @keyframes bounce {
           0%, 100% { transform: scale(1.08) translateY(0); }
