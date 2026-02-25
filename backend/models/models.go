@@ -132,3 +132,15 @@ type Conversation struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
+
+// Visit 访客记录（记录网站访问情况）
+type Visit struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	IPAddress string    `json:"ip_address" gorm:"size:45;not null;index"`
+	UserAgent string    `json:"user_agent" gorm:"size:500"`
+	Path      string    `json:"path" gorm:"size:500;index"`
+	Method    string    `json:"method" gorm:"size:10"`
+	UserID    *uint     `json:"user_id,omitempty" gorm:"index"` // 登录用户 ID，游客为 nil
+	Referer   string    `json:"referer" gorm:"size:500"`
+	CreatedAt time.Time `json:"created_at" gorm:"index"`
+}

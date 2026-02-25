@@ -66,5 +66,9 @@ func SetupRoutes(r *gin.Engine) {
 
 		// WebSocket
 		api.GET("/ws", controllers.WebSocketHandler)
+
+		// 统计 API（需要认证）
+		auth.GET("/stats/visits", controllers.GetVisitStats)
+		auth.GET("/stats/realtime", controllers.GetRealTimeVisitors)
 	}
 }

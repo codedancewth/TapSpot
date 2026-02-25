@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"tapspot/config"
+	"tapspot/middleware"
 	"tapspot/models"
 	"tapspot/routes"
 	"tapspot/services"
@@ -49,6 +50,9 @@ func main() {
 		AllowCredentials: true,
 	}))
 
+	// 添加访客记录中间件
+	r.Use(middleware.VisitLogger())
+
 	// 注册路由
 	routes.SetupRoutes(r)
 
@@ -74,6 +78,7 @@ func migrateDB() {
 		&models.CommentLike{},
 		&models.Conversation{},
 		&models.Message{},
+		&models.Visit{}, // 访客记录
 	)
 	log.Println("✅ 数据库迁移完成")
 }
