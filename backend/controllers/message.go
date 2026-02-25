@@ -130,7 +130,11 @@ func GetConversations(c *gin.Context) {
 		OtherUser   OtherUser `json:"other_user"`
 	}
 
-	var result []ConversationResponse
+	if conversations == nil {
+		conversations = []models.Conversation{}
+	}
+
+	result := []ConversationResponse{}
 	for _, conv := range conversations {
 		var peer models.User
 		models.DB.First(&peer, conv.PeerID)
@@ -164,7 +168,7 @@ func GetConversations(c *gin.Context) {
 // GetMessages 获取与某个用户的消息历史
 func GetMessages(c *gin.Context) {
 	userID := c.GetUint("userID")
-	param := c.Param("userId")
+	param := c.Param("id")
 	
 	// 尝试解析为会话ID（优先）或用户ID
 	var messages []models.Message
@@ -226,6 +230,11 @@ func GetMessages(c *gin.Context) {
 		Where("user_id = ? AND peer_id = ?", userID, peerID).
 		Update("unread_count", 0)
 
+	// 确保 messages 不是 nil
+	if messages == nil {
+		messages = []models.Message{}
+	}
+
 	// 反转消息顺序（按时间正序）
 	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
 		messages[i], messages[j] = messages[j], messages[i]
@@ -242,7 +251,11 @@ func GetMessages(c *gin.Context) {
 		IsMe       bool   `json:"is_me"`
 	}
 
-	var result []MessageResponse
+	if messages == nil {
+		messages = []models.Message{}
+	}
+
+	result := []MessageResponse{}
 	for _, msg := range messages {
 		senderName := msg.Sender.Nickname
 		if senderName == "" {
