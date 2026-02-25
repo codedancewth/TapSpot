@@ -686,8 +686,8 @@ export default function App() {
         api(`/users/${userId}/posts`)
       ])
       setShowUserSpace({
-        user: userData.user,
-        posts: postsData.posts
+        user: userData.data?.user || userData.user,
+        posts: postsData.posts || []
       })
     } catch (error) {
       console.error('获取用户空间失败:', error)
