@@ -354,7 +354,7 @@ export default function App() {
         body: JSON.stringify(loginForm)
       })
       localStorage.setItem('tapspot_token', data.data.token)
-      setToken(data.token)
+      setToken(data.data.token)
       setUser(data.data.user)
       setShowLogin(false)
       setLoginForm({ username: '', password: '' })
@@ -377,8 +377,8 @@ export default function App() {
         body: JSON.stringify(registerForm)
       })
       localStorage.setItem('tapspot_token', data.data.token)
-      setToken(data.token)
-      setUser(data.user)
+      setToken(data.data.token)
+      setUser(data.data.user)
       setShowLogin(false)
       setRegisterForm({ username: '', password: '', password_conf: '', nickname: '', gender: 'male', bio: '', email: '', phone: '' })
     } catch (error) {
@@ -655,7 +655,7 @@ export default function App() {
           bio: profileForm.bio.trim()
         })
       })
-      setUser(data.user)
+      setUser(data.data.user)
       setShowUserProfile(false)
     } catch (error) {
       alert(error.message)
