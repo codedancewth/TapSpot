@@ -27,6 +27,7 @@ func SetupRoutes(r *gin.Engine) {
 			auth.PUT("/me", authController.UpdateProfile)
 			auth.POST("/change-password", authController.ChangePassword)
 			auth.GET("/users/:id", authController.GetUserProfile)
+		auth.GET("/users/:id/posts", controllers.GetUserPosts)
 
 			// 帖子路由
 			auth.POST("/posts", controllers.CreatePost)
