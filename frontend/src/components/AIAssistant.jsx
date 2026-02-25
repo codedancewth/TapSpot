@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react'
 
-// AI 助手组件 - 阿尼亚 MOMO（带文字分析显示和问候功能）
+// AI 助手组件 - 阿尼亚 MOMO（表情优化版）
 export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTitle, onAnalyzeText, selectedText }) {
   const [isHovering, setIsHovering] = useState(false)
   const [emotion, setEmotion] = useState('happy')
   const [isDancing, setIsDancing] = useState(false)
   const [showGreeting, setShowGreeting] = useState(false)
-  const [showAnalysis, setShowAnalysis] = useState(false)
   const [greetingTimer, setGreetingTimer] = useState(null)
 
+  // 表情管理
   useEffect(() => {
     if (analyzing) {
       setEmotion('thinking')
@@ -16,26 +16,18 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
       setShowGreeting(false)
     } else if (analysis) {
       setEmotion('excited')
-      setShowAnalysis(true)
-      setTimeout(() => {
+      // 分析完成后 3 秒恢复微笑
+      const timer = setTimeout(() => {
         setEmotion('happy')
-        setShowAnalysis(false)
-      }, 8000)
+      }, 3000)
+      return () => clearTimeout(timer)
     }
-    // 默认保持微笑，不自动切换
+    // 不自动重置 emotion，保持当前状态
   }, [analyzing, analysis])
 
-  // 悬停时显示微笑
-  const handleMouseEnter = () => {
-    setIsHovering(true)
-    if (!analyzing) {
-      setEmotion('happy')
-    }
-  }
-
-  // 点击阿尼亚 - 显示问候语或执行分析
+  // 点击阿尼亚
   const handleClick = () => {
-    // 点击时先显示微笑表情
+    // 点击时保持微笑
     setEmotion('happy')
     
     if (selectedText && !analyzing) {
@@ -57,6 +49,14 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     }
   }
 
+  // 悬停时显示微笑
+  const handleMouseEnter = () => {
+    setIsHovering(true)
+    if (!analyzing && !isDancing) {
+      setEmotion('happy')
+    }
+  }
+
   // 阿尼亚精致 SVG - 双马尾蓝眼睛
   const getAnyaSVG = () => {
     const hairPink = '#ff85b3'
@@ -70,6 +70,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     let expression = ''
     switch (emotion) {
       case 'thinking':
+        // 思考表情
         expression = `
           <ellipse cx="38" cy="55" rx="7" ry="9" fill="white"/>
           <ellipse cx="54" cy="55" rx="7" ry="9" fill="white"/>
@@ -82,6 +83,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         `
         break
       case 'excited':
+        // 兴奋表情（星星眼）
         expression = `
           <ellipse cx="38" cy="55" rx="8" ry="10" fill="white"/>
           <ellipse cx="54" cy="55" rx="8" ry="10" fill="white"/>
@@ -96,6 +98,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         `
         break
       default:
+        // 默认微笑表情
         expression = `
           <ellipse cx="38" cy="55" rx="7" ry="9" fill="white"/>
           <ellipse cx="54" cy="55" rx="7" ry="9" fill="white"/>
@@ -176,7 +179,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
       )}
 
       {/* AI 分析结果框 - 显示在阿尼亚上方 */}
-      {(showAnalysis || analyzing) && analysis && (
+      {(analyzing || analysis) && (
         <div style={{
           background: 'white',
           borderRadius: 14,
@@ -209,7 +212,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
           </div>
           {!analyzing && (
             <button
-              onClick={() => { setShowAnalysis(false); onAnalyze(null) }}
+              onClick={() => onAnalyze(null)}
               style={{
                 position: 'absolute',
                 top: 6,

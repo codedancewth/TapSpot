@@ -81,9 +81,10 @@ func callAI(locationName string) (string, error) {
 5. 可以加适量的 emoji 增加趣味性
 6. 字数控制在 200-500 字之间，内容要丰富详细
 7. 不要使用 markdown 格式，直接输出纯文本
+8. 确保输出完整，不要截断
 
 请直接输出分析内容，不要有其他说明。`, locationName)
-		maxTokens = 800
+		maxTokens = 1000
 	} else {
 		// 地点名称模式 - 分析地方特色（简洁版）
 		prompt = fmt.Sprintf(`请分析这个地方：%s
@@ -95,9 +96,10 @@ func callAI(locationName string) (string, error) {
 4. 不超过 100 个字
 5. 加 1-2 个 emoji 增加趣味性
 6. 不要使用 markdown 格式，直接输出纯文本
+7. 确保输出完整，不要截断
 
 请直接输出分析内容，不要有其他说明。`, locationName)
-		maxTokens = 200
+		maxTokens = 300
 	}
 
 	// 构建请求体（Qwen3-Coder-Plus）
