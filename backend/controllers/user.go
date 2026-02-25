@@ -7,6 +7,43 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// SearchUsers 搜索用户
+func SearchUsers(c *gin.Context) {
+	query := c.Query("q")
+	if query == "" {
+		c.JSON(http.StatusOK, gin.H{"users": []models.User{}})
+		return
+	}
+
+	var users []models.User
+	models.DB.Where("username LIKE ? OR nickname LIKE ?", "%"+query+"%", "%"+query+"%").
+		Select("id, username, nickname, avatar, bio").
+		Limit(20).
+		Find(&users)
+
+	// 返回简化用户信息
+	type UserInfo struct {
+		ID       uint   `json:"id"`
+		Username string `json:"username"`
+		Nickname string `json:"nickname"`
+		Avatar   string `json:"avatar"`
+		Bio      string `json:"bio"`
+	}
+
+	var result []UserInfo
+	for _, user := range users {
+		result = append(result, UserInfo{
+			ID:       user.ID,
+			Username: user.Username,
+			Nickname: user.Nickname,
+			Avatar:   user.Avatar,
+			Bio:      user.Bio,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"users": result})
+}
+
 // UpdateUserRequest 更新用户资料请求
 type UpdateUserRequest struct {
 	Nickname string `json:"nickname"`
