@@ -55,6 +55,7 @@ func SetupRoutes(r *gin.Engine) {
 		api.GET("/posts/:id", controllers.GetPost)
 		api.GET("/posts/:id/comments", controllers.GetComments)
 		api.GET("/posts/:id/best-comment", controllers.GetBestComment)
+		api.GET("/posts/comments/count", controllers.GetCommentCounts)
 
 		// 地理服务
 		api.GET("/pois", controllers.GetPOIs)
