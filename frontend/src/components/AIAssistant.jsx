@@ -7,6 +7,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
   const [isDancing, setIsDancing] = useState(false)
   const [showGreeting, setShowGreeting] = useState(false)
   const [greetingTimer, setGreetingTimer] = useState(null)
+  const [isSinging, setIsSinging] = useState(false)
 
   // 表情管理
   useEffect(() => {
@@ -43,10 +44,20 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     }
   }
 
-  // 悬停时显示微笑
+  // 悬停时闭眼唱歌
   const handleMouseEnter = () => {
     setIsHovering(true)
     if (!analyzing && !isDancing) {
+      setIsSinging(true)
+      setEmotion('singing')
+    }
+  }
+
+  // 鼠标离开时停止唱歌
+  const handleMouseLeave = () => {
+    setIsHovering(false)
+    if (!analyzing && !isDancing) {
+      setIsSinging(false)
       setEmotion('happy')
     }
   }
@@ -108,6 +119,25 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
           <circle cx="62" cy="63" r="5" fill="${blushColor}" opacity="0.5"/>
           <!-- 兴奋汗珠 -->
           <ellipse cx="72" cy="44" rx="6" ry="8" fill="#87ceeb" opacity="0.7"/>
+        `
+        break
+      case 'singing':
+        // 闭眼唱歌（可爱表情）
+        expression = `
+          <!-- 闭眼（弯弯的弧线） -->
+          <path d="M 28 55 Q 35 52 42 55" stroke="${hairShadow}" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M 48 55 Q 55 52 62 55" stroke="${hairShadow}" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <!-- 开心唱歌嘴型 -->
+          <ellipse cx="48" cy="70" rx="5" ry="4" fill="${mouthColor}"/>
+          <!-- 陶醉腮红 -->
+          <circle cx="28" cy="63" r="5" fill="${blushColor}" opacity="0.5"/>
+          <circle cx="62" cy="63" r="5" fill="${blushColor}" opacity="0.5"/>
+          <!-- 漂浮音符 -->
+          <g class="singing-notes">
+            <text x="70" y="40" font-size="14" fill="#50c878" opacity="0.8" class="floating-note">♪</text>
+            <text x="75" y="35" font-size="12" fill="#667eea" opacity="0.6" class="floating-note-delay">♫</text>
+            <text x="18" y="38" font-size="13" fill="#ffd700" opacity="0.7" class="floating-note-left">♬</text>
+          </g>
         `
         break
       default:
@@ -299,7 +329,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
       {/* 阿尼亚形象 + 多彩渐变光晕 */}
       <div
         onMouseEnter={handleMouseEnter}
-        onMouseLeave={() => setIsHovering(false)}
+        onMouseLeave={handleMouseLeave}
         onClick={handleClick}
         style={{
           width: 70,
@@ -357,6 +387,42 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
             }}/>
           </>
         )}
+
+        {/* 唱歌时的声波波纹 */}
+        {isSinging && (
+          <>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: '50%',
+              border: '2px solid rgba(80, 200, 120, 0.4)',
+              animation: 'soundWave 1s ease-out infinite'
+            }}/>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: '50%',
+              border: '2px solid rgba(102, 126, 234, 0.3)',
+              animation: 'soundWave 1s ease-out 0.3s infinite'
+            }}/>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: '50%',
+              border: '2px solid rgba(255, 215, 0, 0.2)',
+              animation: 'soundWave 1s ease-out 0.6s infinite'
+            }}/>
+          </>
+        )}
         
         <div dangerouslySetInnerHTML={{ __html: getAnyaSVG() }} style={{ width: '100%', height: '100%', position: 'relative', zIndex: 2 }} />
       </div>
@@ -405,6 +471,38 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         @keyframes pulse {
           0%, 100% { transform: scale(1); opacity: 1; }
           50% { transform: scale(1.2); opacity: 0.7; }
+        }
+      `}</style>
+
+      {/* 唱歌音符动画样式 */}
+      <style>{`
+        .singing-notes {
+          animation: noteFloat 2s ease-in-out infinite;
+        }
+        .floating-note {
+          animation: noteFloatUp 1.5s ease-out infinite;
+        }
+        .floating-note-delay {
+          animation: noteFloatUp 1.5s ease-out 0.5s infinite;
+        }
+        .floating-note-left {
+          animation: noteFloatUpLeft 1.5s ease-out 0.3s infinite;
+        }
+        @keyframes soundWave {
+          0% { transform: scale(1); opacity: 0.6; }
+          100% { transform: scale(1.5); opacity: 0; }
+        }
+        @keyframes noteFloat {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-3px) rotate(5deg); }
+        }
+        @keyframes noteFloatUp {
+          0% { transform: translateY(0) scale(1); opacity: 0.8; }
+          100% { transform: translateY(-15px) scale(1.2); opacity: 0; }
+        }
+        @keyframes noteFloatUpLeft {
+          0% { transform: translateY(0) scale(1); opacity: 0.8; }
+          100% { transform: translateY(-12px) translateX(-5px) scale(1.1); opacity: 0; }
         }
       `}</style>
     </div>
