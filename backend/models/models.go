@@ -17,8 +17,8 @@ type User struct {
 	Avatar    string         `json:"avatar" gorm:"size:500;default:''"`
 	Gender    string         `json:"gender" gorm:"size:20;not null;default:'other'"` // male, female, other
 	Bio       string         `json:"bio" gorm:"size:500;default:''"`
-	Email     string         `json:"email" gorm:"size:100;uniqueIndex;default:''"`
-	Phone     string         `json:"phone" gorm:"size:20;uniqueIndex;default:''"`
+	Email     string         `json:"email" gorm:"size:100;index;default:''"` // 改为普通索引
+	Phone     string         `json:"phone" gorm:"size:20;index;default:''"`  // 改为普通索引
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
