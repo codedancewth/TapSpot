@@ -21,7 +21,7 @@ func NewAuthService() *AuthService {
 }
 
 // Register 用户注册
-func (s *AuthService) Register(req *dto.RegisterRequest) (*dto.RegisterResponse, error) {
+func (s *AuthService) Register(req *dto.RegisterRequest, ip string) (*dto.RegisterResponse, error) {
 	// 检查用户名是否已存在
 	var existingUser models.User
 	if err := models.DB.Where("username = ?", req.Username).First(&existingUser).Error; err == nil {
@@ -50,14 +50,15 @@ func (s *AuthService) Register(req *dto.RegisterRequest) (*dto.RegisterResponse,
 
 	// 创建用户
 	user := models.User{
-		Username: req.Username,
-		Password: string(hashedPassword),
-		Nickname: req.Nickname,
-		Gender:   req.Gender,
-		Bio:      req.Bio,
-		Avatar:   req.Avatar,
-		Email:    req.Email,
-		Phone:    req.Phone,
+		Username:       req.Username,
+		Password:       string(hashedPassword),
+		Nickname:       req.Nickname,
+		Gender:         req.Gender,
+		Bio:            req.Bio,
+		Avatar:         req.Avatar,
+		Email:          req.Email,
+		Phone:          req.Phone,
+		RegistrationIP: ip, // 记录注册 IP
 	}
 
 	if err := models.DB.Create(&user).Error; err != nil {

@@ -10,19 +10,20 @@ var DB *gorm.DB
 
 // User 用户
 type User struct {
-	ID        uint           `json:"id" gorm:"primaryKey"`
-	Username  string         `json:"username" gorm:"size:50;uniqueIndex;not null"`
-	Password  string         `json:"-" gorm:"size:255;not null"` // 不返回给前端
-	Nickname  string         `json:"nickname" gorm:"size:50;not null"`
-	Avatar    string         `json:"avatar" gorm:"size:500;default:''"`
-	Gender    string         `json:"gender" gorm:"size:20;not null;default:'other'"` // male, female, other
-	Bio       string         `json:"bio" gorm:"size:500;default:''"`
-	Email     string         `json:"email" gorm:"size:100;index;default:''"` // 改为普通索引
-	Phone     string         `json:"phone" gorm:"size:20;index;default:''"`  // 改为普通索引
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
-	Posts     []Post         `json:"posts,omitempty" gorm:"foreignKey:UserID"`
+	ID           uint           `json:"id" gorm:"primaryKey"`
+	Username     string         `json:"username" gorm:"size:50;uniqueIndex;not null"`
+	Password     string         `json:"-" gorm:"size:255;not null"` // 不返回给前端
+	Nickname     string         `json:"nickname" gorm:"size:50;not null"`
+	Avatar       string         `json:"avatar" gorm:"size:500;default:''"`
+	Gender       string         `json:"gender" gorm:"size:20;not null;default:'other'"` // male, female, other
+	Bio          string         `json:"bio" gorm:"size:500;default:''"`
+	Email        string         `json:"email" gorm:"size:100;index;default:''"`
+	Phone        string         `json:"phone" gorm:"size:20;index;default:''"`
+	RegistrationIP string       `json:"registration_ip" gorm:"size:45;default:''"` // 注册 IP 地址
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `json:"-" gorm:"index"`
+	Posts        []Post         `json:"posts,omitempty" gorm:"foreignKey:UserID"`
 }
 
 // Post 用户发布的帖子

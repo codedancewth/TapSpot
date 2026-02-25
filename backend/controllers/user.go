@@ -7,41 +7,107 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SearchUsers 搜索用户
+// UserInfo 用户信息（用于搜索响应）
+type UserInfo struct {
+	ID        uint   `json:"id"`
+	Username  string `json:"username"`
+	Nickname  string `json:"nickname"`
+	Avatar    string `json:"avatar"`
+	Bio       string `json:"bio"`
+	CreatedAt string `json:"created_at"`
+}
+
+// IPStats IP 统计信息
+type IPStats struct {
+	IP    string `json:"ip"`
+	Count int64  `json:"count"`
+}
+
+// SearchUsers 搜索用户（按昵称模糊搜索）
 func SearchUsers(c *gin.Context) {
 	query := c.Query("q")
 	if query == "" {
-		c.JSON(http.StatusOK, gin.H{"users": []models.User{}})
+		c.JSON(http.StatusOK, gin.H{"users": []UserInfo{}})
 		return
 	}
 
 	var users []models.User
-	models.DB.Where("username LIKE ? OR nickname LIKE ?", "%"+query+"%", "%"+query+"%").
-		Select("id, username, nickname, avatar, bio").
+	// 只搜索昵称，不搜索用户名
+	models.DB.Where("nickname LIKE ?", "%"+query+"%").
+		Select("id, username, nickname, avatar, bio, created_at").
 		Limit(20).
 		Find(&users)
 
 	// 返回简化用户信息
 	type UserInfo struct {
-		ID       uint   `json:"id"`
-		Username string `json:"username"`
-		Nickname string `json:"nickname"`
-		Avatar   string `json:"avatar"`
-		Bio      string `json:"bio"`
+		ID        uint   `json:"id"`
+		Username  string `json:"username"`
+		Nickname  string `json:"nickname"`
+		Avatar    string `json:"avatar"`
+		Bio       string `json:"bio"`
+		CreatedAt string `json:"created_at"`
 	}
 
-	var result []UserInfo
+	result := []UserInfo{}
 	for _, user := range users {
 		result = append(result, UserInfo{
-			ID:       user.ID,
-			Username: user.Username,
-			Nickname: user.Nickname,
-			Avatar:   user.Avatar,
-			Bio:      user.Bio,
+			ID:        user.ID,
+			Username:  user.Username,
+			Nickname:  user.Nickname,
+			Avatar:    user.Avatar,
+			Bio:       user.Bio,
+			CreatedAt: user.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
 	}
 
 	c.JSON(http.StatusOK, gin.H{"users": result})
+}
+
+// GetUserStats 获取用户统计信息
+func GetUserStats(c *gin.Context) {
+	// 总用户数
+	var totalUsers int64
+	models.DB.Model(&models.User{}).Count(&totalUsers)
+
+	// 按日期统计用户增长
+	type DailyStats struct {
+		Date  string `json:"date"`
+		Count int64  `json:"count"`
+		IPs   int64  `json:"ips"`
+	}
+
+	var dailyStats []DailyStats
+	models.DB.Table("users").
+		Select("DATE(created_at) as date, COUNT(*) as count, COUNT(DISTINCT registration_ip) as ips").
+		Group("DATE(created_at)").
+		Order("date DESC").
+		Limit(30).
+		Scan(&dailyStats)
+
+	// 按 IP 统计
+	ipStats := []IPStats{}
+	models.DB.Table("users").
+		Select("registration_ip as ip, COUNT(*) as count").
+		Where("registration_ip != ''").
+		Group("registration_ip").
+		Order("count DESC").
+		Limit(20).
+		Scan(&ipStats)
+
+	// 计算自然增长
+	var naturalGrowth int64
+	for _, stat := range ipStats {
+		if stat.Count == 1 {
+			naturalGrowth++
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"total_users":    totalUsers,
+		"daily_stats":    dailyStats,
+		"ip_stats":       ipStats,
+		"natural_growth": naturalGrowth,
+	})
 }
 
 // UpdateUserRequest 更新用户资料请求

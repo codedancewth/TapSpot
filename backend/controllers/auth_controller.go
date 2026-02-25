@@ -32,7 +32,16 @@ func (ac *AuthController) Register(c *gin.Context) {
 		return
 	}
 
-	resp, err := ac.authService.Register(&req)
+	// 获取用户 IP 地址
+	ip := c.ClientIP()
+	if ip == "" {
+		ip = c.GetHeader("X-Real-IP")
+	}
+	if ip == "" {
+		ip = c.GetHeader("X-Forwarded-For")
+	}
+
+	resp, err := ac.authService.Register(&req, ip)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
 			Success: false,
