@@ -579,13 +579,11 @@ export default function App() {
         body: JSON.stringify({ location_name: text })
       })
       console.log('文字分析结果:', data)
-      setAiAnalysis(data.analysis || '分析失败')
-      // 10 秒后自动隐藏
-      setTimeout(() => setAiAnalysis(''), 10000)
+      // 返回完整数据给 TextSelectionAI 组件
+      return data
     } catch (error) {
       console.error('AI 分析失败:', error)
-      setAiAnalysis('AI 分析失败：' + (error.message || '请稍后重试'))
-      setTimeout(() => setAiAnalysis(''), 5000)
+      throw error
     } finally {
       setAnalyzing(false)
     }
