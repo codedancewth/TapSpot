@@ -210,6 +210,7 @@ export default function App() {
   const [analyzing, setAnalyzing] = useState(false)
   const [aiAnalysis, setAiAnalysis] = useState('')
   const [locationTitle, setLocationTitle] = useState('')
+  const [selectedText, setSelectedText] = useState('')
 
   // 聊天相关状态
   const [conversations, setConversations] = useState([])
@@ -556,14 +557,14 @@ export default function App() {
         method: 'POST',
         body: JSON.stringify({ location_name: locationName })
       })
-      setAiAnalysis(data.analysis || '分析失败')
-      console.log('AI 分析结果:', data.analysis)
-      // 10 秒后自动隐藏
-      setTimeout(() => setAiAnalysis(''), 10000)
+      // 清理 markdown 格式
+      let cleanAnalysis = data.analysis || '分析失败'
+      cleanAnalysis = cleanAnalysis.replace(/\*\*/g, '').replace(/\*/g, '').replace(/__/g, '_')
+      setAiAnalysis(cleanAnalysis)
+      console.log('AI 分析结果:', cleanAnalysis)
     } catch (error) {
       console.error('AI 分析失败:', error)
       setAiAnalysis('AI 分析失败：' + (error.message || '请稍后重试'))
-      setTimeout(() => setAiAnalysis(''), 5000)
     } finally {
       setAnalyzing(false)
     }
@@ -572,21 +573,29 @@ export default function App() {
   // AI 分析选中的文字
   const handleAnalyzeText = async (text) => {
     console.log('分析文字:', text)
+    setSelectedText(text)
     setAnalyzing(true)
     try {
       const data = await api('/ai/analyze', {
         method: 'POST',
         body: JSON.stringify({ location_name: text })
       })
-      console.log('文字分析结果:', data)
-      // 返回完整数据给 TextSelectionAI 组件
-      return data
+      // 清理 markdown 格式
+      let cleanAnalysis = data.analysis || '分析失败'
+      cleanAnalysis = cleanAnalysis.replace(/\*\*/g, '').replace(/\*/g, '').replace(/__/g, '_')
+      setAiAnalysis(cleanAnalysis)
+      console.log('文字分析结果:', cleanAnalysis)
     } catch (error) {
       console.error('AI 分析失败:', error)
-      throw error
+      setAiAnalysis('AI 分析失败：' + (error.message || '请稍后重试'))
     } finally {
       setAnalyzing(false)
     }
+  }
+
+  // 取消选中文字
+  const handleDeselectText = () => {
+    setSelectedText('')
   }
 
   // 发布帖子
@@ -1429,12 +1438,17 @@ export default function App() {
         <AIAssistant 
           analyzing={analyzing}
           analysis={aiAnalysis}
-          locationName={locationTitle}
+          locationTitle={locationTitle}
           onAnalyze={handleAIAnalyze}
+          onAnalyzeText={handleAnalyzeText}
+          selectedText={selectedText}
         />
 
         {/* 文字选择 AI 分析 */}
-        <TextSelectionAI onAnalyzeText={handleAnalyzeText} />
+        <TextSelectionAI 
+          onSelectText={setSelectedText}
+          onDeselect={handleDeselectText}
+        />
 
         {/* 全局 AI 分析结果（用于文字选择分析） */}
         {aiAnalysis && (

@@ -80,6 +80,7 @@ func callAI(locationName string) (string, error) {
 4. 语言生动有趣，吸引人，可以有适当的情感表达
 5. 可以加适量的 emoji 增加趣味性
 6. 字数控制在 200-500 字之间，内容要丰富详细
+7. 不要使用 markdown 格式，直接输出纯文本
 
 请直接输出分析内容，不要有其他说明。`, locationName)
 		maxTokens = 800
@@ -93,6 +94,7 @@ func callAI(locationName string) (string, error) {
 3. 语言生动有趣，吸引人
 4. 不超过 100 个字
 5. 加 1-2 个 emoji 增加趣味性
+6. 不要使用 markdown 格式，直接输出纯文本
 
 请直接输出分析内容，不要有其他说明。`, locationName)
 		maxTokens = 200
