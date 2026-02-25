@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 	"tapspot/config"
-	"tapspot/controllers"
 	"tapspot/models"
 	"tapspot/routes"
+	"tapspot/services"
 	"tapspot/websocket"
 
 	"github.com/gin-contrib/cors"
@@ -23,25 +23,24 @@ func main() {
 
 	// 初始化数据库
 	config.InitDB()
-	models.DB = config.DB // 设置全局DB
+	models.DB = config.DB // 设置全局 DB
 
 	// 自动迁移数据库表
 	migrateDB()
 
-	// 创建WebSocket Hub 并设置为全局实例
+	// 创建 WebSocket Hub 并设置为全局实例
 	websocket.GlobalHub = websocket.NewHub()
 	go websocket.GlobalHub.Run()
 
-	// 设置token验证函数（解决循环导入问题）
+	// 设置 token 验证函数（解决循环导入问题）
 	websocket.ValidateTokenFunc = func(tokenString string) (uint, error) {
-		// 复用controllers中的JWT验证逻辑
 		return validateTokenAndGetUserID(tokenString)
 	}
 
-	// 创建Gin引擎
+	// 创建 Gin 引擎
 	r := gin.Default()
 
-	// 配置CORS
+	// 配置 CORS
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -54,7 +53,7 @@ func main() {
 	routes.SetupRoutes(r)
 
 	// 创建测试用户 root/root
-	controllers.CreateTestUser()
+	services.CreateTestUser()
 
 	// 启动服务器
 	log.Println("🚀 TapSpot API running on http://localhost:8080")
@@ -79,24 +78,26 @@ func migrateDB() {
 	log.Println("✅ 数据库迁移完成")
 }
 
-// validateTokenAndGetUserID 验证token并返回userID
+// validateTokenAndGetUserID 验证 token 并返回 userID
 func validateTokenAndGetUserID(tokenString string) (uint, error) {
-	// Bearer token格式
+	// Bearer token 格式
 	if len(tokenString) > 7 && tokenString[:7] == "Bearer " {
 		tokenString = tokenString[7:]
 	}
 
-	// 使用controllers中的Claims结构体验证token
-	token, err := jwt.ParseWithClaims(tokenString, &controllers.Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("tapspot-secret-key-2026"), nil
+	// 使用 services 中的 JWT 密钥验证
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return services.GetJWTSecret(), nil
 	})
 
 	if err != nil || !token.Valid {
 		return 0, fmt.Errorf("invalid token")
 	}
 
-	if claims, ok := token.Claims.(*controllers.Claims); ok {
-		return claims.UserID, nil
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		if userID, ok := claims["user_id"].(float64); ok {
+			return uint(userID), nil
+		}
 	}
 
 	return 0, fmt.Errorf("invalid claims")

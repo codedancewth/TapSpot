@@ -13,10 +13,12 @@ type User struct {
 	ID        uint           `json:"id" gorm:"primaryKey"`
 	Username  string         `json:"username" gorm:"size:50;uniqueIndex;not null"`
 	Password  string         `json:"-" gorm:"size:255;not null"` // 不返回给前端
-	Nickname  string         `json:"nickname" gorm:"size:50"`
-	Avatar    string         `json:"avatar" gorm:"size:500"`
-	Gender    string         `json:"gender" gorm:"size:20"`
-	Bio       string         `json:"bio" gorm:"size:500"`
+	Nickname  string         `json:"nickname" gorm:"size:50;not null"`
+	Avatar    string         `json:"avatar" gorm:"size:500;default:''"`
+	Gender    string         `json:"gender" gorm:"size:20;not null;default:'other'"` // male, female, other
+	Bio       string         `json:"bio" gorm:"size:500;default:''"`
+	Email     string         `json:"email" gorm:"size:100;uniqueIndex;default:''"`
+	Phone     string         `json:"phone" gorm:"size:20;uniqueIndex;default:''"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`

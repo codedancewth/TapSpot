@@ -1,94 +1,66 @@
 package routes
 
 import (
-	"net/http"
 	"tapspot/controllers"
-	"tapspot/websocket"
+	"tapspot/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
+// SetupRoutes 设置所有路由
 func SetupRoutes(r *gin.Engine) {
-	// 使用 /api 而不是 /api/v1，与前端保持一致
 	api := r.Group("/api")
 	{
-		// 健康检查
-		api.GET("/health", controllers.HealthCheck)
+		// 认证控制器
+		authController := controllers.NewAuthController()
 
-		// 认证路由（不需要登录）
-		api.POST("/register", controllers.Register)
-		api.POST("/login", controllers.Login)
+		// 公开路由
+		api.POST("/register", authController.Register)
+		api.POST("/login", authController.Login)
 
-		// WebSocket 路由（需要 token 验证）
-		api.GET("/ws", func(c *gin.Context) {
-			token := c.Query("token")
-			if token == "" {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "缺少 token"})
-				return
-			}
-			
-			userID, err := websocket.ValidateTokenFunc(token)
-			if err != nil {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "token无效"})
-				return
-			}
-			
-			websocket.HandleWebSocket(c.Writer, c.Request, userID)
-		})
-
-		// 帖子路由（公开）
-		api.GET("/posts", controllers.GetPosts)
-		api.GET("/posts/:id", controllers.GetPost)
-		api.GET("/posts/comments/count", controllers.GetCommentCounts)
-
-		// 评论路由（公开）
-		api.GET("/posts/:id/comments", controllers.GetComments)
-		api.GET("/posts/:id/best-comment", controllers.GetBestComment)
-
-		// 点赞相关（公开）
-		api.GET("/comments/likes/count", controllers.GetCommentLikeCounts)
-
-		// POI相关
-		api.GET("/pois", controllers.GetPOIs)
-		api.GET("/geocode/reverse", controllers.ReverseGeocode)
-
-		// 用户公开信息（不需要登录）
-		api.GET("/users/:id", controllers.GetUserByID)
-		api.GET("/users/:id/posts", controllers.GetUserPosts)
-
-		// 需要登录的路由
+		// 需要认证的路由
 		auth := api.Group("")
-		auth.Use(controllers.AuthMiddleware())
+		auth.Use(middleware.AuthMiddleware())
 		{
-			// 用户信息
-			auth.GET("/me", controllers.GetMe)
-			auth.PUT("/me", controllers.UpdateCurrentUser)
+			// 用户相关
+			auth.GET("/me", authController.GetCurrentUser)
+			auth.PUT("/me", authController.UpdateProfile)
+			auth.POST("/change-password", authController.ChangePassword)
+			auth.GET("/users/:id", authController.GetUserProfile)
 
-			// 帖子操作
+			// 帖子路由
 			auth.POST("/posts", controllers.CreatePost)
 			auth.DELETE("/posts/:id", controllers.DeletePost)
-			auth.GET("/posts/my", controllers.GetMyPosts)
-
-			// 帖子点赞
 			auth.POST("/posts/:id/like", controllers.PostLike)
 			auth.GET("/likes/check", controllers.CheckPostLikes)
 			auth.GET("/likes/my", controllers.GetMyLikes)
 
-			// 评论操作
+			// 评论路由
 			auth.POST("/posts/:id/comments", controllers.CreateComment)
 			auth.DELETE("/comments/:id", controllers.DeleteComment)
-
-			// 评论点赞
 			auth.POST("/comments/:id/like", controllers.CommentLike)
 			auth.GET("/comments/likes/check", controllers.CheckCommentLikes)
 
-			// 消息相关
+			// 消息路由
 			auth.GET("/conversations", controllers.GetConversations)
 			auth.GET("/conversations/with", controllers.GetOrCreateConversation)
 			auth.POST("/conversations/:id/read", controllers.MarkConversationAsRead)
-			auth.GET("/conversations/:userId/messages", controllers.GetMessages)
+			auth.GET("/conversations/:id/messages", controllers.GetMessages)
 			auth.POST("/messages", controllers.SendMessage)
 			auth.GET("/messages/unread", controllers.GetUnreadCount)
 		}
+
+		// 公开路由
+		api.GET("/posts", controllers.GetPosts)
+		api.GET("/posts/:id", controllers.GetPost)
+		api.GET("/posts/:id/comments", controllers.GetComments)
+		api.GET("/posts/:id/best-comment", controllers.GetBestComment)
+
+		// 地理服务
+		api.GET("/pois", controllers.GetPOIs)
+		api.GET("/geocode/reverse", controllers.ReverseGeocode)
+
+		// WebSocket
+		api.GET("/ws", controllers.WebSocketHandler)
 	}
 }
