@@ -1449,46 +1449,6 @@ export default function App() {
           onAnalyzeText={handleAnalyzeText}
         />
 
-        {/* 全局 AI 分析结果（用于文字选择分析） */}
-        {aiAnalysis && (
-          <div style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 10000,
-            background: 'white',
-            borderRadius: 20,
-            padding: 24,
-            maxWidth: 400,
-            boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-            border: '3px solid #ff6b9d',
-            animation: 'popIn 0.3s ease'
-          }}>
-            <button
-              onClick={() => setAiAnalysis('')}
-              style={{
-                position: 'absolute',
-                top: 10,
-                right: 12,
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: 20,
-                color: '#999'
-              }}
-            >
-              ×
-            </button>
-            <div style={{ fontSize: 14, color: '#333', lineHeight: 1.8 }}>
-              {aiAnalysis}
-            </div>
-            <div style={{ marginTop: 12, fontSize: 12, color: '#999', textAlign: 'right' }}>
-              阿尼亚 AI 分析 · 10 秒后自动关闭
-            </div>
-          </div>
-        )}
-
         {/* 工具栏 */}
         <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 1000, display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => setShowSidebar(!showSidebar)} style={{ width: 44, height: 44, background: COLORS.cardBg, border: 'none', borderRadius: 12, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
