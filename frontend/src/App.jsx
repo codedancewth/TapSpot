@@ -345,7 +345,7 @@ export default function App() {
 
   // 登录
   const handleLogin = async () => {
-    if (!registerForm.username || !registerForm.password) {
+    if (!loginForm.username || !loginForm.password) {
       return alert('请填写用户名和密码')
     }
     try {
