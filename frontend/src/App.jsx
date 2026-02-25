@@ -4,6 +4,7 @@ import L from 'leaflet'
 import { Heart, X, Plus, ZoomIn, ZoomOut, Compass, User, LogOut, MapPin, Clock, ChevronRight, Search, Loader2, MessageCircle, Send, Mail } from 'lucide-react'
 import './styles/modern.css'
 import { MessageCenter } from './components/Chat/MessageCenter.jsx'
+import AIAssistant from './components/AIAssistant.jsx'
 
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -203,6 +204,11 @@ export default function App() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [showUserSpace, setShowUserSpace] = useState(null) // 查看用户空间 { user, posts }
   const [loadingUserSpace, setLoadingUserSpace] = useState(false)
+  
+  // AI 分析相关状态
+  const [analyzing, setAnalyzing] = useState(false)
+  const [aiAnalysis, setAiAnalysis] = useState('')
+  const [locationTitle, setLocationTitle] = useState('')
 
   // 聊天相关状态
   const [conversations, setConversations] = useState([])
@@ -533,6 +539,30 @@ export default function App() {
       alert(error.message)
     } finally {
       setDeleting(false)
+    }
+  }
+
+  // AI 分析位置
+  const handleAIAnalyze = async (locationName) => {
+    if (!locationName) {
+      setAiAnalysis('')
+      return
+    }
+    
+    setAnalyzing(true)
+    try {
+      const data = await api('/ai/analyze', {
+        method: 'POST',
+        body: JSON.stringify({ location_name: locationName })
+      })
+      setAiAnalysis(data.analysis)
+      // 3 秒后自动隐藏
+      setTimeout(() => setAiAnalysis(''), 5000)
+    } catch (error) {
+      console.error('AI 分析失败:', error)
+      setAiAnalysis('AI 分析失败，请稍后重试')
+    } finally {
+      setAnalyzing(false)
     }
   }
 
@@ -1323,6 +1353,7 @@ export default function App() {
             const locationName = await reverseGeocode(latlng.lat, latlng.lng)
             if (locationName) {
               setPostForm(prev => ({ ...prev, location_name: locationName }))
+              setLocationTitle(locationName) // 设置 AI 分析的位置标题
             }
 
             setShowPost(true)
@@ -1370,6 +1401,14 @@ export default function App() {
             </Marker>
           ))}
         </MapContainer>
+
+        {/* AI 助手 */}
+        <AIAssistant 
+          analyzing={analyzing}
+          analysis={aiAnalysis}
+          locationName={locationTitle}
+          onAnalyze={handleAIAnalyze}
+        />
 
         {/* 工具栏 */}
         <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 1000, display: 'flex', alignItems: 'center', gap: 10 }}>
