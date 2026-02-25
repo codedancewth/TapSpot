@@ -21,13 +21,23 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         setEmotion('happy')
         setShowAnalysis(false)
       }, 8000)
-    } else {
+    }
+    // 默认保持微笑，不自动切换
+  }, [analyzing, analysis])
+
+  // 悬停时显示微笑
+  const handleMouseEnter = () => {
+    setIsHovering(true)
+    if (!analyzing) {
       setEmotion('happy')
     }
-  }, [analyzing, analysis])
+  }
 
   // 点击阿尼亚 - 显示问候语或执行分析
   const handleClick = () => {
+    // 点击时先显示微笑表情
+    setEmotion('happy')
+    
     if (selectedText && !analyzing) {
       // 有选中文字时，执行分析
       setIsDancing(true)
@@ -229,7 +239,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
 
       {/* 阿尼亚形象 */}
       <div
-        onMouseEnter={() => setIsHovering(true)}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={() => setIsHovering(false)}
         onClick={handleClick}
         style={{
