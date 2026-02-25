@@ -1465,10 +1465,29 @@ export default function App() {
               <b style={{ fontSize: 18, color: COLORS.textDark }}>{isRegister ? '注册账号' : '登录'}</b>
               <button onClick={() => setShowLogin(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-            <div style={{ padding: 20 }}>
-              <input type="text" placeholder="用户名" value={loginForm.username} onChange={e => setLoginForm({ ...loginForm, username: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
-              <input type="password" placeholder="密码" value={loginForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
-              {!isRegister && <div style={{ padding: 12, background: '#e3f2fd', borderRadius: 8, fontSize: 12, color: '#1565c0' }}>🔑 测试账号: <b>root</b> / <b>root</b></div>}
+            <div style={{ padding: 20, maxHeight: '70vh', overflowY: 'auto' }}>
+              {isRegister ? (
+                <>
+                  <input type="text" placeholder="用户名 *" value={registerForm.username} onChange={e => setRegisterForm({ ...registerForm, username: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <input type="password" placeholder="密码 *" value={registerForm.password} onChange={e => setRegisterForm({ ...registerForm, password: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <input type="password" placeholder="确认密码 *" value={registerForm.password_conf} onChange={e => setRegisterForm({ ...registerForm, password_conf: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <input type="text" placeholder="昵称 *" value={registerForm.nickname} onChange={e => setRegisterForm({ ...registerForm, nickname: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <select value={registerForm.gender} onChange={e => setRegisterForm({ ...registerForm, gender: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', background: 'white' }}>
+                    <option value="male">♂️ 男</option>
+                    <option value="female">♀️ 女</option>
+                    <option value="other">🔹 其他</option>
+                  </select>
+                  <textarea placeholder="个人简介（选填）" value={registerForm.bio} onChange={e => setRegisterForm({ ...registerForm, bio: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', minHeight: 80, resize: 'vertical' }} />
+                  <input type="email" placeholder="邮箱（选填）" value={registerForm.email} onChange={e => setRegisterForm({ ...registerForm, email: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <input type="tel" placeholder="手机号（选填）" value={registerForm.phone} onChange={e => setRegisterForm({ ...registerForm, phone: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                </>
+              ) : (
+                <>
+                  <input type="text" placeholder="用户名" value={loginForm.username} onChange={e => setLoginForm({ ...loginForm, username: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <input type="password" placeholder="密码" value={loginForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <div style={{ padding: 12, background: '#e3f2fd', borderRadius: 8, fontSize: 12, color: '#1565c0' }}>🔑 测试账号：<b>root</b> / <b>root</b></div>
+                </>
+              )}
             </div>
             <div style={{ padding: 20, borderTop: `1px solid ${COLORS.border}`, display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button onClick={isRegister ? handleRegister : handleLogin} style={{ width: '100%', padding: 14, background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 15 }}>{isRegister ? '注册' : '登录'}</button>
