@@ -365,27 +365,26 @@ export default function App() {
 
   // 注册
   const handleRegister = async () => {
-    if (!registerForm.username || !registerForm.password) {
-      return alert('请填写用户名和密码')
+    if (!registerForm.username || !registerForm.password || !registerForm.nickname) {
+      return alert('请填写用户名、密码和昵称')
     }
-    if (registerForm.username.length < 3) return alert('用户名至少3个字符')
-    if (registerForm.password.length < 3) return alert('密码至少3个字符')
-    
+    if (registerForm.username.length < 3) return alert('用户名至少 3 个字符')
+    if (registerForm.password.length < 6) return alert('密码至少 6 个字符')
+    if (registerForm.password !== registerForm.password_conf) return alert('两次输入的密码不一致')
     try {
       const data = await api('/register', {
         method: 'POST',
-        body: JSON.stringify(loginForm)
+        body: JSON.stringify(registerForm)
       })
       localStorage.setItem('tapspot_token', data.token)
       setToken(data.token)
       setUser(data.user)
       setShowLogin(false)
-      setLoginForm({ username: '', password: '' })
+      setRegisterForm({ username: '', password: '', password_conf: '', nickname: '', gender: 'male', bio: '', email: '', phone: '' })
     } catch (error) {
-      alert(error.message.includes("min") ? "用户名和密码都至少需要 3 个字符哦～" : error.message)
+      alert(error.message || '注册失败')
     }
   }
-
   // 退出
   const handleLogout = () => {
     setUser(null)
@@ -1467,8 +1466,8 @@ export default function App() {
               <button onClick={() => setShowLogin(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             <div style={{ padding: 20 }}>
-              <input type="text" placeholder="用户名" value={registerForm.username} onChange={e => setLoginForm({ ...loginForm, username: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
-              <input type="password" placeholder="密码" value={registerForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+              <input type="text" placeholder="用户名" value={loginForm.username} onChange={e => setLoginForm({ ...loginForm, username: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+              <input type="password" placeholder="密码" value={loginForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
               {!isRegister && <div style={{ padding: 12, background: '#e3f2fd', borderRadius: 8, fontSize: 12, color: '#1565c0' }}>🔑 测试账号: <b>root</b> / <b>root</b></div>}
             </div>
             <div style={{ padding: 20, borderTop: `1px solid ${COLORS.border}`, display: 'flex', flexDirection: 'column', gap: 10 }}>
