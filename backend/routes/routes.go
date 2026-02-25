@@ -70,5 +70,8 @@ func SetupRoutes(r *gin.Engine) {
 		// 统计 API（需要认证）
 		auth.GET("/stats/visits", controllers.GetVisitStats)
 		auth.GET("/stats/realtime", controllers.GetRealTimeVisitors)
+
+		// AI 分析 API（公开）
+		api.POST("/ai/analyze", controllers.AnalyzeLocation)
 	}
 }
