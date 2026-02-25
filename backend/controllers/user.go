@@ -163,7 +163,10 @@ func GetUserPosts(c *gin.Context) {
 		CreatedAt    string  `json:"createdAt"`
 	}
 
-	var result []PostWithLikes
+	result := []PostWithLikes{}
+	if posts == nil {
+		posts = []models.Post{}
+	}
 	for _, post := range posts {
 		var likeCount int64
 		models.DB.Model(&models.Like{}).Where("post_id = ?", post.ID).Count(&likeCount)
