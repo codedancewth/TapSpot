@@ -102,17 +102,17 @@ func callAI(locationName string) (string, error) {
 		maxTokens = 300
 	}
 
-	// 构建请求体（Qwen-Max 长文本版）
+	// 构建请求体（Qwen-Plus 平衡版）
 	requestBody := map[string]interface{}{
-		"model": "qwen-max-longcontext",
+		"model": "qwen-plus",
 		"messages": []map[string]string{
 			{"role": "user", "content": prompt},
 		},
 		"max_tokens": maxTokens,
-		"temperature": 0.3,
+		"temperature": 0.5,
 		"top_p": 0.8,
 		"stream": false,
-		"repetition_penalty": 1.0,
+		"enable_search": false,
 	}
 
 	jsonData, err := json.Marshal(requestBody)
