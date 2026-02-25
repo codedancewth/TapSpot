@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-// AI 助手组件 - 阿尼亚 MOMO（方形墨镜 + 坏笑露齿版）
+// AI 助手组件 - 阿尼亚·福杰（官方形象版）
 export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTitle, onAnalyzeText, selectedText }) {
   const [isHovering, setIsHovering] = useState(false)
   const [emotion, setEmotion] = useState('happy')
@@ -51,7 +51,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     }
   }
 
-  // 阿尼亚精致 SVG - 方形墨镜 + 坏笑露齿版
+  // 阿尼亚精致 SVG - 官方形象版（翡翠绿大眼睛 + 粉色长发）
   const getAnyaSVG = () => {
     const hairPink = '#ff85b3'
     const hairShadow = '#ff5c8a'
@@ -60,73 +60,76 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     const blushColor = '#ffb6c1'
     const mouthColor = '#ff6b9d'
     const bowRed = '#ff4757'
-    const sunglassesDark = '#0a0a14'
+    const eyeGreen = '#50c878' // 翡翠绿
+    const eyeDark = '#2d5a3d'
+    const hatBlack = '#1a1a2e'
 
     let expression = ''
     switch (emotion) {
       case 'thinking':
-        // 思考时墨镜微微下滑
+        // 思考时严肃认真，微微眯眼（花生模式）
         expression = `
-          <g transform="translate(0, 3)">
-            <!-- 方形墨镜框架 -->
-            <rect x="24" y="46" width="42" height="14" rx="2" fill="${sunglassesDark}"/>
-            <!-- 镜片 -->
-            <rect x="26" y="48" width="18" height="10" rx="1" fill="#1a1a2e" opacity="0.95"/>
-            <rect x="46" y="48" width="18" height="10" rx="1" fill="#1a1a2e" opacity="0.95"/>
-            <!-- 镜腿 -->
-            <path d="M 24 53 L 16 51" stroke="#2d2d44" stroke-width="3" stroke-linecap="round"/>
-            <path d="M 66 53 L 74 51" stroke="#2d2d44" stroke-width="3" stroke-linecap="round"/>
-            <!-- 反光 -->
-            <rect x="28" y="50" width="8" height="3" rx="1" fill="white" opacity="0.5"/>
-            <rect x="48" y="50" width="8" height="3" rx="1" fill="white" opacity="0.5"/>
-          </g>
+          <!-- 翡翠绿大眼睛（思考时眯起） -->
+          <ellipse cx="35" cy="55" rx="8" ry="6" fill="white"/>
+          <ellipse cx="55" cy="55" rx="8" ry="6" fill="white"/>
+          <circle cx="36" cy="55" r="4" fill="${eyeGreen}"/>
+          <circle cx="56" cy="55" r="4" fill="${eyeGreen}"/>
+          <circle cx="37" cy="53" r="2" fill="white"/>
+          <circle cx="57" cy="53" r="2" fill="white"/>
+          <!-- 认真眉毛 -->
+          <path d="M 30 47 Q 35 49 40 47" stroke="${hairShadow}" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M 50 47 Q 55 49 60 47" stroke="${hairShadow}" stroke-width="2" fill="none" stroke-linecap="round"/>
           <!-- 抿嘴思考 -->
-          <path d="M 45 68 Q 48 70 51 68" stroke="${mouthColor}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-          <ellipse cx="70" cy="48" rx="5" ry="7" fill="#87ceeb" opacity="0.5"/>
+          <path d="M 42 68 Q 48 70 54 68" stroke="${mouthColor}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <!-- 思考气泡 -->
+          <ellipse cx="70" cy="46" rx="5" ry="7" fill="#87ceeb" opacity="0.6"/>
         `
         break
       case 'excited':
-        // 兴奋时露齿坏笑
+        // 兴奋时得意狡黠的"呵"式微笑
         expression = `
-          <!-- 方形墨镜框架 -->
-          <rect x="24" y="44" width="42" height="14" rx="2" fill="${sunglassesDark}"/>
-          <!-- 镜片 -->
-          <rect x="26" y="46" width="18" height="10" rx="1" fill="#1a1a2e" opacity="0.95"/>
-          <rect x="46" y="46" width="18" height="10" rx="1" fill="#1a1a2e" opacity="0.95"/>
-          <!-- 镜腿 -->
-          <path d="M 24 51 L 16 49" stroke="#2d2d44" stroke-width="3" stroke-linecap="round"/>
-          <path d="M 66 51 L 74 49" stroke="#2d2d44" stroke-width="3" stroke-linecap="round"/>
-          <!-- 强反光 -->
-          <rect x="28" y="48" width="10" height="4" rx="1.5" fill="white" opacity="0.7"/>
-          <rect x="48" y="48" width="10" height="4" rx="1.5" fill="white" opacity="0.7"/>
-          <!-- 露齿坏笑 -->
-          <path d="M 38 66 Q 45 74 52 66 Z" fill="white" stroke="${mouthColor}" stroke-width="1"/>
-          <path d="M 40 66 L 40 70 M 43 66 L 43 71 M 46 66 L 46 72 M 49 66 L 49 71 M 52 66 L 52 70" stroke="#e8e8e8" stroke-width="1"/>
-          <path d="M 38 66 Q 45 74 52 66" fill="none" stroke="${mouthColor}" stroke-width="1.5" stroke-linecap="round"/>
-          <circle cx="30" cy="64" r="4" fill="${blushColor}" opacity="0.5"/>
-          <circle cx="62" cy="64" r="4" fill="${blushColor}" opacity="0.5"/>
-          <ellipse cx="72" cy="46" rx="6" ry="8" fill="#87ceeb" opacity="0.7"/>
+          <!-- 翡翠绿大眼睛（兴奋时闪亮） -->
+          <ellipse cx="35" cy="55" rx="10" ry="8" fill="white"/>
+          <ellipse cx="55" cy="55" rx="10" ry="8" fill="white"/>
+          <circle cx="36" cy="55" r="5" fill="${eyeGreen}"/>
+          <circle cx="56" cy="55" r="5" fill="${eyeGreen}"/>
+          <circle cx="38" cy="53" r="3" fill="white"/>
+          <circle cx="58" cy="53" r="3" fill="white"/>
+          <circle cx="34" cy="57" r="1.5" fill="white" opacity="0.8"/>
+          <circle cx="54" cy="57" r="1.5" fill="white" opacity="0.8"/>
+          <!-- 得意眉毛 -->
+          <path d="M 28 46 Q 35 44 42 46" stroke="${hairShadow}" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M 48 46 Q 55 44 62 46" stroke="${hairShadow}" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <!-- "呵"式狡黠微笑 -->
+          <path d="M 40 67 Q 48 74 56 67" fill="${mouthColor}"/>
+          <path d="M 42 67 Q 48 72 54 67" fill="white"/>
+          <!-- 开心腮红 -->
+          <circle cx="28" cy="63" r="5" fill="${blushColor}" opacity="0.5"/>
+          <circle cx="62" cy="63" r="5" fill="${blushColor}" opacity="0.5"/>
+          <!-- 兴奋汗珠 -->
+          <ellipse cx="72" cy="44" rx="6" ry="8" fill="#87ceeb" opacity="0.7"/>
         `
         break
       default:
-        // 默认酷酷表情 - 方形墨镜 + 坏笑
+        // 默认天真无邪的笑容
         expression = `
-          <!-- 方形墨镜框架 -->
-          <rect x="24" y="44" width="42" height="14" rx="2" fill="${sunglassesDark}"/>
-          <!-- 镜片 -->
-          <rect x="26" y="46" width="18" height="10" rx="1" fill="#1a1a2e" opacity="0.95"/>
-          <rect x="46" y="46" width="18" height="10" rx="1" fill="#1a1a2e" opacity="0.95"/>
-          <!-- 镜腿 -->
-          <path d="M 24 51 L 16 49" stroke="#2d2d44" stroke-width="3" stroke-linecap="round"/>
-          <path d="M 66 51 L 74 49" stroke="#2d2d44" stroke-width="3" stroke-linecap="round"/>
-          <!-- 反光 -->
-          <rect x="29" y="48" width="7" height="3" rx="1" fill="white" opacity="0.6"/>
-          <rect x="49" y="48" width="7" height="3" rx="1" fill="white" opacity="0.6"/>
-          <!-- 坏笑露齿 -->
-          <path d="M 40 67 Q 45 72 50 67" fill="white" stroke="${mouthColor}" stroke-width="1.2"/>
-          <path d="M 42 67 L 42 70 M 45 67 L 45 71 M 48 67 L 48 71 M 51 67 L 51 70" stroke="#e0e0e0" stroke-width="1"/>
-          <circle cx="30" cy="64" r="3" fill="${blushColor}" opacity="0.35"/>
-          <circle cx="62" cy="64" r="3" fill="${blushColor}" opacity="0.35"/>
+          <!-- 翡翠绿大眼睛（清澈机敏） -->
+          <ellipse cx="35" cy="55" rx="9" ry="7" fill="white"/>
+          <ellipse cx="55" cy="55" rx="9" ry="7" fill="white"/>
+          <circle cx="36" cy="55" r="4.5" fill="${eyeGreen}"/>
+          <circle cx="56" cy="55" r="4.5" fill="${eyeGreen}"/>
+          <circle cx="37" cy="53" r="2.5" fill="white"/>
+          <circle cx="57" cy="53" r="2.5" fill="white"/>
+          <circle cx="35" cy="57" r="1.5" fill="white" opacity="0.6"/>
+          <circle cx="55" cy="57" r="1.5" fill="white" opacity="0.6"/>
+          <!-- 自然眉毛 -->
+          <path d="M 30 47 Q 35 46 40 47" stroke="${hairShadow}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <path d="M 50 47 Q 55 46 60 47" stroke="${hairShadow}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <!-- 天真笑容 -->
+          <path d="M 40 67 Q 48 72 56 67" stroke="${mouthColor}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <!-- 可爱腮红 -->
+          <circle cx="28" cy="63" r="4" fill="${blushColor}" opacity="0.35"/>
+          <circle cx="62" cy="63" r="4" fill="${blushColor}" opacity="0.35"/>
         `
     }
 
@@ -151,6 +154,10 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         <ellipse cx="45" cy="48" rx="36" ry="34" fill="${hairShadow}"/>
         <ellipse cx="45" cy="45" rx="33" ry="30" fill="url(#hairGradient)"/>
         
+        <!-- 小黑帽/发饰（头顶） -->
+        <path d="M 35 20 Q 45 16 55 20 L 58 24 Q 45 20 32 24 Z" fill="${hatBlack}"/>
+        <circle cx="45" cy="19" r="3" fill="${bowRed}"/>
+        
         <!-- 双马尾（左侧） -->
         <ellipse cx="16" cy="55" rx="9" ry="18" fill="url(#hairGradient)"/>
         <ellipse cx="14" cy="72" rx="5" ry="10" fill="url(#hairGradient)"/>
@@ -165,8 +172,12 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         <path d="M 80 60 L 76 54 L 82 58 Z" fill="${bowRed}"/>
         <circle cx="80" cy="60" r="2" fill="#ff6b7a"/>
         
-        <!-- 刘海 -->
+        <!-- 刘海（齐眉） -->
         <path d="M 20 42 Q 28 32 36 44 Q 41 28 45 42 Q 49 28 54 44 Q 62 32 70 42" fill="url(#hairGradient)"/>
+        
+        <!-- 两侧垂下的长发 -->
+        <path d="M 20 50 Q 16 60 18 70" stroke="url(#hairGradient)" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <path d="M 70 50 Q 74 60 72 70" stroke="url(#hairGradient)" stroke-width="6" fill="none" stroke-linecap="round"/>
         
         <!-- 脸 -->
         <ellipse cx="45" cy="60" rx="25" ry="23" fill="url(#skinGradient)"/>
@@ -175,11 +186,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         <ellipse cx="20" cy="60" rx="4" ry="6" fill="${skinColor}"/>
         <ellipse cx="70" cy="60" rx="4" ry="6" fill="${skinColor}"/>
         
-        <!-- 眉毛（酷酷的平眉） -->
-        <path d="M 30 46 Q 38 45 46 46" stroke="${hairShadow}" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
-        <path d="M 44 46 Q 52 45 60 46" stroke="${hairShadow}" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
-        
-        <!-- 表情（墨镜） -->
+        <!-- 表情 -->
         ${expression}
         
         <!-- 鼻子 -->
@@ -210,10 +217,10 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
           marginBottom: 6,
           animation: 'popIn 0.3s ease',
           position: 'relative',
-          border: '2px solid #ffd700'
+          border: '2px solid #50c878'
         }}>
           <div style={{ fontSize: 12, color: '#333', lineHeight: 1.6 }}>
-            😎 嘿主人~ 我是超酷的阿尼亚 MOMO，有什么可以帮您 ✨
+            👋 哇库哇库~ 我是阿尼亚·福杰，有什么可以帮您 ✨
           </div>
           <div style={{
             position: 'absolute',
@@ -223,7 +230,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
             height: 0,
             borderLeft: '6px solid transparent',
             borderRight: '6px solid transparent',
-            borderTop: '6px solid #ffd700'
+            borderTop: '6px solid #50c878'
           }}/>
         </div>
       )}
@@ -305,10 +312,10 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
           cursor: 'pointer',
           transition: 'all 0.3s ease',
           transform: isHovering ? 'scale(1.08)' : 'scale(1)',
-          boxShadow: analyzing ? '0 0 0 0 rgba(255, 215, 0, 0)' : '0 3px 12px rgba(0,0,0,0.15)',
+          boxShadow: analyzing ? '0 0 0 0 rgba(80, 200, 120, 0)' : '0 3px 12px rgba(0,0,0,0.15)',
           animation: isDancing ? 'dance 0.6s ease infinite' : (isHovering ? 'bounce 0.5s ease' : 'none'),
           position: 'relative',
-          border: '2.5px solid #ffd700',
+          border: '2.5px solid #50c878',
           overflow: 'visible'
         }}
       >
@@ -322,7 +329,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
               right: 0,
               bottom: 0,
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(255, 215, 0, 0.5) 0%, rgba(102, 126, 234, 0.3) 40%, rgba(118, 75, 162, 0.1) 70%, transparent 100%)',
+              background: 'radial-gradient(circle, rgba(80, 200, 120, 0.5) 0%, rgba(102, 126, 234, 0.3) 40%, rgba(118, 75, 162, 0.1) 70%, transparent 100%)',
               animation: 'ripple 1.5s ease-out infinite'
             }}/>
             <div style={{
@@ -333,7 +340,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
               bottom: 0,
               borderRadius: '50%',
               border: '3px solid transparent',
-              borderImage: 'linear-gradient(45deg, #ffd700, #667eea, #00b894, #fd79a8) 1',
+              borderImage: 'linear-gradient(45deg, #50c878, #667eea, #ffd700, #fd79a8) 1',
               animation: 'rippleBorder 1.5s ease-out infinite'
             }}/>
             <div style={{
@@ -343,7 +350,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
               right: -2,
               bottom: -2,
               borderRadius: '50%',
-              background: 'conic-gradient(from 0deg, #ffd700, #667eea, #00b894, #fd79a8, #ffd700)',
+              background: 'conic-gradient(from 0deg, #50c878, #667eea, #ffd700, #fd79a8, #50c878)',
               filter: 'blur(8px)',
               opacity: 0.6,
               animation: 'rotateGradient 3s linear infinite'
@@ -361,7 +368,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         padding: '4px 10px', borderRadius: 10,
         boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
       }}>
-        {analyzing ? '🤔 思考中...' : selectedText ? '✨ 点我分析文字' : locationTitle ? '✨ 点我分析位置' : '😎 点我打招呼'}
+        {analyzing ? '🤔 思考中...' : selectedText ? '✨ 点我分析文字' : locationTitle ? '✨ 点我分析位置' : '👋 点我打招呼'}
       </div>
 
       <style>{`
