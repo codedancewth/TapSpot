@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-// AI 助手组件 - 阿尼亚 MOMO（光晕波纹 + 改进耳机版）
+// AI 助手组件 - 阿尼亚 MOMO（墨镜酷酷版 + 多彩渐变光晕）
 export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTitle, onAnalyzeText, selectedText }) {
   const [isHovering, setIsHovering] = useState(false)
   const [emotion, setEmotion] = useState('happy')
@@ -51,40 +51,46 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     }
   }
 
-  // 阿尼亚精致 SVG - 改进版头戴式耳机（头发不露出）
+  // 阿尼亚精致 SVG - 墨镜酷酷版
   const getAnyaSVG = () => {
     const hairPink = '#ff85b3'
     const hairShadow = '#ff5c8a'
-    const eyeBlue = '#4a9eff'
+    const hairHighlight = '#ffb3d9'
     const skinColor = '#fff5eb'
     const blushColor = '#ffb6c1'
     const mouthColor = '#ff6b9d'
     const bowRed = '#ff4757'
-    const headphoneBlack = '#1a1a2e'
-    const headphoneAccent = '#ff6b9d'
+    const sunglassesBlack = '#1a1a2e'
+    const sunglassesFrame = '#2d3436'
 
     let expression = ''
     switch (emotion) {
       case 'thinking':
+        // 思考时墨镜微微下滑
         expression = `
-          <ellipse cx="38" cy="55" rx="7" ry="9" fill="white"/>
-          <ellipse cx="54" cy="55" rx="7" ry="9" fill="white"/>
-          <circle cx="39" cy="56" r="4" fill="${eyeBlue}"/>
-          <circle cx="55" cy="56" r="4" fill="${eyeBlue}"/>
-          <circle cx="41" cy="54" r="2" fill="white"/>
-          <circle cx="57" cy="54" r="2" fill="white"/>
+          <g transform="translate(0, 2)">
+            <path d="M 25 52 L 65 52" stroke="${sunglassesBlack}" stroke-width="2" fill="none"/>
+            <ellipse cx="35" cy="56" rx="10" ry="8" fill="${sunglassesBlack}" opacity="0.9"/>
+            <ellipse cx="55" cy="56" rx="10" ry="8" fill="${sunglassesBlack}" opacity="0.9"/>
+            <path d="M 25 52 Q 20 50 18 48" stroke="${sunglassesFrame}" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M 65 52 Q 70 50 72 48" stroke="${sunglassesFrame}" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <ellipse cx="33" cy="54" rx="3" ry="2" fill="white" opacity="0.4"/>
+            <ellipse cx="53" cy="54" rx="3" ry="2" fill="white" opacity="0.4"/>
+          </g>
           <path d="M 45 68 Q 48 70 51 68" stroke="${mouthColor}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
           <ellipse cx="70" cy="48" rx="5" ry="7" fill="#87ceeb" opacity="0.5"/>
         `
         break
       case 'excited':
+        // 兴奋时墨镜反光
         expression = `
-          <ellipse cx="38" cy="55" rx="8" ry="10" fill="white"/>
-          <ellipse cx="54" cy="55" rx="8" ry="10" fill="white"/>
-          <circle cx="39" cy="56" r="5" fill="${eyeBlue}"/>
-          <circle cx="55" cy="56" r="5" fill="${eyeBlue}"/>
-          <circle cx="41" cy="54" r="2.5" fill="white"/>
-          <circle cx="57" cy="54" r="2.5" fill="white"/>
+          <path d="M 25 50 L 65 50" stroke="${sunglassesBlack}" stroke-width="2" fill="none"/>
+          <ellipse cx="35" cy="54" rx="10" ry="8" fill="${sunglassesBlack}" opacity="0.9"/>
+          <ellipse cx="55" cy="54" rx="10" ry="8" fill="${sunglassesBlack}" opacity="0.9"/>
+          <path d="M 25 50 Q 20 48 18 46" stroke="${sunglassesFrame}" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M 65 50 Q 70 48 72 46" stroke="${sunglassesFrame}" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <ellipse cx="33" cy="52" rx="4" ry="3" fill="white" opacity="0.5"/>
+          <ellipse cx="53" cy="52" rx="4" ry="3" fill="white" opacity="0.5"/>
           <ellipse cx="48" cy="70" rx="5" ry="3" fill="${mouthColor}"/>
           <circle cx="30" cy="64" r="4" fill="${blushColor}" opacity="0.4"/>
           <circle cx="62" cy="64" r="4" fill="${blushColor}" opacity="0.4"/>
@@ -92,14 +98,16 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         `
         break
       default:
+        // 默认酷酷表情 - 墨镜
         expression = `
-          <ellipse cx="38" cy="55" rx="7" ry="9" fill="white"/>
-          <ellipse cx="54" cy="55" rx="7" ry="9" fill="white"/>
-          <circle cx="39" cy="56" r="4" fill="${eyeBlue}"/>
-          <circle cx="55" cy="56" r="4" fill="${eyeBlue}"/>
-          <circle cx="41" cy="54" r="2" fill="white"/>
-          <circle cx="57" cy="54" r="2" fill="white"/>
-          <path d="M 44 68 Q 48 72 52 68" stroke="${mouthColor}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <path d="M 25 50 L 65 50" stroke="${sunglassesBlack}" stroke-width="2" fill="none"/>
+          <ellipse cx="35" cy="54" rx="10" ry="8" fill="${sunglassesBlack}" opacity="0.9"/>
+          <ellipse cx="55" cy="54" rx="10" ry="8" fill="${sunglassesBlack}" opacity="0.9"/>
+          <path d="M 25 50 Q 20 48 18 46" stroke="${sunglassesFrame}" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M 65 50 Q 70 48 72 46" stroke="${sunglassesFrame}" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <ellipse cx="33" cy="52" rx="3" ry="2" fill="white" opacity="0.4"/>
+          <ellipse cx="53" cy="52" rx="3" ry="2" fill="white" opacity="0.4"/>
+          <path d="M 44 68 Q 48 70 52 68" stroke="${mouthColor}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
           <circle cx="30" cy="64" r="3" fill="${blushColor}" opacity="0.3"/>
           <circle cx="62" cy="64" r="3" fill="${blushColor}" opacity="0.3"/>
         `
@@ -107,56 +115,54 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
 
     return `
       <svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
-        <!-- 后发（在耳机后面） -->
+        <defs>
+          <!-- 头发渐变 -->
+          <linearGradient id="hairGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:${hairHighlight};stop-opacity:1" />
+            <stop offset="50%" style="stop-color:${hairPink};stop-opacity:1" />
+            <stop offset="100%" style="stop-color:${hairShadow};stop-opacity:1" />
+          </linearGradient>
+          
+          <!-- 皮肤渐变 -->
+          <radialGradient id="skinGradient" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" style="stop-color:#fff9f3;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:${skinColor};stop-opacity:1" />
+          </radialGradient>
+        </defs>
+        
+        <!-- 后发 -->
         <ellipse cx="45" cy="48" rx="36" ry="34" fill="${hairShadow}"/>
-        <ellipse cx="45" cy="45" rx="33" ry="30" fill="${hairPink}"/>
+        <ellipse cx="45" cy="45" rx="33" ry="30" fill="url(#hairGradient)"/>
         
-        <!-- 头戴式耳机头梁（在头发前面） -->
-        <path d="M 18 52 Q 18 22 45 22 Q 72 22 72 52" stroke="${headphoneBlack}" stroke-width="5" fill="none" stroke-linecap="round"/>
-        <path d="M 18 52 Q 18 28 45 28 Q 72 28 72 52" stroke="${headphoneAccent}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-        
-        <!-- 双马尾（左侧，在耳机下面） -->
-        <ellipse cx="16" cy="55" rx="9" ry="18" fill="${hairPink}"/>
-        <ellipse cx="14" cy="72" rx="5" ry="10" fill="${hairPink}"/>
+        <!-- 双马尾（左侧） -->
+        <ellipse cx="16" cy="55" rx="9" ry="18" fill="url(#hairGradient)"/>
+        <ellipse cx="14" cy="72" rx="5" ry="10" fill="url(#hairGradient)"/>
         <path d="M 10 60 L 6 54 L 14 58 Z" fill="${bowRed}"/>
         <path d="M 10 60 L 14 54 L 8 58 Z" fill="${bowRed}"/>
         <circle cx="10" cy="60" r="2" fill="#ff6b7a"/>
         
-        <!-- 双马尾（右侧，在耳机下面） -->
-        <ellipse cx="74" cy="55" rx="9" ry="18" fill="${hairPink}"/>
-        <ellipse cx="76" cy="72" rx="5" ry="10" fill="${hairPink}"/>
+        <!-- 双马尾（右侧） -->
+        <ellipse cx="74" cy="55" rx="9" ry="18" fill="url(#hairGradient)"/>
+        <ellipse cx="76" cy="72" rx="5" ry="10" fill="url(#hairGradient)"/>
         <path d="M 80 60 L 84 54 L 76 58 Z" fill="${bowRed}"/>
         <path d="M 80 60 L 76 54 L 82 58 Z" fill="${bowRed}"/>
         <circle cx="80" cy="60" r="2" fill="#ff6b7a"/>
         
-        <!-- 刘海（在耳机前面） -->
-        <path d="M 20 42 Q 28 32 36 44 Q 41 28 45 42 Q 49 28 54 44 Q 62 32 70 42" fill="${hairPink}"/>
+        <!-- 刘海 -->
+        <path d="M 20 42 Q 28 32 36 44 Q 41 28 45 42 Q 49 28 54 44 Q 62 32 70 42" fill="url(#hairGradient)"/>
         
-        <!-- 脸（在耳机下面） -->
-        <ellipse cx="45" cy="60" rx="25" ry="23" fill="${skinColor}"/>
+        <!-- 脸 -->
+        <ellipse cx="45" cy="60" rx="25" ry="23" fill="url(#skinGradient)"/>
         
-        <!-- 耳朵（部分被耳机覆盖） -->
+        <!-- 耳朵 -->
         <ellipse cx="20" cy="60" rx="4" ry="6" fill="${skinColor}"/>
         <ellipse cx="70" cy="60" rx="4" ry="6" fill="${skinColor}"/>
         
-        <!-- 头戴式耳机耳罩（完全覆盖耳朵） -->
-        <!-- 左侧耳罩 -->
-        <ellipse cx="20" cy="60" rx="10" ry="13" fill="${headphoneBlack}"/>
-        <ellipse cx="20" cy="60" rx="7" ry="10" fill="#2d2d44"/>
-        <circle cx="20" cy="60" r="4" fill="${headphoneAccent}" opacity="0.5"/>
-        <circle cx="20" cy="60" r="2" fill="#ffffff" opacity="0.3"/>
+        <!-- 眉毛（酷酷的平眉） -->
+        <path d="M 30 46 Q 38 45 46 46" stroke="${hairShadow}" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
+        <path d="M 44 46 Q 52 45 60 46" stroke="${hairShadow}" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
         
-        <!-- 右侧耳罩 -->
-        <ellipse cx="70" cy="60" rx="10" ry="13" fill="${headphoneBlack}"/>
-        <ellipse cx="70" cy="60" rx="7" ry="10" fill="#2d2d44"/>
-        <circle cx="70" cy="60" r="4" fill="${headphoneAccent}" opacity="0.5"/>
-        <circle cx="70" cy="60" r="2" fill="#ffffff" opacity="0.3"/>
-        
-        <!-- 眉毛 -->
-        <path d="M 35 48 Q 40 46 45 48" stroke="${hairShadow}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
-        <path d="M 45 48 Q 50 46 55 48" stroke="${hairShadow}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
-        
-        <!-- 表情 -->
+        <!-- 表情（墨镜） -->
         ${expression}
         
         <!-- 鼻子 -->
@@ -187,10 +193,10 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
           marginBottom: 6,
           animation: 'popIn 0.3s ease',
           position: 'relative',
-          border: '2px solid #ff85b3'
+          border: '2px solid #ffd700'
         }}>
           <div style={{ fontSize: 12, color: '#333', lineHeight: 1.6 }}>
-            👋 您好主人~ 我是您的专属阿尼亚 MOMO，有什么可以帮您 ✨
+            😎 嘿主人~ 我是超酷的阿尼亚 MOMO，有什么可以帮您 ✨
           </div>
           <div style={{
             position: 'absolute',
@@ -200,7 +206,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
             height: 0,
             borderLeft: '6px solid transparent',
             borderRight: '6px solid transparent',
-            borderTop: '6px solid #ff85b3'
+            borderTop: '6px solid #ffd700'
           }}/>
         </div>
       )}
@@ -266,7 +272,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         </div>
       )}
 
-      {/* 阿尼亚形象 + 光晕波纹 */}
+      {/* 阿尼亚形象 + 多彩渐变光晕 */}
       <div
         onMouseEnter={handleMouseEnter}
         onMouseLeave={() => setIsHovering(false)}
@@ -282,14 +288,14 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
           cursor: 'pointer',
           transition: 'all 0.3s ease',
           transform: isHovering ? 'scale(1.08)' : 'scale(1)',
-          boxShadow: analyzing ? '0 0 0 0 rgba(255, 133, 179, 0)' : '0 3px 12px rgba(0,0,0,0.15)',
-          animation: isDancing ? 'dance 0.6s ease infinite' : (analyzing ? 'glow 1.5s ease infinite' : (isHovering ? 'bounce 0.5s ease' : 'none')),
+          boxShadow: analyzing ? '0 0 0 0 rgba(255, 215, 0, 0)' : '0 3px 12px rgba(0,0,0,0.15)',
+          animation: isDancing ? 'dance 0.6s ease infinite' : (isHovering ? 'bounce 0.5s ease' : 'none'),
           position: 'relative',
-          border: '2.5px solid #ff85b3',
+          border: '2.5px solid #ffd700',
           overflow: 'visible'
         }}
       >
-        {/* 光晕波纹效果（分析时显示） */}
+        {/* 多彩渐变光晕波纹效果（分析时显示） */}
         {analyzing && (
           <>
             <div style={{
@@ -299,7 +305,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
               right: 0,
               bottom: 0,
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(255, 133, 179, 0.4) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(255, 215, 0, 0.5) 0%, rgba(102, 126, 234, 0.3) 40%, rgba(118, 75, 162, 0.1) 70%, transparent 100%)',
               animation: 'ripple 1.5s ease-out infinite'
             }}/>
             <div style={{
@@ -309,13 +315,26 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
               right: 0,
               bottom: 0,
               borderRadius: '50%',
-              border: '2px solid rgba(255, 133, 179, 0.6)',
+              border: '3px solid transparent',
+              borderImage: 'linear-gradient(45deg, #ffd700, #667eea, #00b894, #fd79a8) 1',
               animation: 'rippleBorder 1.5s ease-out infinite'
+            }}/>
+            <div style={{
+              position: 'absolute',
+              top: -2,
+              left: -2,
+              right: -2,
+              bottom: -2,
+              borderRadius: '50%',
+              background: 'conic-gradient(from 0deg, #ffd700, #667eea, #00b894, #fd79a8, #ffd700)',
+              filter: 'blur(8px)',
+              opacity: 0.6,
+              animation: 'rotateGradient 3s linear infinite'
             }}/>
           </>
         )}
         
-        <div dangerouslySetInnerHTML={{ __html: getAnyaSVG() }} style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }} />
+        <div dangerouslySetInnerHTML={{ __html: getAnyaSVG() }} style={{ width: '100%', height: '100%', position: 'relative', zIndex: 2 }} />
       </div>
 
       {/* 提示文字 */}
@@ -325,7 +344,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         padding: '4px 10px', borderRadius: 10,
         boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
       }}>
-        {analyzing ? '🤔 思考中...' : selectedText ? '✨ 点我分析文字' : locationTitle ? '✨ 点我分析位置' : '👋 点我打招呼'}
+        {analyzing ? '🤔 思考中...' : selectedText ? '✨ 点我分析文字' : locationTitle ? '✨ 点我分析位置' : '😎 点我打招呼'}
       </div>
 
       <style>{`
@@ -337,9 +356,9 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
           0% { transform: scale(1); opacity: 0.8; }
           100% { transform: scale(1.6); opacity: 0; }
         }
-        @keyframes glow {
-          0%, 100% { box-shadow: 0 0 20px rgba(255, 133, 179, 0.4); }
-          50% { box-shadow: 0 0 30px rgba(255, 133, 179, 0.6); }
+        @keyframes rotateGradient {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
         @keyframes bounce {
           0%, 100% { transform: scale(1.08) translateY(0); }
