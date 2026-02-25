@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-// AI 助手组件 - 阿尼亚 MOMO（头戴式耳机 + 光圈动画版）
+// AI 助手组件 - 阿尼亚 MOMO（光晕波纹 + 改进耳机版）
 export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTitle, onAnalyzeText, selectedText }) {
   const [isHovering, setIsHovering] = useState(false)
   const [emotion, setEmotion] = useState('happy')
@@ -51,7 +51,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     }
   }
 
-  // 阿尼亚精致 SVG - 双马尾蓝眼睛 + 头戴式耳机
+  // 阿尼亚精致 SVG - 改进版头戴式耳机（头发不露出）
   const getAnyaSVG = () => {
     const hairPink = '#ff85b3'
     const hairShadow = '#ff5c8a'
@@ -60,7 +60,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     const blushColor = '#ffb6c1'
     const mouthColor = '#ff6b9d'
     const bowRed = '#ff4757'
-    const headphoneBlack = '#2d3436'
+    const headphoneBlack = '#1a1a2e'
     const headphoneAccent = '#ff6b9d'
 
     let expression = ''
@@ -107,59 +107,60 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
 
     return `
       <svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
-        <!-- 头戴式耳机（头梁） -->
-        <path d="M 15 50 Q 15 25 45 25 Q 75 25 75 50" stroke="${headphoneBlack}" stroke-width="4" fill="none" stroke-linecap="round"/>
-        <path d="M 15 50 Q 15 30 45 30 Q 75 30 75 50" stroke="${headphoneAccent}" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- 后发（在耳机后面） -->
+        <ellipse cx="45" cy="48" rx="36" ry="34" fill="${hairShadow}"/>
+        <ellipse cx="45" cy="45" rx="33" ry="30" fill="${hairPink}"/>
         
-        <!-- 后发 -->
-        <ellipse cx="45" cy="45" rx="35" ry="32" fill="${hairShadow}"/>
+        <!-- 头戴式耳机头梁（在头发前面） -->
+        <path d="M 18 52 Q 18 22 45 22 Q 72 22 72 52" stroke="${headphoneBlack}" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M 18 52 Q 18 28 45 28 Q 72 28 72 52" stroke="${headphoneAccent}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
         
-        <!-- 头发主体 -->
-        <ellipse cx="45" cy="42" rx="32" ry="28" fill="${hairPink}"/>
+        <!-- 双马尾（左侧，在耳机下面） -->
+        <ellipse cx="16" cy="55" rx="9" ry="18" fill="${hairPink}"/>
+        <ellipse cx="14" cy="72" rx="5" ry="10" fill="${hairPink}"/>
+        <path d="M 10 60 L 6 54 L 14 58 Z" fill="${bowRed}"/>
+        <path d="M 10 60 L 14 54 L 8 58 Z" fill="${bowRed}"/>
+        <circle cx="10" cy="60" r="2" fill="#ff6b7a"/>
         
-        <!-- 双马尾（左侧） -->
-        <ellipse cx="18" cy="52" rx="10" ry="20" fill="${hairPink}"/>
-        <ellipse cx="16" cy="70" rx="6" ry="12" fill="${hairPink}"/>
-        <path d="M 12 58 L 8 52 L 16 56 Z" fill="${bowRed}"/>
-        <path d="M 12 58 L 16 52 L 10 56 Z" fill="${bowRed}"/>
-        <circle cx="12" cy="58" r="2" fill="#ff6b7a"/>
+        <!-- 双马尾（右侧，在耳机下面） -->
+        <ellipse cx="74" cy="55" rx="9" ry="18" fill="${hairPink}"/>
+        <ellipse cx="76" cy="72" rx="5" ry="10" fill="${hairPink}"/>
+        <path d="M 80 60 L 84 54 L 76 58 Z" fill="${bowRed}"/>
+        <path d="M 80 60 L 76 54 L 82 58 Z" fill="${bowRed}"/>
+        <circle cx="80" cy="60" r="2" fill="#ff6b7a"/>
         
-        <!-- 双马尾（右侧） -->
-        <ellipse cx="72" cy="52" rx="10" ry="20" fill="${hairPink}"/>
-        <ellipse cx="74" cy="70" rx="6" ry="12" fill="${hairPink}"/>
-        <path d="M 78 58 L 82 52 L 74 56 Z" fill="${bowRed}"/>
-        <path d="M 78 58 L 74 52 L 80 56 Z" fill="${bowRed}"/>
-        <circle cx="78" cy="58" r="2" fill="#ff6b7a"/>
+        <!-- 刘海（在耳机前面） -->
+        <path d="M 20 42 Q 28 32 36 44 Q 41 28 45 42 Q 49 28 54 44 Q 62 32 70 42" fill="${hairPink}"/>
         
-        <!-- 刘海 -->
-        <path d="M 15 40 Q 25 30 35 42 Q 40 26 45 40 Q 50 26 55 42 Q 65 30 75 40" fill="${hairPink}"/>
+        <!-- 脸（在耳机下面） -->
+        <ellipse cx="45" cy="60" rx="25" ry="23" fill="${skinColor}"/>
         
-        <!-- 脸 -->
-        <ellipse cx="45" cy="58" rx="24" ry="22" fill="${skinColor}"/>
+        <!-- 耳朵（部分被耳机覆盖） -->
+        <ellipse cx="20" cy="60" rx="4" ry="6" fill="${skinColor}"/>
+        <ellipse cx="70" cy="60" rx="4" ry="6" fill="${skinColor}"/>
         
-        <!-- 耳朵 -->
-        <ellipse cx="21" cy="58" rx="5" ry="7" fill="${skinColor}"/>
-        <ellipse cx="69" cy="58" rx="5" ry="7" fill="${skinColor}"/>
+        <!-- 头戴式耳机耳罩（完全覆盖耳朵） -->
+        <!-- 左侧耳罩 -->
+        <ellipse cx="20" cy="60" rx="10" ry="13" fill="${headphoneBlack}"/>
+        <ellipse cx="20" cy="60" rx="7" ry="10" fill="#2d2d44"/>
+        <circle cx="20" cy="60" r="4" fill="${headphoneAccent}" opacity="0.5"/>
+        <circle cx="20" cy="60" r="2" fill="#ffffff" opacity="0.3"/>
         
-        <!-- 头戴式耳机（耳罩 - 左侧） -->
-        <ellipse cx="21" cy="58" rx="8" ry="10" fill="${headphoneBlack}"/>
-        <ellipse cx="21" cy="58" rx="5" ry="7" fill="#4a4a4a"/>
-        <circle cx="21" cy="58" r="3" fill="${headphoneAccent}" opacity="0.6"/>
-        
-        <!-- 头戴式耳机（耳罩 - 右侧） -->
-        <ellipse cx="69" cy="58" rx="8" ry="10" fill="${headphoneBlack}"/>
-        <ellipse cx="69" cy="58" rx="5" ry="7" fill="#4a4a4a"/>
-        <circle cx="69" cy="58" r="3" fill="${headphoneAccent}" opacity="0.6"/>
+        <!-- 右侧耳罩 -->
+        <ellipse cx="70" cy="60" rx="10" ry="13" fill="${headphoneBlack}"/>
+        <ellipse cx="70" cy="60" rx="7" ry="10" fill="#2d2d44"/>
+        <circle cx="70" cy="60" r="4" fill="${headphoneAccent}" opacity="0.5"/>
+        <circle cx="70" cy="60" r="2" fill="#ffffff" opacity="0.3"/>
         
         <!-- 眉毛 -->
-        <path d="M 33 46 Q 38 44 43 46" stroke="${hairShadow}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
-        <path d="M 47 46 Q 52 44 57 46" stroke="${hairShadow}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+        <path d="M 35 48 Q 40 46 45 48" stroke="${hairShadow}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+        <path d="M 45 48 Q 50 46 55 48" stroke="${hairShadow}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
         
         <!-- 表情 -->
         ${expression}
         
         <!-- 鼻子 -->
-        <circle cx="45" cy="62" r="1" fill="${blushColor}" opacity="0.3"/>
+        <circle cx="45" cy="64" r="1" fill="${blushColor}" opacity="0.3"/>
       </svg>
     `
   }
@@ -266,7 +267,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         </div>
       )}
 
-      {/* 阿尼亚形象 + 光圈动画 */}
+      {/* 阿尼亚形象 + 光晕波纹 */}
       <div
         onMouseEnter={handleMouseEnter}
         onMouseLeave={() => setIsHovering(false)}
@@ -283,26 +284,36 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
           transition: 'all 0.3s ease',
           transform: isHovering ? 'scale(1.08)' : 'scale(1)',
           boxShadow: analyzing ? '0 0 0 0 rgba(255, 133, 179, 0)' : '0 3px 12px rgba(0,0,0,0.15)',
-          animation: isDancing ? 'dance 0.6s ease infinite' : (analyzing ? 'glow 1.5s ease infinite' : (isHovering ? 'bounce 0.5s ease' : 'none')),
+          animation: isDancing ? 'dance 0.6s ease infinite' : (isHovering ? 'bounce 0.5s ease' : 'none'),
           position: 'relative',
           border: '2.5px solid #ff85b3',
           overflow: 'visible'
         }}
       >
-        {/* 光圈效果（分析时显示） */}
+        {/* 光晕波纹效果（分析时显示） */}
         {analyzing && (
-          <div style={{
-            position: 'absolute',
-            top: -8,
-            left: -8,
-            right: -8,
-            bottom: -8,
-            borderRadius: '50%',
-            border: '3px solid transparent',
-            borderTopColor: '#ff85b3',
-            borderRightColor: '#ff85b3',
-            animation: 'spin 2s linear infinite'
-          }}/>
+          <>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(255, 133, 179, 0.4) 0%, transparent 70%)',
+              animation: 'ripple 1.5s ease-out infinite'
+            }}/>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: '50%',
+              border: '2px solid rgba(255, 133, 179, 0.6)',
+              animation: 'rippleBorder 1.5s ease-out infinite'
+            }}/>
+          </>
         )}
         
         <div dangerouslySetInnerHTML={{ __html: getAnyaSVG() }} style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }} />
@@ -319,9 +330,13 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
       </div>
 
       <style>{`
-        @keyframes glow {
-          0%, 100% { box-shadow: 0 0 20px rgba(255, 133, 179, 0.4), 0 0 30px rgba(255, 133, 179, 0.2); }
-          50% { box-shadow: 0 0 30px rgba(255, 133, 179, 0.6), 0 0 40px rgba(255, 133, 179, 0.4); }
+        @keyframes ripple {
+          0% { transform: scale(1); opacity: 0.8; }
+          100% { transform: scale(1.6); opacity: 0; }
+        }
+        @keyframes rippleBorder {
+          0% { transform: scale(1); opacity: 0.8; }
+          100% { transform: scale(1.6); opacity: 0; }
         }
         @keyframes bounce {
           0%, 100% { transform: scale(1.08) translateY(0); }
