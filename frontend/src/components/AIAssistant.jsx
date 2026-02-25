@@ -226,10 +226,9 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
                 <div style={{
                   width: 16,
                   height: 16,
-                  border: '2px solid #e0e0e0',
-                  borderTopColor: '#667eea',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
+                  animation: 'pulse 1s ease infinite'
                 }}/>
                 <span>阿尼亚正在思考中...</span>
               </div>
@@ -284,7 +283,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
           transition: 'all 0.3s ease',
           transform: isHovering ? 'scale(1.08)' : 'scale(1)',
           boxShadow: analyzing ? '0 0 0 0 rgba(255, 133, 179, 0)' : '0 3px 12px rgba(0,0,0,0.15)',
-          animation: isDancing ? 'dance 0.6s ease infinite' : (isHovering ? 'bounce 0.5s ease' : 'none'),
+          animation: isDancing ? 'dance 0.6s ease infinite' : (analyzing ? 'glow 1.5s ease infinite' : (isHovering ? 'bounce 0.5s ease' : 'none')),
           position: 'relative',
           border: '2.5px solid #ff85b3',
           overflow: 'visible'
@@ -338,15 +337,19 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
           0% { transform: scale(1); opacity: 0.8; }
           100% { transform: scale(1.6); opacity: 0; }
         }
+        @keyframes glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(255, 133, 179, 0.4); }
+          50% { box-shadow: 0 0 30px rgba(255, 133, 179, 0.6); }
+        }
         @keyframes bounce {
           0%, 100% { transform: scale(1.08) translateY(0); }
           50% { transform: scale(1.08) translateY(-4px); }
         }
         @keyframes dance {
-          0%, 100% { transform: scale(1.08) rotate(-5deg) translateY(0); }
-          25% { transform: scale(1.08) rotate(5deg) translateY(-6px); }
-          50% { transform: scale(1.08) rotate(-5deg) translateY(0); }
-          75% { transform: scale(1.08) rotate(5deg) translateY(-6px); }
+          0%, 100% { transform: scale(1.08) translateY(0); }
+          25% { transform: scale(1.08) translateY(-6px); }
+          50% { transform: scale(1.08) translateY(0); }
+          75% { transform: scale(1.08) translateY(-6px); }
         }
         @keyframes slideIn {
           from { opacity: 0; transform: translateY(15px); }
@@ -356,9 +359,9 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
           from { opacity: 0; transform: scale(0.8); }
           to { opacity: 1; transform: scale(1); }
         }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.2); opacity: 0.7; }
         }
       `}</style>
     </div>
