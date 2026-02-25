@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-// AI 助手组件 - 可爱动漫女性形象
+// AI 助手组件 - 间谍过家家阿尼亚风格
 export default function AIAssistant({ analyzing, analysis, onAnalyze, locationName }) {
   const [isHovering, setIsHovering] = useState(false)
   const [emotion, setEmotion] = useState('happy') // happy, thinking, excited, surprised
@@ -17,70 +17,118 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationNa
     }
   }, [analyzing, analysis])
 
-  // 获取动漫角色图片（使用 SVG 绘制可爱形象）
-  const getAvatarSVG = () => {
-    const baseColor = '#ffb6c1' // 粉色系
-    const hairColor = '#ff69b4' // 亮粉色头发
-    const eyeColor = '#4169e1' // 蓝色大眼睛
+  // 阿尼亚风格 SVG
+  const getAnyaSVG = () => {
+    // 阿尼亚特征：粉色头发、绿色大眼睛、可爱表情
+    const hairColor = '#ff6b9d'      // 粉色头发
+    const hairDark = '#ff4d7d'       // 深粉色阴影
+    const eyeColor = '#4ecdc4'       // 青绿色大眼睛
+    const eyeWhite = '#ffffff'
+    const skinColor = '#ffe4d6'      // 白皙皮肤
+    const blushColor = '#ffb6c1'     // 腮红
     
     let expression = ''
     switch (emotion) {
       case 'thinking':
+        // 思考表情 - 歪头 + 思考眼神
         expression = `
-          <circle cx="75" cy="65" r="3" fill="${eyeColor}"/>
-          <circle cx="85" cy="65" r="3" fill="${eyeColor}"/>
-          <path d="M 78 72 Q 80 74 82 72" stroke="#ff69b4" stroke-width="2" fill="none"/>
-          <circle cx="95" cy="58" r="8" fill="#ffb6c1" opacity="0.6"/>
+          <!-- 眼睛 -->
+          <ellipse cx="42" cy="58" rx="9" ry="11" fill="${eyeWhite}"/>
+          <ellipse cx="58" cy="58" rx="9" ry="11" fill="${eyeWhite}"/>
+          <circle cx="44" cy="58" r="5" fill="${eyeColor}"/>
+          <circle cx="60" cy="58" r="5" fill="${eyeColor}"/>
+          <circle cx="46" cy="56" r="2" fill="white"/>
+          <circle cx="62" cy="56" r="2" fill="white"/>
+          <!-- 小嘴巴 -->
+          <path d="M 48 68 Q 50 70 52 68" stroke="#ff6b9d" stroke-width="2" fill="none"/>
+          <!-- 思考汗滴 -->
+          <ellipse cx="70" cy="48" rx="6" ry="8" fill="#87ceeb" opacity="0.6"/>
         `
         break
       case 'excited':
+        // 兴奋表情 - 星星眼！
         expression = `
-          <circle cx="75" cy="65" r="5" fill="${eyeColor}"/>
-          <circle cx="85" cy="65" r="5" fill="${eyeColor}"/>
-          <circle cx="77" cy="63" r="2" fill="white"/>
-          <circle cx="87" cy="63" r="2" fill="white"/>
-          <path d="M 76 74 Q 80 78 84 74" stroke="#ff69b4" stroke-width="2" fill="none"/>
-          <circle cx="95" cy="55" r="10" fill="#ffb6c1" opacity="0.8"/>
-          <text x="90" y="52" fontSize="10">✨</text>
+          <!-- 星星眼 -->
+          <g transform="translate(42,58)">
+            <polygon points="0,-8 2,-3 8,-3 4,1 6,7 0,3 -6,7 -4,1 -8,-3 -2,-3" fill="${eyeColor}"/>
+            <circle cx="0" cy="0" r="2" fill="white"/>
+          </g>
+          <g transform="translate(58,58)">
+            <polygon points="0,-8 2,-3 8,-3 4,1 6,7 0,3 -6,7 -4,1 -8,-3 -2,-3" fill="${eyeColor}"/>
+            <circle cx="0" cy="0" r="2" fill="white"/>
+          </g>
+          <!-- 开心嘴巴 -->
+          <ellipse cx="50" cy="70" rx="6" ry="4" fill="#ff6b9d"/>
+          <!-- 脸颊红晕 -->
+          <ellipse cx="35" cy="65" rx="5" ry="3" fill="${blushColor}" opacity="0.5"/>
+          <ellipse cx="65" cy="65" rx="5" ry="3" fill="${blushColor}" opacity="0.5"/>
+          <!-- 兴奋汗滴 -->
+          <ellipse cx="72" cy="45" rx="5" ry="7" fill="#87ceeb" opacity="0.7"/>
         `
         break
       case 'surprised':
+        // 惊讶表情 - 哇库哇库！
         expression = `
-          <circle cx="75" cy="65" r="6" fill="${eyeColor}"/>
-          <circle cx="85" cy="65" r="6" fill="${eyeColor}"/>
-          <circle cx="77" cy="63" r="2" fill="white"/>
-          <circle cx="87" cy="63" r="2" fill="white"/>
-          <ellipse cx="80" cy="75" rx="3" ry="4" fill="#ff69b4"/>
+          <!-- 大眼睛 -->
+          <ellipse cx="42" cy="58" rx="10" ry="12" fill="${eyeWhite}"/>
+          <ellipse cx="58" cy="58" rx="10" ry="12" fill="${eyeWhite}"/>
+          <circle cx="44" cy="58" r="6" fill="${eyeColor}"/>
+          <circle cx="60" cy="58" r="6" fill="${eyeColor}"/>
+          <circle cx="46" cy="56" r="3" fill="white"/>
+          <circle cx="62" cy="56" r="3" fill="white"/>
+          <!-- 惊讶嘴巴 -->
+          <ellipse cx="50" cy="72" rx="5" ry="6" fill="#ff6b9d"/>
+          <!-- 惊讶线 -->
+          <line x1="30" y1="50" x2="35" y2="45" stroke="#ff6b9d" stroke-width="2"/>
+          <line x1="70" y1="50" x2="65" y2="45" stroke="#ff6b9d" stroke-width="2"/>
         `
         break
       default: // happy
+        // 默认开心表情
         expression = `
-          <path d="M 72 65 Q 75 62 78 65" stroke="${eyeColor}" stroke-width="2" fill="none"/>
-          <path d="M 82 65 Q 85 62 88 65" stroke="${eyeColor}" stroke-width="2" fill="none"/>
-          <path d="M 76 73 Q 80 77 84 73" stroke="#ff69b4" stroke-width="2" fill="none"/>
-          <circle cx="95" cy="60" r="6" fill="#ffb6c1" opacity="0.5"/>
+          <!-- 大眼睛 -->
+          <ellipse cx="42" cy="58" rx="9" ry="11" fill="${eyeWhite}"/>
+          <ellipse cx="58" cy="58" rx="9" ry="11" fill="${eyeWhite}"/>
+          <circle cx="44" cy="58" r="5" fill="${eyeColor}"/>
+          <circle cx="60" cy="58" r="5" fill="${eyeColor}"/>
+          <circle cx="46" cy="56" r="2" fill="white"/>
+          <circle cx="62" cy="56" r="2" fill="white"/>
+          <!-- 微笑嘴巴 -->
+          <path d="M 46 68 Q 50 72 54 68" stroke="#ff6b9d" stroke-width="2" fill="none"/>
+          <!-- 脸颊红晕 -->
+          <ellipse cx="35" cy="65" rx="4" ry="2" fill="${blushColor}" opacity="0.4"/>
+          <ellipse cx="65" cy="65" rx="4" ry="2" fill="${blushColor}" opacity="0.4"/>
         `
     }
 
     return `
       <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <!-- 头发背景 -->
-        <ellipse cx="50" cy="45" rx="35" ry="30" fill="${hairColor}"/>
-        <ellipse cx="30" cy="50" rx="10" ry="20" fill="${hairColor}"/>
-        <ellipse cx="70" cy="50" rx="10" ry="20" fill="${hairColor}"/>
+        <!-- 后发 -->
+        <ellipse cx="50" cy="45" rx="38" ry="32" fill="${hairDark}"/>
         
-        <!-- 脸 -->
-        <ellipse cx="50" cy="55" rx="28" ry="25" fill="${baseColor}"/>
+        <!-- 头发主体 -->
+        <ellipse cx="50" cy="42" rx="35" ry="28" fill="${hairColor}"/>
+        
+        <!-- 两侧头发 -->
+        <ellipse cx="25" cy="50" rx="12" ry="22" fill="${hairColor}"/>
+        <ellipse cx="75" cy="50" rx="12" ry="22" fill="${hairColor}"/>
         
         <!-- 刘海 -->
-        <path d="M 25 45 Q 35 35 45 45 Q 50 30 55 45 Q 65 35 75 45" fill="${hairColor}"/>
+        <path d="M 20 40 Q 30 30 40 42 Q 45 25 50 40 Q 55 25 60 42 Q 70 30 80 40" fill="${hairColor}"/>
         
-        <!-- 眼睛和表情 -->
+        <!-- 脸 -->
+        <ellipse cx="50" cy="58" rx="26" ry="24" fill="${skinColor}"/>
+        
+        <!-- 耳朵 -->
+        <ellipse cx="24" cy="58" rx="5" ry="8" fill="${skinColor}"/>
+        <ellipse cx="76" cy="58" rx="5" ry="8" fill="${skinColor}"/>
+        
+        <!-- 表情 -->
         ${expression}
         
-        <!-- 腮红 -->
-        <ellipse cx="70" cy="68" rx="4" ry="2" fill="#ff69b4" opacity="0.4"/>
-        <ellipse cx="90" cy="68" rx="4" ry="2" fill="#ff69b4" opacity="0.4"/>
+        <!-- 眉毛 -->
+        <path d="M 38 48 Q 42 46 46 48" stroke="${hairDark}" stroke-width="2" fill="none" opacity="0.6"/>
+        <path d="M 54 48 Q 58 46 62 48" stroke="${hairDark}" stroke-width="2" fill="none" opacity="0.6"/>
       </svg>
     `
   }
@@ -107,7 +155,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationNa
           marginBottom: 8,
           animation: 'slideIn 0.3s ease',
           position: 'relative',
-          border: '2px solid #ffb6c1'
+          border: '2px solid #ff6b9d'
         }}>
           <div style={{
             fontSize: 13,
@@ -140,7 +188,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationNa
             height: 0,
             borderLeft: '8px solid transparent',
             borderRight: '8px solid transparent',
-            borderTop: '8px solid #ffb6c1'
+            borderTop: '8px solid #ff6b9d'
           }}/>
         </div>
       )}
@@ -151,8 +199,8 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationNa
         onMouseLeave={() => setIsHovering(false)}
         onClick={() => locationName && !analyzing && onAnalyze(locationName)}
         style={{
-          width: 80,
-          height: 80,
+          width: 90,
+          height: 90,
           borderRadius: '50%',
           background: 'white',
           display: 'flex',
@@ -162,29 +210,29 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationNa
           transition: 'all 0.3s ease',
           transform: isHovering ? 'scale(1.1)' : 'scale(1)',
           boxShadow: analyzing
-            ? '0 0 30px rgba(255, 105, 180, 0.6)'
+            ? '0 0 30px rgba(255, 107, 157, 0.6)'
             : '0 4px 15px rgba(0,0,0,0.2)',
           animation: analyzing ? 'pulse 1s infinite' : (isHovering ? 'bounce 0.5s ease' : 'none'),
           position: 'relative',
-          border: '3px solid #ffb6c1',
+          border: '3px solid #ff6b9d',
           overflow: 'hidden'
         }}
       >
-        <div dangerouslySetInnerHTML={{ __html: getAvatarSVG() }} style={{ width: '100%', height: '100%' }} />
+        <div dangerouslySetInnerHTML={{ __html: getAnyaSVG() }} style={{ width: '100%', height: '100%' }} />
         
         {analyzing && (
           <div style={{
             position: 'absolute',
             top: -5,
             right: -5,
-            width: 24,
-            height: 24,
-            background: '#ff69b4',
+            width: 28,
+            height: 28,
+            background: '#ff6b9d',
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 14,
+            fontSize: 16,
             animation: 'spin 1s linear infinite'
           }}>
             ⚡
@@ -201,13 +249,13 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationNa
         borderRadius: 12,
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
       }}>
-        {analyzing ? '🤔 AI 思考中...' : locationName ? '✨ 点击分析' : '📍 选择位置后分析'}
+        {analyzing ? '🤔 阿尼亚思考中...' : locationName ? '✨ 点击分析' : '📍 选择位置后分析'}
       </div>
 
       <style>{`
         @keyframes pulse {
-          0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(255, 105, 180, 0.6); }
-          50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(255, 105, 180, 0.8); }
+          0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(255, 107, 157, 0.6); }
+          50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(255, 107, 157, 0.8); }
         }
         @keyframes bounce {
           0%, 100% { transform: scale(1.1) translateY(0); }

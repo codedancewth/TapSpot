@@ -556,12 +556,14 @@ export default function App() {
         method: 'POST',
         body: JSON.stringify({ location_name: locationName })
       })
-      setAiAnalysis(data.analysis)
-      // 5 秒后自动隐藏
-      setTimeout(() => setAiAnalysis(''), 5000)
+      setAiAnalysis(data.analysis || '分析失败')
+      console.log('AI 分析结果:', data.analysis)
+      // 10 秒后自动隐藏
+      setTimeout(() => setAiAnalysis(''), 10000)
     } catch (error) {
       console.error('AI 分析失败:', error)
-      setAiAnalysis('AI 分析失败，请稍后重试')
+      setAiAnalysis('AI 分析失败：' + (error.message || '请稍后重试'))
+      setTimeout(() => setAiAnalysis(''), 5000)
     } finally {
       setAnalyzing(false)
     }
@@ -569,18 +571,21 @@ export default function App() {
 
   // AI 分析选中的文字
   const handleAnalyzeText = async (text) => {
+    console.log('分析文字:', text)
     setAnalyzing(true)
     try {
       const data = await api('/ai/analyze', {
         method: 'POST',
         body: JSON.stringify({ location_name: text })
       })
-      setAiAnalysis(data.analysis)
-      // 5 秒后自动隐藏
-      setTimeout(() => setAiAnalysis(''), 5000)
+      console.log('文字分析结果:', data)
+      setAiAnalysis(data.analysis || '分析失败')
+      // 10 秒后自动隐藏
+      setTimeout(() => setAiAnalysis(''), 10000)
     } catch (error) {
       console.error('AI 分析失败:', error)
-      setAiAnalysis('AI 分析失败，请稍后重试')
+      setAiAnalysis('AI 分析失败：' + (error.message || '请稍后重试'))
+      setTimeout(() => setAiAnalysis(''), 5000)
     } finally {
       setAnalyzing(false)
     }
@@ -1432,6 +1437,46 @@ export default function App() {
 
         {/* 文字选择 AI 分析 */}
         <TextSelectionAI onAnalyzeText={handleAnalyzeText} />
+
+        {/* 全局 AI 分析结果（用于文字选择分析） */}
+        {aiAnalysis && (
+          <div style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 10000,
+            background: 'white',
+            borderRadius: 20,
+            padding: 24,
+            maxWidth: 400,
+            boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+            border: '3px solid #ff6b9d',
+            animation: 'popIn 0.3s ease'
+          }}>
+            <button
+              onClick={() => setAiAnalysis('')}
+              style={{
+                position: 'absolute',
+                top: 10,
+                right: 12,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 20,
+                color: '#999'
+              }}
+            >
+              ×
+            </button>
+            <div style={{ fontSize: 14, color: '#333', lineHeight: 1.8 }}>
+              {aiAnalysis}
+            </div>
+            <div style={{ marginTop: 12, fontSize: 12, color: '#999', textAlign: 'right' }}>
+              阿尼亚 AI 分析 · 10 秒后自动关闭
+            </div>
+          </div>
+        )}
 
         {/* 工具栏 */}
         <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 1000, display: 'flex', alignItems: 'center', gap: 10 }}>

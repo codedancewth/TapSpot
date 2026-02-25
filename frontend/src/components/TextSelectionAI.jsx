@@ -6,32 +6,45 @@ export default function TextSelectionAI({ onAnalyzeText }) {
   const [showTooltip, setShowTooltip] = useState(false)
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 })
   const [analyzing, setAnalyzing] = useState(false)
+  const [analysis, setAnalysis] = useState('')
 
   useEffect(() => {
     const handleSelectionChange = () => {
       const selection = window.getSelection()
       const text = selection.toString().trim()
       
+      // 检查选中的文字是否在可分析的元素内（帖子内容、评论等）
       if (text && text.length > 0 && text.length < 200) {
-        setSelectedText(text)
-        
-        // 获取选区位置
         const range = selection.getRangeAt(0)
         const rect = range.getBoundingClientRect()
         
-        setTooltipPosition({
-          top: rect.top - 50,
-          left: rect.left + (rect.width / 2)
-        })
-        setShowTooltip(true)
-      } else {
-        setShowTooltip(false)
-        setSelectedText('')
+        // 检查是否在有效区域内
+        const parentElement = range.commonAncestorContainer.parentElement
+        const validTags = ['p', 'div', 'span', 'article', 'section']
+        const isValidElement = parentElement && validTags.includes(parentElement.tagName.toLowerCase())
+        
+        if (isValidElement && rect.width > 0 && rect.height > 0) {
+          setSelectedText(text)
+          setTooltipPosition({
+            top: rect.top - 50 + window.scrollY,
+            left: rect.left + (rect.width / 2) + window.scrollX
+          })
+          setShowTooltip(true)
+          return
+        }
       }
+      
+      setShowTooltip(false)
+      setSelectedText('')
     }
 
-    document.addEventListener('selectionchange', handleSelectionChange)
-    return () => document.removeEventListener('selectionchange', handleSelectionChange)
+    // 延迟一点触发，确保选区已经更新
+    const debouncedHandler = () => {
+      setTimeout(handleSelectionChange, 100)
+    }
+
+    document.addEventListener('selectionchange', debouncedHandler)
+    return () => document.removeEventListener('selectionchange', debouncedHandler)
   }, [])
 
   const handleAnalyze = async () => {
@@ -44,7 +57,6 @@ export default function TextSelectionAI({ onAnalyzeText }) {
       console.error('AI 分析失败:', error)
     } finally {
       setAnalyzing(false)
-      setShowTooltip(false)
     }
   }
 
@@ -69,13 +81,16 @@ export default function TextSelectionAI({ onAnalyzeText }) {
         padding: '8px 16px',
         borderRadius: 20,
         boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease'
+        cursor: analyzing ? 'not-allowed' : 'pointer',
+        transition: 'all 0.2s ease',
+        opacity: analyzing ? 0.7 : 1
       }}
-        onClick={handleAnalyze}
+        onClick={analyzing ? null : handleAnalyze}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)'
-          e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)'
+          if (!analyzing) {
+            e.currentTarget.style.transform = 'scale(1.05)'
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)'
+          }
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = 'scale(1)'
@@ -85,7 +100,7 @@ export default function TextSelectionAI({ onAnalyzeText }) {
         {analyzing ? (
           <>
             <span style={{ fontSize: 14 }}>🤔</span>
-            <span style={{ color: 'white', fontSize: 12, fontWeight: 600 }}>AI 分析中...</span>
+            <span style={{ color: 'white', fontSize: 12, fontWeight: 600 }}>阿尼亚分析中...</span>
           </>
         ) : (
           <>
