@@ -229,7 +229,7 @@ export default function App() {
   useEffect(() => {
     if (token) {
       api('/me').then(data => {
-        setUser(data.user)
+        setUser(data.data.user)
         // 获取用户点赞
         api('/likes/my').then(likeData => {
           setLikedPosts(new Set(likeData.liked))
@@ -353,9 +353,9 @@ export default function App() {
         method: 'POST',
         body: JSON.stringify(loginForm)
       })
-      localStorage.setItem('tapspot_token', data.token)
+      localStorage.setItem('tapspot_token', data.data.token)
       setToken(data.token)
-      setUser(data.user)
+      setUser(data.data.user)
       setShowLogin(false)
       setLoginForm({ username: '', password: '' })
     } catch (error) {
@@ -376,7 +376,7 @@ export default function App() {
         method: 'POST',
         body: JSON.stringify(registerForm)
       })
-      localStorage.setItem('tapspot_token', data.token)
+      localStorage.setItem('tapspot_token', data.data.token)
       setToken(data.token)
       setUser(data.user)
       setShowLogin(false)
