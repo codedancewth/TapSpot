@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 
 // AI 助手组件 - 阿尼亚·福杰（官方形象版）
-export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTitle, onAnalyzeText, selectedText }) {
+export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTitle, onAnalyzeText, selectedText, onOpenChat }) {
   const [isHovering, setIsHovering] = useState(false)
   const [emotion, setEmotion] = useState('happy')
   const [isDancing, setIsDancing] = useState(false)
@@ -36,6 +36,9 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
       setIsDancing(true)
       onAnalyze(locationTitle)
       setTimeout(() => setIsDancing(false), 2000)
+    } else if (onOpenChat) {
+      // 打开聊天窗口
+      onOpenChat()
     } else {
       setShowGreeting(true)
       if (greetingTimer) clearTimeout(greetingTimer)

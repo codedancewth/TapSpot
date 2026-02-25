@@ -73,5 +73,9 @@ func SetupRoutes(r *gin.Engine) {
 
 		// AI 分析 API（公开）
 		api.POST("/ai/analyze", controllers.AnalyzeLocation)
+
+		// 聊天 API
+		api.POST("/chat", controllers.ChatWithAnya)
+		auth.GET("/chat/history/:user_id", controllers.GetChatHistory)
 	}
 }

@@ -6,6 +6,7 @@ import './styles/modern.css'
 import { MessageCenter } from './components/Chat/MessageCenter.jsx'
 import AIAssistant from './components/AIAssistant.jsx'
 import TextSelectionAI from './components/TextSelectionAI.jsx'
+import AnyaChat from './components/AnyaChat.jsx'
 
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -211,6 +212,7 @@ export default function App() {
   const [aiAnalysis, setAiAnalysis] = useState('')
   const [locationTitle, setLocationTitle] = useState('')
   const [selectedText, setSelectedText] = useState('')
+  const [showAnyaChat, setShowAnyaChat] = useState(false)
 
   // 聊天相关状态
   const [conversations, setConversations] = useState([])
@@ -1442,6 +1444,15 @@ export default function App() {
           onAnalyze={handleAIAnalyze}
           onAnalyzeText={handleAnalyzeText}
           selectedText={selectedText}
+          onOpenChat={() => setShowAnyaChat(true)}
+        />
+
+        {/* 阿尼亚聊天窗口 */}
+        <AnyaChat
+          isOpen={showAnyaChat}
+          onClose={() => setShowAnyaChat(false)}
+          userId={user?.id}
+          userLocation={userLocation}
         />
 
         {/* 文字选择 AI 分析 */}
