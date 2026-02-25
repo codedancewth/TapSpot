@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 
 // 文字选择 AI 分析组件 - 简化版（结果显示在阿尼亚处）
-export default function TextSelectionAI({ onSelectText, onDeselect }) {
+export default function TextSelectionAI({ onAnalyzeText }) {
   const [selectedText, setSelectedText] = useState('')
   const [showTooltip, setShowTooltip] = useState(false)
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 })
+  const [analyzing, setAnalyzing] = useState(false)
 
   useEffect(() => {
     const handleSelectionChange = () => {
@@ -35,20 +36,32 @@ export default function TextSelectionAI({ onSelectText, onDeselect }) {
           
           setTooltipPosition({ top, left })
           setShowTooltip(true)
-          onSelectText(text)
+          setAnalyzing(false)
           return
         }
       }
       
       setShowTooltip(false)
       setSelectedText('')
-      onDeselect()
     }
 
     const debouncedHandler = () => setTimeout(handleSelectionChange, 100)
     document.addEventListener('selectionchange', debouncedHandler)
     return () => document.removeEventListener('selectionchange', debouncedHandler)
-  }, [onSelectText, onDeselect])
+  }, [])
+
+  const handleClick = async () => {
+    if (!selectedText || analyzing) return
+    
+    setAnalyzing(true)
+    try {
+      await onAnalyzeText(selectedText)
+    } catch (error) {
+      console.error('AI 分析失败:', error)
+    } finally {
+      setAnalyzing(false)
+    }
+  }
 
   if (!showTooltip) return null
 
@@ -63,33 +76,46 @@ export default function TextSelectionAI({ onSelectText, onDeselect }) {
       }}
     >
       <button
+        onClick={handleClick}
+        disabled={analyzing}
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 6,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: analyzing ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           color: 'white',
           border: 'none',
           padding: '6px 12px',
           borderRadius: 16,
           fontSize: 11,
           fontWeight: 600,
-          cursor: 'pointer',
+          cursor: analyzing ? 'not-allowed' : 'pointer',
           boxShadow: '0 3px 12px rgba(102, 126, 234, 0.4)',
           transition: 'all 0.2s ease',
           outline: 'none'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)'
-          e.currentTarget.style.boxShadow = '0 5px 16px rgba(102, 126, 234, 0.6)'
+          if (!analyzing) {
+            e.currentTarget.style.transform = 'scale(1.05)'
+            e.currentTarget.style.boxShadow = '0 5px 16px rgba(102, 126, 234, 0.6)'
+          }
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = 'scale(1)'
           e.currentTarget.style.boxShadow = '0 3px 12px rgba(102, 126, 234, 0.4)'
         }}
       >
-        <span style={{ fontSize: 12 }}>✨</span>
-        <span>AI 解析</span>
+        {analyzing ? (
+          <>
+            <span style={{ fontSize: 12 }}>🤔</span>
+            <span>分析中...</span>
+          </>
+        ) : (
+          <>
+            <span style={{ fontSize: 12 }}>✨</span>
+            <span>AI 解析</span>
+          </>
+        )}
       </button>
       
       <div style={{

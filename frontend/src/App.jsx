@@ -1446,8 +1446,7 @@ export default function App() {
 
         {/* 文字选择 AI 分析 */}
         <TextSelectionAI 
-          onSelectText={setSelectedText}
-          onDeselect={handleDeselectText}
+          onAnalyzeText={handleAnalyzeText}
         />
 
         {/* 全局 AI 分析结果（用于文字选择分析） */}
