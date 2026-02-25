@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-// AI 助手组件 - 阿尼亚 MOMO（墨镜酷酷版 + 多彩渐变光晕）
+// AI 助手组件 - 阿尼亚 MOMO（方形墨镜 + 坏笑露齿版）
 export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTitle, onAnalyzeText, selectedText }) {
   const [isHovering, setIsHovering] = useState(false)
   const [emotion, setEmotion] = useState('happy')
@@ -51,7 +51,7 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     }
   }
 
-  // 阿尼亚精致 SVG - 时尚太阳镜版
+  // 阿尼亚精致 SVG - 方形墨镜 + 坏笑露齿版
   const getAnyaSVG = () => {
     const hairPink = '#ff85b3'
     const hairShadow = '#ff5c8a'
@@ -60,68 +60,73 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     const blushColor = '#ffb6c1'
     const mouthColor = '#ff6b9d'
     const bowRed = '#ff4757'
-    const sunglassesDark = '#0f0f1a'
-    const sunglassesGradient = 'url(#sunglassesGradient)'
+    const sunglassesDark = '#0a0a14'
 
     let expression = ''
     switch (emotion) {
       case 'thinking':
-        // 思考时太阳镜微微下滑
+        // 思考时墨镜微微下滑
         expression = `
           <g transform="translate(0, 3)">
-            <!-- 太阳镜框架 -->
-            <path d="M 22 48 Q 35 45 45 48 Q 55 45 68 48 L 70 52 Q 55 58 45 55 Q 35 58 20 52 Z" fill="${sunglassesDark}"/>
-            <!-- 镜片渐变 -->
-            <ellipse cx="35" cy="51" rx="11" ry="7" fill="url(#lensGradient)"/>
-            <ellipse cx="55" cy="51" rx="11" ry="7" fill="url(#lensGradient)"/>
+            <!-- 方形墨镜框架 -->
+            <rect x="24" y="46" width="42" height="14" rx="2" fill="${sunglassesDark}"/>
+            <!-- 镜片 -->
+            <rect x="26" y="48" width="18" height="10" rx="1" fill="#1a1a2e" opacity="0.95"/>
+            <rect x="46" y="48" width="18" height="10" rx="1" fill="#1a1a2e" opacity="0.95"/>
             <!-- 镜腿 -->
-            <path d="M 22 50 Q 16 48 14 46" stroke="#2d2d44" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <path d="M 68 50 Q 74 48 76 46" stroke="#2d2d44" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M 24 53 L 16 51" stroke="#2d2d44" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 66 53 L 74 51" stroke="#2d2d44" stroke-width="3" stroke-linecap="round"/>
             <!-- 反光 -->
-            <path d="M 30 49 L 38 49" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-            <path d="M 50 49 L 58 49" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+            <rect x="28" y="50" width="8" height="3" rx="1" fill="white" opacity="0.5"/>
+            <rect x="48" y="50" width="8" height="3" rx="1" fill="white" opacity="0.5"/>
           </g>
+          <!-- 抿嘴思考 -->
           <path d="M 45 68 Q 48 70 51 68" stroke="${mouthColor}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
           <ellipse cx="70" cy="48" rx="5" ry="7" fill="#87ceeb" opacity="0.5"/>
         `
         break
       case 'excited':
-        // 兴奋时太阳镜反光增强
+        // 兴奋时露齿坏笑
         expression = `
-          <!-- 太阳镜框架 -->
-          <path d="M 22 46 Q 35 43 45 46 Q 55 43 68 46 L 70 50 Q 55 56 45 53 Q 35 56 20 50 Z" fill="${sunglassesDark}"/>
-          <!-- 镜片渐变 -->
-          <ellipse cx="35" cy="49" rx="11" ry="7" fill="url(#lensGradient)"/>
-          <ellipse cx="55" cy="49" rx="11" ry="7" fill="url(#lensGradient)"/>
+          <!-- 方形墨镜框架 -->
+          <rect x="24" y="44" width="42" height="14" rx="2" fill="${sunglassesDark}"/>
+          <!-- 镜片 -->
+          <rect x="26" y="46" width="18" height="10" rx="1" fill="#1a1a2e" opacity="0.95"/>
+          <rect x="46" y="46" width="18" height="10" rx="1" fill="#1a1a2e" opacity="0.95"/>
           <!-- 镜腿 -->
-          <path d="M 22 48 Q 16 46 14 44" stroke="#2d2d44" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path d="M 68 48 Q 74 46 76 44" stroke="#2d2d44" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M 24 51 L 16 49" stroke="#2d2d44" stroke-width="3" stroke-linecap="round"/>
+          <path d="M 66 51 L 74 49" stroke="#2d2d44" stroke-width="3" stroke-linecap="round"/>
           <!-- 强反光 -->
-            <ellipse cx="33" cy="47" rx="5" ry="3" fill="white" opacity="0.6"/>
-            <ellipse cx="53" cy="47" rx="5" ry="3" fill="white" opacity="0.6"/>
-          <ellipse cx="48" cy="70" rx="5" ry="3" fill="${mouthColor}"/>
-          <circle cx="30" cy="64" r="4" fill="${blushColor}" opacity="0.4"/>
-          <circle cx="62" cy="64" r="4" fill="${blushColor}" opacity="0.4"/>
-          <ellipse cx="72" cy="46" rx="6" ry="8" fill="#87ceeb" opacity="0.6"/>
+          <rect x="28" y="48" width="10" height="4" rx="1.5" fill="white" opacity="0.7"/>
+          <rect x="48" y="48" width="10" height="4" rx="1.5" fill="white" opacity="0.7"/>
+          <!-- 露齿坏笑 -->
+          <path d="M 38 66 Q 45 74 52 66 Z" fill="white" stroke="${mouthColor}" stroke-width="1"/>
+          <path d="M 40 66 L 40 70 M 43 66 L 43 71 M 46 66 L 46 72 M 49 66 L 49 71 M 52 66 L 52 70" stroke="#e8e8e8" stroke-width="1"/>
+          <path d="M 38 66 Q 45 74 52 66" fill="none" stroke="${mouthColor}" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="30" cy="64" r="4" fill="${blushColor}" opacity="0.5"/>
+          <circle cx="62" cy="64" r="4" fill="${blushColor}" opacity="0.5"/>
+          <ellipse cx="72" cy="46" rx="6" ry="8" fill="#87ceeb" opacity="0.7"/>
         `
         break
       default:
-        // 默认酷酷表情 - 时尚太阳镜
+        // 默认酷酷表情 - 方形墨镜 + 坏笑
         expression = `
-          <!-- 太阳镜框架 -->
-          <path d="M 22 46 Q 35 43 45 46 Q 55 43 68 46 L 70 50 Q 55 56 45 53 Q 35 56 20 50 Z" fill="url(#frameGradient)"/>
-          <!-- 镜片渐变 -->
-          <ellipse cx="35" cy="49" rx="11" ry="7" fill="url(#lensGradient)"/>
-          <ellipse cx="55" cy="49" rx="11" ry="7" fill="url(#lensGradient)"/>
+          <!-- 方形墨镜框架 -->
+          <rect x="24" y="44" width="42" height="14" rx="2" fill="${sunglassesDark}"/>
+          <!-- 镜片 -->
+          <rect x="26" y="46" width="18" height="10" rx="1" fill="#1a1a2e" opacity="0.95"/>
+          <rect x="46" y="46" width="18" height="10" rx="1" fill="#1a1a2e" opacity="0.95"/>
           <!-- 镜腿 -->
-          <path d="M 22 48 Q 16 46 14 44" stroke="#2d2d44" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path d="M 68 48 Q 74 46 76 44" stroke="#2d2d44" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <!-- 时尚反光 -->
-          <path d="M 28 47 Q 35 46 40 47" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
-          <path d="M 48 47 Q 55 46 60 47" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
-          <path d="M 44 68 Q 48 70 52 68" stroke="${mouthColor}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-          <circle cx="30" cy="64" r="3" fill="${blushColor}" opacity="0.3"/>
-          <circle cx="62" cy="64" r="3" fill="${blushColor}" opacity="0.3"/>
+          <path d="M 24 51 L 16 49" stroke="#2d2d44" stroke-width="3" stroke-linecap="round"/>
+          <path d="M 66 51 L 74 49" stroke="#2d2d44" stroke-width="3" stroke-linecap="round"/>
+          <!-- 反光 -->
+          <rect x="29" y="48" width="7" height="3" rx="1" fill="white" opacity="0.6"/>
+          <rect x="49" y="48" width="7" height="3" rx="1" fill="white" opacity="0.6"/>
+          <!-- 坏笑露齿 -->
+          <path d="M 40 67 Q 45 72 50 67" fill="white" stroke="${mouthColor}" stroke-width="1.2"/>
+          <path d="M 42 67 L 42 70 M 45 67 L 45 71 M 48 67 L 48 71 M 51 67 L 51 70" stroke="#e0e0e0" stroke-width="1"/>
+          <circle cx="30" cy="64" r="3" fill="${blushColor}" opacity="0.35"/>
+          <circle cx="62" cy="64" r="3" fill="${blushColor}" opacity="0.35"/>
         `
     }
 
@@ -140,20 +145,6 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
             <stop offset="0%" style="stop-color:#fff9f3;stop-opacity:1" />
             <stop offset="100%" style="stop-color:${skinColor};stop-opacity:1" />
           </radialGradient>
-          
-          <!-- 太阳镜镜片渐变 -->
-          <linearGradient id="lensGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#2d2d44;stop-opacity:0.95" />
-            <stop offset="50%" style="stop-color:#1a1a2e;stop-opacity:0.98" />
-            <stop offset="100%" style="stop-color:#0f0f1a;stop-opacity:1" />
-          </linearGradient>
-          
-          <!-- 太阳镜框架渐变 -->
-          <linearGradient id="frameGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:#3d3d5c;stop-opacity:1" />
-            <stop offset="50%" style="stop-color:#2d2d44;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#1a1a2e;stop-opacity:1" />
-          </linearGradient>
         </defs>
         
         <!-- 后发 -->
