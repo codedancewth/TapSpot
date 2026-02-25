@@ -52,7 +52,7 @@ func AnalyzeLocation(c *gin.Context) {
 	})
 }
 
-// callAI 调用 AI API
+// callAI 调用 AI API（阿里云百炼 Qwen3-Coder-Plus）
 func callAI(locationName string) (string, error) {
 	// 获取 API Key（从环境变量）
 	apiKey := os.Getenv("AI_API_KEY")
@@ -61,8 +61,8 @@ func callAI(locationName string) (string, error) {
 		return generateMockAnalysis(locationName), nil
 	}
 
-	// API 端点（根据实际模型配置）
-	apiURL := "https://api.siliconflow.cn/v1/chat/completions"
+	// API 端点（阿里云百炼）
+	apiURL := "https://coding.dashscope.aliyuncs.com/v1/chat/completions"
 
 	// 构建提示词
 	prompt := fmt.Sprintf(`请分析这个地方：%s
@@ -72,12 +72,13 @@ func callAI(locationName string) (string, error) {
 2. 给出游玩建议或注意事项
 3. 语言生动有趣，吸引人
 4. 不超过 80 个字
+5. 可以加 1-2 个 emoji 增加趣味性
 
 请直接输出分析内容，不要有其他说明。`, locationName)
 
-	// 构建请求体
+	// 构建请求体（Qwen3-Coder-Plus）
 	requestBody := map[string]interface{}{
-		"model": "Qwen/Qwen2.5-7B-Instruct",
+		"model": "qwen3-coder-plus",
 		"messages": []map[string]string{
 			{"role": "user", "content": prompt},
 		},
