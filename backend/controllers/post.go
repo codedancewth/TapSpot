@@ -84,7 +84,7 @@ func GetPosts(c *gin.Context) {
 		return
 	}
 
-	var result []PostResponse
+	result := []PostResponse{}
 	for _, post := range posts {
 		result = append(result, formatPost(post))
 	}
@@ -115,7 +115,7 @@ func GetMyPosts(c *gin.Context) {
 		return
 	}
 
-	var result []PostResponse
+	result := []PostResponse{}
 	for _, post := range posts {
 		result = append(result, formatPost(post))
 	}
