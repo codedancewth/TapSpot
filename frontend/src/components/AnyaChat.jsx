@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 
 // 阿尼亚聊天组件
-export default function AnyaChat({ isOpen, onClose, userId, userLocation }) {
+export default function AnyaChat({ isOpen, onClose, userId, userLocation, anyaAvatar }) {
   const [messages, setMessages] = useState([])
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -151,12 +151,17 @@ export default function AnyaChat({ isOpen, onClose, userId, userLocation }) {
             width: 40,
             height: 40,
             borderRadius: '50%',
-            background: 'white',
+            background: anyaAvatar ? `url(${anyaAvatar})` : 'white',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 20
-          }}>🥜</div>
+            overflow: 'hidden',
+            border: '2px solid rgba(255,255,255,0.5)'
+          }}>
+            {!anyaAvatar && <span style={{fontSize: 20}}>🥜</span>}
+          </div>
           <div>
             <div style={{ fontWeight: 'bold', fontSize: 16 }}>阿尼亚·福杰</div>
             <div style={{ fontSize: 12, opacity: 0.9 }}>在线 | 随时为您服务 ✨</div>

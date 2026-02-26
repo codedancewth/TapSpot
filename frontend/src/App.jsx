@@ -202,8 +202,9 @@ export default function App() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null) // 删除确认弹框 { id, type: 'post'|'comment' }
   const [deleting, setDeleting] = useState(false) // 删除中状态
   const [showUserProfile, setShowUserProfile] = useState(false) // 编辑个人资料弹窗
-  const [profileForm, setProfileForm] = useState({ nickname: '', gender: 'secret', bio: '' })
+  const [profileForm, setProfileForm] = useState({ nickname: '', gender: 'secret', bio: '', anyaAvatar: '' })
   const [savingProfile, setSavingProfile] = useState(false)
+  const [anyaAvatar, setAnyaAvatar] = useState(localStorage.getItem('anya_avatar') || '') // 阿尼亚自定义头像
   const [showUserSpace, setShowUserSpace] = useState(null) // 查看用户空间 { user, posts }
   const [loadingUserSpace, setLoadingUserSpace] = useState(false)
   
@@ -1454,6 +1455,7 @@ export default function App() {
           onClose={() => setShowAnyaChat(false)}
           userId={user?.id}
           userLocation={userLocation}
+          anyaAvatar={anyaAvatar}
         />
 
         {/* 文字选择 AI 分析 */}
@@ -1969,16 +1971,59 @@ export default function App() {
               <button onClick={() => setShowUserProfile(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             <div style={{ padding: 20 }}>
-              {/* 头像预览 */}
+              {/* 用户头像预览 */}
               <div style={{ textAlign: 'center', marginBottom: 20 }}>
                 <div style={{ 
                   width: 80, height: 80, 
-                  background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, 
+                  background: user?.avatar ? `url(${user.avatar})` : `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, 
+                  backgroundSize: 'cover',
                   borderRadius: '50%', 
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 36,
                   boxShadow: `0 4px 20px ${COLORS.accent}40`
-                }}>👤</div>
+                }}>{!user?.avatar && '👤'}</div>
+              </div>
+
+              {/* 阿尼亚头像设置 */}
+              <div style={{ marginBottom: 20, padding: 16, background: 'rgba(80, 200, 120, 0.1)', borderRadius: 12 }}>
+                <label style={{ display: 'block', fontSize: 13, color: '#666', marginBottom: 10, fontWeight: 600 }}>🥜 阿尼亚聊天头像</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ 
+                    width: 50, height: 50, 
+                    borderRadius: '50%', 
+                    background: anyaAvatar ? `url(${anyaAvatar})` : 'white',
+                    backgroundSize: 'cover',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: '2px solid #50c878',
+                    overflow: 'hidden'
+                  }}>
+                    {!anyaAvatar && <span style={{fontSize: 24}}>🥜</span>}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <input 
+                      type="text"
+                      placeholder="输入图片 URL 作为阿尼亚头像"
+                      value={anyaAvatar}
+                      onChange={e => {
+                        setAnyaAvatar(e.target.value)
+                        localStorage.setItem('anya_avatar', e.target.value)
+                      }}
+                      style={{ width: '100%', padding: 10, border: `1px solid ${COLORS.border}`, borderRadius: 8, fontSize: 13 }}
+                    />
+                    <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>支持图片链接，留空显示默认花生</div>
+                  </div>
+                  {anyaAvatar && (
+                    <button 
+                      onClick={() => {
+                        setAnyaAvatar('')
+                        localStorage.removeItem('anya_avatar')
+                      }}
+                      style={{ padding: '8px 12px', background: '#f5f5f5', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12 }}
+                    >
+                      重置
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* 用户名 */}
