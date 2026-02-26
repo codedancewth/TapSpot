@@ -24,10 +24,17 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     }
   }, [analyzing, analysis])
 
-  // 点击阿尼亚
+  // 点击阿尼亚 - 直接打开聊天框
   const handleClick = () => {
     setEmotion('happy')
     
+    // 优先打开聊天窗口
+    if (onOpenChat) {
+      onOpenChat()
+      return
+    }
+    
+    // 有选中文字时触发 AI 分析
     if (selectedText && !analyzing) {
       setIsDancing(true)
       onAnalyzeText(selectedText)
@@ -36,9 +43,6 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
       setIsDancing(true)
       onAnalyze(locationTitle)
       setTimeout(() => setIsDancing(false), 2000)
-    } else if (onOpenChat) {
-      // 打开聊天窗口
-      onOpenChat()
     } else {
       setShowGreeting(true)
       if (greetingTimer) clearTimeout(greetingTimer)
