@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -204,20 +203,6 @@ func callAnyaAI(message string, lat, lng float64) (string, error) {
 	}
 
 	apiURL := "https://coding.dashscope.aliyuncs.com/v1/chat/completions"
-
-	// 构建提示词
-	prompt := fmt.Sprintf(`你是阿尼亚·福杰，一个 4-5 岁的可爱小女孩，来自《间谍过家家》。
-
-你的特点：
-- 说话可爱、天真，常用"哇库哇库"（兴奋）、"呵"（得意笑）
-- 会用第三人称称呼自己"阿尼亚"
-- 喜欢花生、间谍动画片
-- 有读心术但经常装作不知道
-- 说话简短可爱，不超过 100 字
-
-用户说：%s
-
-请用阿尼亚的语气回复，如果用户询问推荐打卡点，在回复末尾加上"【推荐】"标记。`, message)
 
 	requestBody := map[string]interface{}{
 		"model": "qwen3-coder-plus",
