@@ -202,7 +202,7 @@ export default function App() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null) // 删除确认弹框 { id, type: 'post'|'comment' }
   const [deleting, setDeleting] = useState(false) // 删除中状态
   const [showUserProfile, setShowUserProfile] = useState(false) // 编辑个人资料弹窗
-  const [profileForm, setProfileForm] = useState({ nickname: '', gender: 'secret', bio: '', anyaAvatar: '' })
+  const [profileForm, setProfileForm] = useState({ nickname: '', gender: 'other', bio: '', anyaAvatar: '' })
   const [savingProfile, setSavingProfile] = useState(false)
   const [anyaAvatar, setAnyaAvatar] = useState(localStorage.getItem('anya_avatar') || '') // 阿尼亚自定义头像
   const [showUserSpace, setShowUserSpace] = useState(null) // 查看用户空间 { user, posts }
@@ -2069,14 +2069,14 @@ export default function App() {
                   ].map(item => (
                     <button
                       key={item.value}
-                      onClick={() => setProfileForm({ ...profileForm, gender: item.value })}
+                      onClick={() => setProfileForm({ ...profileForm, gender: item.value === 'secret' ? 'other' : item.value })}
                       style={{
                         flex: 1, padding: 12,
-                        background: profileForm.gender === item.value ? `${COLORS.accent}15` : '#f5f5f5',
-                        border: profileForm.gender === item.value ? `2px solid ${COLORS.accent}` : '2px solid transparent',
+                        background: profileForm.gender === (item.value === 'secret' ? 'other' : item.value) ? `${COLORS.accent}15` : '#f5f5f5',
+                        border: profileForm.gender === (item.value === 'secret' ? 'other' : item.value) ? `2px solid ${COLORS.accent}` : '2px solid transparent',
                         borderRadius: 10, cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                        color: profileForm.gender === item.value ? COLORS.accent : '#666',
+                        color: profileForm.gender === (item.value === 'secret' ? 'other' : item.value) ? COLORS.accent : '#666',
                         fontWeight: 500, fontSize: 14,
                         transition: 'all 0.2s'
                       }}
