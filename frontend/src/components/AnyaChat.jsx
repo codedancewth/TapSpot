@@ -57,7 +57,7 @@ export default function AnyaChat({ isOpen, onClose, userId, userLocation }) {
     setRecommendations([])
 
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('tapspot_token')
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: {

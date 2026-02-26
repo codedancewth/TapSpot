@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"TapSpot/models"
+	"tapspot/models"
 
 	"github.com/gin-gonic/gin"
 )
