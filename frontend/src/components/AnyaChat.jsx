@@ -121,7 +121,7 @@ export default function AnyaChat({ isOpen, onClose, userId, userLocation, anyaAv
   if (!isOpen) return null
 
   return (
-    <div style={{
+    <div className="anya-chat-container" style={{
       position: 'fixed',
       right: 100,
       bottom: 16,
@@ -136,8 +136,96 @@ export default function AnyaChat({ isOpen, onClose, userId, userLocation, anyaAv
       overflow: 'hidden',
       border: '2px solid #50c878'
     }}>
+      <style>{`
+        /* 输入框移动端适配 */
+        .anya-chat-input:focus {
+          border-color: #50c878 !important;
+        }
+        
+        .anya-chat-input-area {
+          padding: 10px !important;
+        }
+        
+        /* 苹果手机适配 - iPhone SE / 6 / 7 / 8 */
+        @media (max-width: 375px) {
+          .anya-chat-container {
+            right: 10px !important;
+            left: 10px !important;
+            width: auto !important;
+            height: 80vh !important;
+            bottom: 10px !important;
+            border-radius: 12px !important;
+          }
+          .anya-chat-header-title {
+            font-size: 14px !important;
+          }
+          .anya-chat-header-status {
+            font-size: 11px !important;
+          }
+          .anya-chat-input {
+            font-size: 13px !important;
+            height: 36px !important;
+          }
+          .anya-chat-send-btn {
+            padding: 0 16px !important;
+            font-size: 13px !important;
+          }
+        }
+        
+        /* iPhone X / XS / 11 Pro / 12 Pro / 13 Pro */
+        @media (max-width: 390px) and (min-width: 376px) {
+          .anya-chat-container {
+            right: 15px !important;
+            left: 15px !important;
+            width: auto !important;
+            height: 75vh !important;
+            border-radius: 14px !important;
+          }
+        }
+        
+        /* iPhone Plus / Max 系列 */
+        @media (max-width: 428px) and (min-width: 391px) {
+          .anya-chat-container {
+            right: 20px !important;
+            width: 350px !important;
+            height: 65vh !important;
+          }
+        }
+        
+        /* iPad 适配 */
+        @media (min-width: 768px) {
+          .anya-chat-container {
+            right: 80px !important;
+            width: 420px !important;
+            height: 620px !important;
+          }
+        }
+        
+        /* 横屏模式适配 */
+        @media (max-height: 500px) and (orientation: landscape) {
+          .anya-chat-container {
+            top: 50% !important;
+            bottom: auto !important;
+            transform: translateY(-50%) !important;
+            height: 90vh !important;
+            max-height: 400px !important;
+          }
+        }
+        
+        /* 安全区域适配（iPhone X 以上刘海屏） */
+        @supports (padding: max(0px)) {
+          .anya-chat-header {
+            padding-left: max(16px, env(safe-area-inset-left)) !important;
+            padding-right: max(16px, env(safe-area-inset-right)) !important;
+            padding-top: max(16px, env(safe-area-inset-top)) !important;
+          }
+          .anya-chat-messages {
+            padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+          }
+        }
+      `}</style>
       {/* 聊天头部 */}
-      <div style={{
+      <div className="anya-chat-header" style={{
         background: 'linear-gradient(135deg, #50c878 0%, #667eea 100%)',
         padding: 16,
         color: 'white',
@@ -163,8 +251,8 @@ export default function AnyaChat({ isOpen, onClose, userId, userLocation, anyaAv
             {!anyaAvatar && <span style={{fontSize: 20}}>🥜</span>}
           </div>
           <div>
-            <div style={{ fontWeight: 'bold', fontSize: 16 }}>阿尼亚·福杰</div>
-            <div style={{ fontSize: 12, opacity: 0.9 }}>在线 | 随时为您服务 ✨</div>
+            <div className="anya-chat-header-title" style={{ fontWeight: 'bold', fontSize: 16 }}>阿尼亚·福杰</div>
+            <div className="anya-chat-header-status" style={{ fontSize: 12, opacity: 0.9 }}>在线 | 随时为您服务 ✨</div>
           </div>
         </div>
         <button
@@ -331,7 +419,7 @@ export default function AnyaChat({ isOpen, onClose, userId, userLocation, anyaAv
       </div>
 
       {/* 输入区域 */}
-      <div style={{
+      <div className="anya-chat-input-area" style={{
         padding: 12,
         background: 'white',
         borderTop: '1px solid #e9ecef',
@@ -343,6 +431,7 @@ export default function AnyaChat({ isOpen, onClose, userId, userLocation, anyaAv
           onChange={(e) => setInputMessage(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="和阿尼亚聊天，问问有什么好玩的~"
+          className="anya-chat-input"
           style={{
             flex: 1,
             padding: 10,
@@ -352,7 +441,8 @@ export default function AnyaChat({ isOpen, onClose, userId, userLocation, anyaAv
             height: 40,
             fontSize: 14,
             fontFamily: 'inherit',
-            outline: 'none'
+            outline: 'none',
+            WebkitAppearance: 'none'
           }}
           rows={1}
         />
