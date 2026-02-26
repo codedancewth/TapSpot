@@ -519,30 +519,31 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         <div dangerouslySetInnerHTML={{ __html: getAnyaSVG() }} style={{ width: '100%', height: '100%', position: 'relative', zIndex: 2 }} />
       </div>
 
-      {/* 悬停动态话语泡泡 */}
+      {/* 悬停动态话语泡泡 - 调整位置避免遮挡 */}
       {showHoverText && (
         <div style={{
           position: 'absolute',
-          top: -50,
-          left: '50%',
+          top: -60,
+          left: '45%',
           transform: 'translateX(-50%)',
           background: 'linear-gradient(135deg, #50c878 0%, #667eea 100%)',
           color: 'white',
-          padding: '8px 16px',
+          padding: '8px 14px',
           borderRadius: 20,
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: 600,
           boxShadow: '0 4px 15px rgba(80, 200, 120, 0.4)',
           whiteSpace: 'nowrap',
           zIndex: 10,
-          animation: 'hoverTextPop 0.3s ease-out'
+          animation: 'hoverTextPop 0.3s ease-out',
+          maxWidth: '200px'
         }}>
           {hoverText}
           {/* 小三角 */}
           <div style={{
             position: 'absolute',
             bottom: -6,
-            left: '50%',
+            left: '55%',
             transform: 'translateX(-50%)',
             width: 0,
             height: 0,
