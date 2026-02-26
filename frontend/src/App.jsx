@@ -213,6 +213,7 @@ export default function App() {
   const [locationTitle, setLocationTitle] = useState('')
   const [selectedText, setSelectedText] = useState('')
   const [showAnyaChat, setShowAnyaChat] = useState(false)
+  const [userLocation, setUserLocation] = useState(null) // 用户当前位置
 
   // 聊天相关状态
   const [conversations, setConversations] = useState([])

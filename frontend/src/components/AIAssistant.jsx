@@ -357,36 +357,51 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
           <>
             <div style={{
               position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
+              top: '50%',
+              left: '50%',
+              width: '100%',
+              height: '100%',
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(80, 200, 120, 0.5) 0%, rgba(102, 126, 234, 0.3) 40%, rgba(118, 75, 162, 0.1) 70%, transparent 100%)',
-              animation: 'ripple 1.5s ease-out infinite'
+              background: 'radial-gradient(circle, rgba(80, 200, 120, 0.6) 0%, rgba(102, 126, 234, 0.4) 30%, rgba(118, 75, 162, 0.2) 60%, transparent 70%)',
+              animation: 'ripple 1.5s ease-out infinite',
+              transform: 'translate(-50%, -50%)',
+              transformOrigin: 'center'
             }}/>
             <div style={{
               position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
+              top: '50%',
+              left: '50%',
+              width: '100%',
+              height: '100%',
               borderRadius: '50%',
-              border: '3px solid transparent',
-              borderImage: 'linear-gradient(45deg, #50c878, #667eea, #ffd700, #fd79a8) 1',
-              animation: 'rippleBorder 1.5s ease-out infinite'
+              border: '2px solid rgba(80, 200, 120, 0.5)',
+              animation: 'rippleBorder 1.5s ease-out infinite',
+              transform: 'translate(-50%, -50%)',
+              transformOrigin: 'center'
             }}/>
             <div style={{
               position: 'absolute',
-              top: -2,
-              left: -2,
-              right: -2,
-              bottom: -2,
+              top: '50%',
+              left: '50%',
+              width: '120%',
+              height: '120%',
               borderRadius: '50%',
-              background: 'conic-gradient(from 0deg, #50c878, #667eea, #ffd700, #fd79a8, #50c878)',
-              filter: 'blur(8px)',
-              opacity: 0.6,
-              animation: 'rotateGradient 3s linear infinite'
+              border: '2px solid rgba(102, 126, 234, 0.3)',
+              animation: 'rippleBorder 1.5s ease-out 0.3s infinite',
+              transform: 'translate(-50%, -50%)',
+              transformOrigin: 'center'
+            }}/>
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              width: '140%',
+              height: '140%',
+              borderRadius: '50%',
+              border: '2px solid rgba(255, 215, 0, 0.2)',
+              animation: 'rippleBorder 1.5s ease-out 0.6s infinite',
+              transform: 'translate(-50%, -50%)',
+              transformOrigin: 'center'
             }}/>
           </>
         )}
@@ -442,12 +457,14 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
 
       <style>{`
         @keyframes ripple {
-          0% { transform: scale(1); opacity: 0.8; }
-          100% { transform: scale(1.6); opacity: 0; }
+          0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.9; }
+          50% { opacity: 0.5; }
+          100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
         }
         @keyframes rippleBorder {
-          0% { transform: scale(1); opacity: 0.8; }
-          100% { transform: scale(1.6); opacity: 0; }
+          0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+          50% { opacity: 0.4; }
+          100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
         }
         @keyframes rotateGradient {
           from { transform: rotate(0deg); }
