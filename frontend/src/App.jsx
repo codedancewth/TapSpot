@@ -1993,6 +1993,7 @@ export default function App() {
                     borderRadius: '50%', 
                     background: anyaAvatar ? `url(${anyaAvatar})` : 'white',
                     backgroundSize: 'cover',
+                    backgroundPosition: 'center',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     border: '2px solid #50c878',
                     overflow: 'hidden'
@@ -2001,16 +2002,23 @@ export default function App() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <input 
-                      type="text"
-                      placeholder="输入图片 URL 作为阿尼亚头像"
-                      value={anyaAvatar}
+                      type="file"
+                      accept="image/*"
                       onChange={e => {
-                        setAnyaAvatar(e.target.value)
-                        localStorage.setItem('anya_avatar', e.target.value)
+                        const file = e.target.files[0]
+                        if (file) {
+                          const reader = new FileReader()
+                          reader.onload = (event) => {
+                            const base64 = event.target.result
+                            setAnyaAvatar(base64)
+                            localStorage.setItem('anya_avatar', base64)
+                          }
+                          reader.readAsDataURL(file)
+                        }
                       }}
-                      style={{ width: '100%', padding: 10, border: `1px solid ${COLORS.border}`, borderRadius: 8, fontSize: 13 }}
+                      style={{ width: '100%', marginBottom: 8 }}
                     />
-                    <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>支持图片链接，留空显示默认花生</div>
+                    <div style={{ fontSize: 11, color: '#999' }}>支持 JPG/PNG/GIF 格式，建议尺寸 100x100</div>
                   </div>
                   {anyaAvatar && (
                     <button 
