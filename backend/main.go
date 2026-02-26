@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"tapspot/config"
+	"tapspot/controllers"
 	"tapspot/middleware"
 	"tapspot/models"
 	"tapspot/routes"
@@ -79,6 +80,7 @@ func migrateDB() {
 		&models.Conversation{},
 		&models.Message{},
 		&models.Visit{}, // 访客记录
+		&controllers.ChatMessage{}, // 阿尼亚聊天记录
 	)
 	log.Println("✅ 数据库迁移完成")
 }

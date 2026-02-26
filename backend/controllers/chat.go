@@ -220,12 +220,13 @@ func callAnyaAI(message string, lat, lng float64) (string, error) {
 请用阿尼亚的语气回复，如果用户询问推荐打卡点，在回复末尾加上"【推荐】"标记。`, message)
 
 	requestBody := map[string]interface{}{
-		"model": "qwen-turbo",
+		"model": "qwen3-coder-plus",
 		"messages": []map[string]string{
-			{"role": "user", "content": prompt},
+			{"role": "system", "content": "你是阿尼亚·福杰，来自《间谍过家家》的 4-5 岁小女孩。说话可爱天真，常用哇库哇库表示兴奋，用第三人称称呼自己阿尼亚，喜欢花生和间谍动画片，说话简短不超过 100 字。"},
+			{"role": "user", "content": message},
 		},
-		"max_tokens": 300,
-		"temperature": 0.8,
+		"max_tokens": 200,
+		"temperature": 0.9,
 		"top_p": 0.9,
 		"stream": false,
 	}
