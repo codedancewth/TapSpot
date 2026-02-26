@@ -24,6 +24,35 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     }
   }, [analyzing, analysis])
 
+  // 阿尼亚自动卖萌动作 - 每 10 秒随机做一次动作
+  useEffect(() => {
+    const autoActInterval = setInterval(() => {
+      // 如果正在分析或跳舞，跳过
+      if (analyzing || isDancing) return
+      
+      // 随机选择动作：0=眯眯眼卖萌，1=闭眼唱歌
+      const randomAction = Math.random()
+      
+      if (randomAction < 0.5) {
+        // 眯眯眼卖萌
+        setEmotion('cute')
+        setTimeout(() => {
+          setEmotion('happy')
+        }, 2000)
+      } else {
+        // 闭眼唱歌玩
+        setIsSinging(true)
+        setEmotion('singing')
+        setTimeout(() => {
+          setIsSinging(false)
+          setEmotion('happy')
+        }, 2500)
+      }
+    }, 10000) // 10 秒间隔
+    
+    return () => clearInterval(autoActInterval)
+  }, [analyzing, isDancing])
+
   // 点击阿尼亚 - 直接打开聊天框
   const handleClick = () => {
     setEmotion('happy')
@@ -145,6 +174,25 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
             <text x="75" y="35" font-size="12" fill="#667eea" opacity="0.6" class="floating-note-delay">♫</text>
             <text x="18" y="38" font-size="13" fill="#ffd700" opacity="0.7" class="floating-note-left">♬</text>
           </g>
+        `
+        break
+      case 'cute':
+        // 眯眯眼卖萌（超可爱）
+        expression = `
+          <!-- 眯眯眼（弯弯的月牙眼） -->
+          <path d="M 30 55 Q 35 51 40 55" stroke="${eyeGreen}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M 50 55 Q 55 51 60 55" stroke="${eyeGreen}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <!-- 开心眯眯眼皱纹 -->
+          <path d="M 32 52 Q 35 50 38 52" stroke="${eyeGreen}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.6"/>
+          <path d="M 52 52 Q 55 50 58 52" stroke="${eyeGreen}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.6"/>
+          <!-- 卖萌嘴型（小 O 型） -->
+          <ellipse cx="48" cy="70" rx="3" ry="3.5" fill="${mouthColor}"/>
+          <!-- 超红腮红 -->
+          <circle cx="28" cy="63" r="6" fill="${blushColor}" opacity="0.6"/>
+          <circle cx="62" cy="63" r="6" fill="${blushColor}" opacity="0.6"/>
+          <!-- 卖萌星星 -->
+          <text x="70" y="45" font-size="12" fill="#ffd700" opacity="0.9">✨</text>
+          <text x="15" y="48" font-size="10" fill="#ffd700" opacity="0.7">⭐</text>
         `
         break
       default:
