@@ -1526,8 +1526,8 @@ export default function App() {
           <button onClick={() => { if (!user) { setShowLogin(true); return }; setShowPost(true) }} style={{ padding: '10px 18px', background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#fff', fontWeight: 600, boxShadow: `0 4px 15px ${COLORS.accent}40` }}><Plus size={18} /> 打卡</button>
         </div>
 
-        {/* 缩放控制 */}
-        <div style={{ position: 'absolute', bottom: 24, right: 16, zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* 缩放控制 - 移到右侧中间靠上位置 */}
+        <div style={{ position: 'absolute', top: '50%', right: 16, transform: 'translateY(-50%)', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button onClick={() => mapRef?.setZoom(mapZoom + 1)} style={{ width: 40, height: 40, background: COLORS.cardBg, border: 'none', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ZoomIn size={18} color={COLORS.textDark} /></button>
           <button onClick={() => mapRef?.setZoom(mapZoom - 1)} style={{ width: 40, height: 40, background: COLORS.cardBg, border: 'none', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ZoomOut size={18} color={COLORS.textDark} /></button>
           <button onClick={() => mapRef?.setView([35.8617, 104.1954], 4)} style={{ width: 40, height: 40, background: COLORS.cardBg, border: 'none', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Compass size={18} color={COLORS.textDark} /></button>
