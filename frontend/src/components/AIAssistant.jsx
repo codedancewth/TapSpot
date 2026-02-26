@@ -8,6 +8,15 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
   const [showGreeting, setShowGreeting] = useState(false)
   const [greetingTimer, setGreetingTimer] = useState(null)
   const [isSinging, setIsSinging] = useState(false)
+  const [hoverText, setHoverText] = useState('') // 悬停时的动态话语
+  const [showHoverText, setShowHoverText] = useState(false) // 是否显示悬停话语
+
+  // 阿尼亚悬停动态话语库
+  const hoverTexts = [
+    '哇~ 被发现啦！阿尼亚在这里等你哦~ ✨',
+    '嘿嘿~ 想和阿尼亚一起玩吗？点我点我！🥜',
+    '阿尼亚知道你在想什么哦...呵~ 😏'
+  ]
 
   // 表情管理
   useEffect(() => {
@@ -80,13 +89,26 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
     }
   }
 
-  // 悬停时闭眼唱歌
+  // 悬停时闭眼唱歌 + 显示动态话语
   const handleMouseEnter = () => {
     setIsHovering(true)
+    
+    // 随机选择一句动态话语
+    const randomIndex = Math.floor(Math.random() * hoverTexts.length)
+    setHoverText(hoverTexts[randomIndex])
+    setShowHoverText(true)
+    
+    // 5 秒后自动消失
+    const timer = setTimeout(() => {
+      setShowHoverText(false)
+    }, 5000)
+    
     if (!analyzing && !isDancing) {
       setIsSinging(true)
       setEmotion('singing')
     }
+    
+    return () => clearTimeout(timer)
   }
 
   // 鼠标离开时停止唱歌
@@ -497,6 +519,40 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
         <div dangerouslySetInnerHTML={{ __html: getAnyaSVG() }} style={{ width: '100%', height: '100%', position: 'relative', zIndex: 2 }} />
       </div>
 
+      {/* 悬停动态话语泡泡 */}
+      {showHoverText && (
+        <div style={{
+          position: 'absolute',
+          top: -50,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'linear-gradient(135deg, #50c878 0%, #667eea 100%)',
+          color: 'white',
+          padding: '8px 16px',
+          borderRadius: 20,
+          fontSize: 12,
+          fontWeight: 600,
+          boxShadow: '0 4px 15px rgba(80, 200, 120, 0.4)',
+          whiteSpace: 'nowrap',
+          zIndex: 10,
+          animation: 'hoverTextPop 0.3s ease-out'
+        }}>
+          {hoverText}
+          {/* 小三角 */}
+          <div style={{
+            position: 'absolute',
+            bottom: -6,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 0,
+            height: 0,
+            borderLeft: '6px solid transparent',
+            borderRight: '6px solid transparent',
+            borderTop: '6px solid #50c878'
+          }}/>
+        </div>
+      )}
+
       {/* 提示文字 */}
       <div style={{
         fontSize: 10, color: '#666',
@@ -508,6 +564,10 @@ export default function AIAssistant({ analyzing, analysis, onAnalyze, locationTi
       </div>
 
       <style>{`
+        @keyframes hoverTextPop {
+          0% { transform: translateX(-50%) translateY(10px) scale(0.9); opacity: 0; }
+          100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+        }
         @keyframes ripple {
           0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.9; }
           50% { opacity: 0.5; }
