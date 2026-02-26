@@ -1975,13 +1975,13 @@ export default function App() {
               <div style={{ textAlign: 'center', marginBottom: 20 }}>
                 <div style={{ 
                   width: 80, height: 80, 
-                  background: user?.avatar ? `url(${user.avatar})` : `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, 
+                  background: user && user.avatar ? `url(${user.avatar})` : `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, 
                   backgroundSize: 'cover',
                   borderRadius: '50%', 
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 36,
                   boxShadow: `0 4px 20px ${COLORS.accent}40`
-                }}>{!user?.avatar && '👤'}</div>
+                }}>{!(user && user.avatar) && '👤'}</div>
               </div>
 
               {/* 阿尼亚头像设置 */}
