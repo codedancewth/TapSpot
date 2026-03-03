@@ -3,6 +3,7 @@
   <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react" alt="React">
   <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql" alt="MySQL">
   <img src="https://img.shields.io/badge/WebSocket-✓-orange?style=for-the-badge" alt="WebSocket">
+  <img src="https://img.shields.io/badge/AI-Enabled-purple?style=for-the-badge" alt="AI">
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
 </p>
 
@@ -10,7 +11,7 @@
 <h3 align="center">基于地理围栏的智能社交打卡平台</h3>
 
 <p align="center">
-  <i>Discover • Share • Connect • Chat</i>
+  <i>Discover • Share • Connect • Chat • AI</i>
 </p>
 
 <p align="center">
@@ -27,7 +28,7 @@
 
 ### 产品定位
 
-**TapSpot** 是一款**基于地理位置的社交打卡平台**，通过创新的**内容竞争机制**和**实时通讯系统**，让用户在同一时空坐标下分享体验、建立连接。
+**TapSpot** 是一款**基于地理位置的社交打卡平台**，通过创新的**内容竞争机制**、**实时通讯系统**和**AI 智能助手**，让用户在同一时空坐标下分享体验、建立连接。
 
 ### 核心价值
 
@@ -37,6 +38,7 @@
 | **Share** | 分享个人体验，记录生活足迹 |
 | **Connect** | 与志同道合的用户建立联系 |
 | **Chat** | 实时沟通，深度交流 |
+| **AI** | 智能分析推荐，个性化助手 |
 
 ### 核心理念
 
@@ -62,15 +64,18 @@
 | **动态标记系统** | 8 种精心设计的分类图标，根据缩放级别自适应大小 |
 | **个性化标识** | 用户的打卡以金色边框高亮显示，一眼识别自己的足迹 |
 | **地理围栏** | 验证用户打卡位置的真实性，确保内容可信 |
+| **逆地理编码** | 自动将坐标转换为详细地址，简化打卡流程 |
 
 ### 👤 用户系统
 
 | 功能 | 描述 |
 |:---|:---|
 | **安全认证** | JWT Token 认证 + Bcrypt 密码加密，保障账户安全 |
-| **个人资料** | 可自定义昵称、性别、个人简介，展示独特的个人形象 |
+| **个人资料** | 可自定义昵称、性别、个人简介、邮箱、手机，展示独特的个人形象 |
 | **用户空间** | 查看他人主页，了解 TA 的打卡足迹和获得的认可 |
 | **影响力数据** | 打卡统计、获赞总数，量化你的内容影响力 |
+| **用户搜索** | 支持关键词搜索用户，快速找到感兴趣的人 |
+| **密码管理** | 支持在线修改密码，保障账户安全 |
 
 ### 📝 内容系统
 
@@ -80,6 +85,7 @@
 | **图文表达** | 标题 + 内容 + 位置的三维信息表达，完整记录每一刻 |
 | **内容管理** | 支持编辑与删除，内容完全由你掌控 |
 | **帖子列表** | 支持筛选、搜索、分页，快速找到感兴趣的内容 |
+| **智能筛选** | 按类型筛选、按标签页切换（全部/我的/喜欢） |
 
 ### 🏆 创新的内容竞争机制
 
@@ -109,6 +115,17 @@
 | **双重保障** | WebSocket + HTTP 轮询（2 秒/次）确保消息不丢失 |
 | **未读提醒** | 实时显示未读消息数量，不错过任何一条消息 |
 | **智能去重** | 消息合并时自动去重，避免重复显示 |
+| **帖子关联** | 消息可关联帖子，方便讨论特定内容 |
+
+### 🤖 AI 智能助手
+
+| 功能 | 描述 |
+|:---|:---|
+| **地点智能分析** | 基于阿里云百炼 Qwen 模型，自动分析地点特色和游玩建议 |
+| **文字内容解析** | 选中文字即可触发 AI 分析，获取详细信息 |
+| **阿尼亚聊天** | 与《间谍过家家》阿尼亚角色互动，支持专业问题解答 |
+| **智能推荐** | 根据用户位置和偏好，推荐热门打卡点 |
+| **聊天记录** | 保存历史对话，随时回顾 |
 
 ### ❤️ 互动体系
 
@@ -119,6 +136,16 @@
 | **评论回复** | 与其他用户深度交流（支持@功能） |
 | **评论点赞** | 让有价值的评论脱颖而出 |
 | **私信聊天** | 与感兴趣的用户实时交流 |
+| **用户关注** | 查看用户帖子列表和空间 |
+
+### 📊 访客统计
+
+| 功能 | 描述 |
+|:---|:---|
+| **访问记录** | 记录每次访问的 IP、路径、方法、来源 |
+| **实时访客** | 查看当前在线用户数量 |
+| **统计分析** | 按时间维度统计访问量趋势 |
+| **用户追踪** | 区分登录用户和游客访问 |
 
 ---
 
@@ -129,8 +156,8 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        Client Layer                          │
-│  React 18 + Leaflet + WebSocket Client                      │
-│  • 响应式 UI • 地图渲染 • 实时消息接收 • 状态管理             │
+│  React 18 + Leaflet + WebSocket Client + AI Components      │
+│  • 响应式 UI • 地图渲染 • 实时消息接收 • AI 交互              │
 └─────────────────────────────────────────────────────────────┘
                               │ HTTP / WebSocket
                               ▼
@@ -143,15 +170,24 @@
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                        Backend Layer                         │
-│  Go 1.21+ + Gin + GORM + Gorilla WebSocket                  │
+│  Go 1.21+ + Gin + GORM + Gorilla WebSocket + AI SDK         │
 │  • RESTful API • JWT 认证 • WebSocket Hub • 消息推送          │
+│  • AI 分析服务 • 访客统计 • 聊天机器人                        │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                        Data Layer                            │
 │  MySQL 8.0                                                  │
-│  • 用户数据 • 帖子内容 • 评论互动 • 点赞关系 • 消息            │
+│  • 用户数据 • 帖子内容 • 评论互动 • 点赞关系 • 消息 • 聊天记录  │
+│  • 访客记录 • 打卡点数据 • 评论数据                          │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                        AI Services                           │
+│  阿里云百炼 (Qwen-Turbo / Qwen3-Coder-Plus)                 │
+│  • 地点分析 • 内容生成 • 智能对话 • 推荐系统                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -193,6 +229,19 @@
 └─────────────────────────────────────────────────────────┘
 ```
 
+### AI 服务架构
+
+```
+┌──────────────┐      HTTP POST       ┌──────────────────┐
+│   TapSpot    │─────────────────────►│  阿里云百炼 API   │
+│   Backend    │  { message, lat, lng }│  Qwen 模型        │
+└──────────────┘                      └──────────────────┘
+        ▲                                       │
+        │                                       │
+        │         { reply, recommendations }    │
+        └───────────────────────────────────────┘
+```
+
 ### 技术栈
 
 #### Frontend
@@ -203,6 +252,7 @@
 | **Leaflet** | 1.9+ | 地图渲染 |
 | **Lucide React** | latest | 图标库 |
 | **WebSocket API** | Native | 实时通讯 |
+| **Fetch API** | Native | HTTP 请求 |
 
 #### Backend
 
@@ -211,9 +261,11 @@
 | **Go** | 1.21+ | 高性能编程语言 |
 | **Gin** | latest | 轻量级 Web 框架 |
 | **GORM** | latest | ORM 库 |
-| **jwt-go** | latest | JWT 认证 |
+| **jwt-go** | v5 | JWT 认证 |
 | **bcrypt** | latest | 密码加密 |
 | **Gorilla WebSocket** | latest | WebSocket 支持 |
+| **godotenv** | latest | 环境变量管理 |
+| **gin-contrib/cors** | latest | CORS 中间件 |
 
 #### Infrastructure
 
@@ -223,6 +275,7 @@
 | **Systemd** | 服务管理、自动重启 |
 | **Git** | 版本控制与协作 |
 | **MySQL** | 关系型数据库 |
+| **阿里云百炼** | AI 模型服务（Qwen） |
 
 ### 安全特性
 
@@ -232,6 +285,8 @@
 | **Token 认证** | JWT Token 验证，无状态认证 |
 | **请求校验** | 所有 API 请求进行身份验证 |
 | **数据隔离** | 用户只能操作自己的数据 |
+| **访客记录** | 记录访问 IP 和行为，便于审计 |
+| **注册 IP** | 记录用户注册时的 IP 地址 |
 
 ### 性能优化
 
@@ -241,6 +296,8 @@
 | **分页查询** | 大数据列表采用分页加载 |
 | **连接复用** | WebSocket 长连接减少握手开销 |
 | **索引优化** | 数据库关键字段建立索引 |
+| **缓存策略** | AI 分析结果可缓存，减少 API 调用 |
+| **去重机制** | 消息和评论自动去重 |
 
 ---
 
@@ -255,32 +312,70 @@ TapSpot/
 │   ├── 📂 config/                    # 配置文件
 │   │   └── 📄 database.go               # 数据库配置
 │   ├── 📂 controllers/               # 控制器
-│   │   ├── 📄 auth.go                   # 认证相关
+│   │   ├── 📄 auth_controller.go        # 认证相关
 │   │   ├── 📄 post.go                   # 帖子相关
 │   │   ├── 📄 comment.go                # 评论相关
 │   │   ├── 📄 like.go                   # 点赞相关
 │   │   ├── 📄 user.go                   # 用户相关
-│   │   └── 📄 message.go                # 消息相关
+│   │   ├── 📄 message.go                # 消息相关
+│   │   ├── 📄 websocket.go              # WebSocket 处理
+│   │   ├── 📄 ai.go                     # AI 分析服务
+│   │   ├── 📄 chat.go                   # 阿尼亚聊天
+│   │   ├── 📄 stats.go                  # 访客统计
+│   │   ├── 📄 poi.go                    # 地理服务
+│   │   ├── 📄 spot.go                   # 打卡点管理
+│   │   ├── 📄 review.go                 # 评论管理
+│   │   └── 📄 utils.go                  # 工具函数
 │   ├── 📂 models/                    # 数据模型
 │   │   └── 📄 models.go                 # GORM 模型定义
 │   ├── 📂 routes/                    # 路由定义
 │   │   └── 📄 routes.go                 # API 路由
-│   └── 📂 websocket/                 # WebSocket
-│       └── 📄 chat.go                   # 聊天 Hub 实现
+│   ├── 📂 websocket/                 # WebSocket
+│   │   └── 📄 chat.go                   # 聊天 Hub 实现
+│   ├── 📂 middleware/                # 中间件
+│   │   ├── 📄 auth_middleware.go        # 认证中间件
+│   │   └── 📄 visit_logger.go           # 访客记录中间件
+│   ├── 📂 services/                  # 服务层
+│   │   └── 📄 auth_service.go           # 认证服务
+│   └── 📂 dto/                       # 数据传输对象
+│       └── 📄 auth_dto.go               # 认证 DTO
 │
 ├── 📂 frontend/                   # 前端应用 (React)
 │   ├── 📂 src/                       # 源代码
 │   │   ├── 📄 App.jsx                  # 主应用组件
-│   │   └── 📂 components/              # 组件
-│   │       └── 📄 Chat.jsx               # 聊天组件
+│   │   ├── 📂 components/              # 组件
+│   │   │   ├── 📄 Chat/                  # 聊天相关
+│   │   │   │   ├── 📄 MessageCenter.jsx   # 消息中心
+│   │   │   │   └── 📄 Chat.jsx            # 聊天组件
+│   │   │   ├── 📄 Map/                   # 地图相关
+│   │   │   │   └── 📄 MapIcon.js          # 地图图标
+│   │   │   ├── 📄 AIAssistant.jsx         # AI 分析助手
+│   │   │   ├── 📄 TextSelectionAI.jsx     # 文字选择 AI
+│   │   │   └── 📄 AnyaChat.jsx            # 阿尼亚聊天
+│   │   ├── 📂 utils/                   # 工具函数
+│   │   │   ├── 📄 api.js                  # API 请求封装
+│   │   │   ├── 📄 constants.js            # 常量定义
+│   │   │   └── 📄 helpers.js              # 辅助函数
+│   │   └── 📂 styles/                  # 样式文件
+│   │       └── 📄 modern.css              # 现代样式
 │   └── 📂 dist/                      # 构建输出
 │       └── 📂 assets/                   # 静态资源
 │
-├── 📂 docs/                       # 项目文档
+├── 📂 database/                   # 数据库脚本
+├── 📂 nginx/                      # Nginx 配置
+│   └── 📄 nginx.conf
 │
 ├── 📄 docker-compose.yml          # Docker 编排
+├── 📄 Dockerfile                   # 后端 Docker 镜像
+├── 📄 Dockerfile.frontend          # 前端 Docker 镜像
+├── 📄 .dockerignore                # Docker 忽略文件
 ├── 📄 deploy.sh                   # 部署脚本
-└── 📄 README.md                   # 项目说明
+├── 📄 start.sh                    # 启动脚本
+├── 📄 .gitignore                  # Git 忽略文件
+├── 📄 README.md                   # 项目说明
+├── 📄 CONTRIBUTING.md             # 贡献指南
+├── 📄 UPLOAD_GUIDE.md             # 上传指南
+└── 📄 AGENTS.md                   # Agent 配置
 ```
 
 ---
@@ -295,8 +390,11 @@ TapSpot/
 | POST | `/api/login` | 用户登录 | ❌ |
 | GET | `/api/me` | 获取当前用户信息 | ✅ |
 | PUT | `/api/me` | 更新用户资料 | ✅ |
+| POST | `/api/change-password` | 修改密码 | ✅ |
 | GET | `/api/users/:id` | 获取用户公开信息 | ✅ |
 | GET | `/api/users/:id/posts` | 获取用户的帖子 | ✅ |
+| GET | `/api/users/stats` | 获取用户统计 | ✅ |
+| GET | `/api/users/search` | 搜索用户 | ❌ |
 
 ### 📝 帖子管理
 
@@ -320,17 +418,33 @@ TapSpot/
 | POST | `/api/comments/:id/like` | 评论点赞/取消 | ✅ |
 | GET | `/api/comments/likes/check` | 检查评论点赞状态 | ✅ |
 | GET | `/api/posts/:id/best-comment` | 获取最佳评论 (PK 结果) | ❌ |
+| GET | `/api/posts/comments/count` | 批量获取评论数 | ❌ |
 
 ### 💬 消息系统
 
 | 方法 | 路径 | 描述 | 认证 |
 |:---|:---|:---|:---|
 | GET | `/api/conversations` | 获取会话列表 | ✅ |
-| GET | `/api/conversations/with?user_id=X` | 获取或创建与某用户的会话 | ✅ |
+| GET | `/api/conversations/with` | 获取或创建与某用户的会话 | ✅ |
 | POST | `/api/conversations/:id/read` | 标记会话已读 | ✅ |
 | GET | `/api/conversations/:id/messages` | 获取会话消息 | ✅ |
 | POST | `/api/messages` | 发送消息 | ✅ |
 | GET | `/api/messages/unread` | 获取未读消息数 | ✅ |
+
+### 🤖 AI 服务
+
+| 方法 | 路径 | 描述 | 认证 |
+|:---|:---|:---|:---|
+| POST | `/api/ai/analyze` | AI 分析地点或文字 | ❌ |
+| POST | `/api/chat` | 与阿尼亚聊天 | ❌ |
+| GET | `/api/chat/history/:user_id` | 获取聊天历史 | ✅ |
+
+### 📊 访客统计
+
+| 方法 | 路径 | 描述 | 认证 |
+|:---|:---|:---|:---|
+| GET | `/api/stats/visits` | 获取访问统计 | ✅ |
+| GET | `/api/stats/realtime` | 获取实时访客 | ✅ |
 
 ### 📍 地理服务
 
@@ -380,10 +494,12 @@ ws.onmessage = (event) => {
 │ avatar       │   │   │ type         │       │ reply_to_id  │   │  │
 │ gender       │   │   │ location     │       │ reply_to_user│   │  │
 │ bio          │   │   │ latitude     │       │ created_at   │   │  │
-│ created_at   │   │   │ longitude    │       └──────────────┘   │  │
-└──────────────┘   │   │ created_at   │                          │  │
-       ▲           │   └──────────────┘                          │  │
-       │           │         ▲                                   │  │
+│ email        │   │   │ longitude    │       └──────────────┘   │  │
+│ phone        │   │   │ created_at   │                          │  │
+│ registration_ip│ │   └──────────────┘                          │  │
+│ created_at   │   │         ▲                                   │  │
+└──────────────┘   │         │                                   │  │
+       ▲           │         │                                   │  │
        │           │         │                                   │  │
 ┌──────────────┐   │         │         ┌──────────────┐         │  │
 │    likes     │   │         │         │comment_likes │         │  │
@@ -394,29 +510,46 @@ ws.onmessage = (event) => {
 │ created_at   │                       │ created_at   │
 └──────────────┘                       └──────────────┘
 
+┌──────────────┐       ┌──────────────┐       ┌──────────────┐
+│   messages   │       │conversations │       │   visits     │
+├──────────────┤       ├──────────────┤       ├──────────────┤
+│ id (PK)      │       │ id (PK)      │       │ id (PK)      │
+│ sender_id    │───────│ user_id (FK) │       │ ip_address   │
+│ receiver_id  │       │ peer_id (FK) │       │ user_agent   │
+│ content      │       │ last_message │       │ path         │
+│ post_id      │       │ last_msg_time│       │ method       │
+│ is_read      │       │ unread_count │       │ user_id (FK) │
+│ created_at   │       │ created_at   │       │ referer      │
+└──────────────┘       └──────────────┘       │ created_at   │
+                                               └──────────────┘
+
 ┌──────────────┐       ┌──────────────┐
-│   messages   │       │conversations │
+│  chat_message│       │    spots     │
 ├──────────────┤       ├──────────────┤
 │ id (PK)      │       │ id (PK)      │
-│ sender_id    │───────│ user_id (FK) │
-│ receiver_id  │       │ peer_id (FK) │
-│ content      │       │ last_message │
-│ is_read      │       │ last_msg_time│
-│ created_at   │       │ unread_count │
-└──────────────┘       └──────────────┘
+│ user_id (FK) │       │ name         │
+│ role         │       │ description  │
+│ content      │       │ latitude     │
+│ created_at   │       │ longitude    │
+└──────────────┘       │ ...          │
+                       └──────────────┘
 ```
 
 ### 核心数据表
 
 | 表名 | 说明 | 主要字段 |
 |:---|:---|:---|
-| `users` | 用户表 | id, username, nickname, avatar, gender, bio |
-| `posts` | 帖子表 | id, user_id, title, content, type, location, lat, lng |
-| `comments` | 评论表 | id, post_id, user_id, content, reply_to_id |
+| `users` | 用户表 | id, username, nickname, avatar, gender, bio, email, phone, registration_ip |
+| `posts` | 帖子表 | id, user_id, title, content, type, location_name, latitude, longitude |
+| `comments` | 评论表 | id, post_id, user_id, content, reply_to_id, reply_to_user |
 | `likes` | 帖子点赞表 | id, user_id, post_id |
 | `comment_likes` | 评论点赞表 | id, user_id, comment_id |
-| `conversations` | 会话表 | id, user_id, peer_id, last_message, unread_count |
-| `messages` | 消息表 | id, sender_id, receiver_id, content, is_read |
+| `conversations` | 会话表 | id, user_id, peer_id, last_message, last_msg_time, unread_count |
+| `messages` | 消息表 | id, sender_id, receiver_id, content, post_id, is_read |
+| `visits` | 访客记录表 | id, ip_address, user_agent, path, method, user_id, referer |
+| `chat_messages` | 聊天记录表 | id, user_id, role, content |
+| `spots` | 打卡点表 | id, name, description, latitude, longitude, category, rating |
+| `reviews` | 打卡点评论表 | id, spot_id, author, content, rating, images, likes |
 
 ---
 
@@ -430,6 +563,7 @@ ws.onmessage = (event) => {
 | Node.js | ≥ 18.0 | 前端构建环境 |
 | MySQL | ≥ 8.0 | 数据库 |
 | Nginx | ≥ 1.20 | 反向代理 |
+| 阿里云百炼 API Key | 可选 | AI 功能需要 |
 
 ### 方式一：完整部署（推荐）
 
@@ -462,6 +596,9 @@ go mod download
 
 # 修改数据库配置
 # 编辑 config/database.go，更新数据库连接信息
+
+# 配置 AI API Key（可选）
+export AI_API_KEY="your-alibaba-cloud-api-key"
 ```
 
 #### 4️⃣ 构建并运行后端
@@ -584,11 +721,18 @@ curl http://localhost:8080/api/health
 - [x] 💬 实时聊天系统（WebSocket）
 - [x] 消息轮询机制
 - [x] 未读消息提醒
+- [x] 🤖 AI 地点分析
+- [x] 🤖 阿尼亚聊天机器人
+- [x] 📊 访客统计系统
+- [x] 用户搜索功能
+- [x] 密码修改功能
+- [x] 聊天记录保存
 
 ### 🚧 进行中
 
 - [ ] 图片上传功能
 - [ ] 消息推送通知
+- [ ] AI 推荐优化
 
 ### 📅 计划中
 
@@ -597,6 +741,7 @@ curl http://localhost:8080/api/health
 - [ ] 热门地点推荐算法
 - [ ] 微信小程序版本
 - [ ] AI 智能内容审核
+- [ ] 多语言支持
 
 ---
 
@@ -631,6 +776,27 @@ location /api/ws {
 dsn := "user:password@tcp(127.0.0.1:3306)/tapspot?charset=utf8mb4&parseTime=True&loc=Local"
 ```
 
+### Q: AI 功能如何使用？
+
+1. 注册阿里云百炼账号
+2. 获取 API Key
+3. 设置环境变量：`export AI_API_KEY="your-api-key"`
+4. 重启后端服务
+
+未配置 API Key 时，AI 功能会返回模拟数据。
+
+### Q: 如何查看访客统计？
+
+访问统计 API 需要认证：
+
+```bash
+# 获取访问统计
+curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/stats/visits
+
+# 获取实时访客
+curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/stats/realtime
+```
+
 ---
 
 ## 🤝 贡献指南
@@ -645,6 +811,13 @@ dsn := "user:password@tcp(127.0.0.1:3306)/tapspot?charset=utf8mb4&parseTime=True
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 提交 **Pull Request**
 
+### 开发规范
+
+- 遵循 Go 和 React 代码规范
+- 提交信息使用英文或中文，清晰描述变更
+- 新功能需要包含测试用例
+- 更新文档说明新功能的用法
+
 ---
 
 ## 📄 开源协议
@@ -657,6 +830,20 @@ dsn := "user:password@tcp(127.0.0.1:3306)/tapspot?charset=utf8mb4&parseTime=True
 
 - **GitHub**: [https://github.com/codedancewth/TapSpot](https://github.com/codedancewth/TapSpot)
 - **Issues**: [提交问题](https://github.com/codedancewth/TapSpot/issues)
+- **Email**: contact@tapspot.dev (示例)
+
+---
+
+## 🙏 致谢
+
+感谢以下开源项目：
+
+- [React](https://react.dev/) - UI 框架
+- [Leaflet](https://leafletjs.com/) - 地图库
+- [Gin](https://gin-gonic.com/) - Go Web 框架
+- [GORM](https://gorm.io/) - Go ORM 库
+- [阿里云百炼](https://bailian.console.aliyun.com/) - AI 模型服务
+- [Lucide Icons](https://lucide.dev/) - 图标库
 
 ---
 
