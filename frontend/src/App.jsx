@@ -208,6 +208,16 @@ export default function App() {
   const [showUserSpace, setShowUserSpace] = useState(null) // 查看用户空间 { user, posts }
   const [loadingUserSpace, setLoadingUserSpace] = useState(false)
   
+  // 合并所有需要显示的帖子（主列表 + 用户空间帖子）
+  const allPostsForMap = React.useMemo(() => {
+    if (!showUserSpace || !showUserSpace.posts) return posts
+    // 合并主帖子列表和用户空间帖子，去重
+    const postMap = new Map()
+    posts.forEach(p => postMap.set(p.id, p))
+    showUserSpace.posts.forEach(p => postMap.set(p.id, p))
+    return Array.from(postMap.values())
+  }, [posts, showUserSpace])
+  
   // AI 分析相关状态
   const [analyzing, setAnalyzing] = useState(false)
   const [aiAnalysis, setAiAnalysis] = useState('')
@@ -751,10 +761,22 @@ export default function App() {
         api(`/users/${userId}`),
         api(`/users/${userId}/posts`)
       ])
+      const userPosts = postsData.posts || []
       setShowUserSpace({
         user: userData.data?.user || userData.user,
-        posts: postsData.posts || []
+        posts: userPosts
       })
+      // 如果有帖子，自动缩放地图到这些帖子的范围
+      if (userPosts.length > 0 && mapRef) {
+        const bounds = userPosts.map(p => [p.latitude, p.longitude])
+        if (bounds.length === 1) {
+          // 只有一个帖子，放大到该位置
+          mapRef.setView(bounds[0], 13, { animate: true })
+        } else {
+          // 多个帖子，缩放到包含所有帖子的范围
+          mapRef.fitBounds(bounds, { padding: [50, 50], animate: true })
+        }
+      }
     } catch (error) {
       console.error('获取用户空间失败:', error)
       alert('获取用户信息失败')
@@ -1394,7 +1416,7 @@ export default function App() {
 
             setShowPost(true)
           }} onReady={setMapRef} onZoom={setMapZoom} onMouseMove={setMouseCoords} />
-          {posts.map(item => (
+          {allPostsForMap.map(item => (
             <Marker 
               key={`post-${item.id}`} 
               position={[item.latitude, item.longitude]} 
