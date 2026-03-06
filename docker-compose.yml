@@ -32,6 +32,8 @@ services:
       - "8081:80"
     depends_on:
       - backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - tapspot-network
 
