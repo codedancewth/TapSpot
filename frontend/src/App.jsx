@@ -1379,16 +1379,17 @@ export default function App() {
         right: 0, bottom: 0,
         transition: 'left 0.3s ease',
       }}>
-        <MapContainer center={[35.8617, 104.1954]} zoom={mapZoom} style={{ width: '100%', height: '100%' }} zoomControl={false}>
+        <MapContainer center={[35.8617, 104.1954]} zoom={mapZoom} style={{ width: '100%', height: '100%' }} zoomControl={false} worldCopyJump={true}>
           <TileLayer 
             url="https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}" 
             subdomains="1234" 
             attribution='&copy; 高德地图' 
             maxZoom={18}
-            minZoom={3}
+            minZoom={2}
             keepBuffer={10}
             updateWhenZooming={false}
             crossOrigin="anonymous"
+            noWrap={false}
           />
           <MapEvents onClick={async (latlng, originalEvent) => {
             // 如果点击的是 Marker 或 Popup，不处理（由 Leaflet 判断）

@@ -30,3 +30,6 @@ tapspot
 # Frontend - ignore build and deps, keep source
 frontend/node_modules/
 frontend/dist/
+
+# Map tiles (too large)
+tiles/

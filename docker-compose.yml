@@ -1,24 +1,6 @@
 version: '3.8'
 
 services:
-  # MySQL 数据库
-  mysql:
-    image: mysql:8.0
-    container_name: tapspot-mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: tapspot_root_password
-      MYSQL_DATABASE: tapspot
-      MYSQL_USER: tapspot
-      MYSQL_PASSWORD: tapspot_password
-    volumes:
-      - mysql_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    networks:
-      - tapspot-network
-    command: --default-authentication-plugin=mysql_native_password
-
   # 后端服务
   backend:
     build:
@@ -27,20 +9,17 @@ services:
     container_name: tapspot-backend
     restart: always
     environment:
-      DB_HOST: mysql
+      DB_HOST: host.docker.internal
       DB_PORT: 3306
       DB_USER: root
-      DB_PASSWORD: tapspot_root_password
+      DB_PASSWORD: TapSpot@2026
       DB_NAME: tapspot
       PORT: 8080
       GIN_MODE: release
       AI_API_KEY: ${AI_API_KEY:-}
-    depends_on:
-      - mysql
-    networks:
-      - tapspot-network
-    expose:
-      - "8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    network_mode: "host"
 
   # 前端服务
   frontend:
@@ -50,7 +29,7 @@ services:
     container_name: tapspot-frontend
     restart: always
     ports:
-      - "80:80"
+      - "8081:80"
     depends_on:
       - backend
     networks:
