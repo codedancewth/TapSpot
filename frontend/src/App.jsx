@@ -1380,12 +1380,24 @@ export default function App() {
         transition: 'left 0.3s ease',
       }}>
         <MapContainer center={[35.8617, 104.1954]} zoom={mapZoom} style={{ width: '100%', height: '100%' }} zoomControl={false} worldCopyJump={true}>
+          {/* 本地离线瓦片（中东 + 中国） */}
+          <TileLayer 
+            url="/tiles/{z}/{x}/{y}.png"
+            attribution='&copy; TapSpot 离线地图' 
+            maxZoom={10}
+            minZoom={1}
+            keepBuffer={10}
+            updateWhenZooming={false}
+            crossOrigin="anonymous"
+            noWrap={false}
+          />
+          {/* 高德在线瓦片（备用） */}
           <TileLayer 
             url="https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}" 
             subdomains="1234" 
             attribution='&copy; 高德地图' 
             maxZoom={18}
-            minZoom={2}
+            minZoom={11}
             keepBuffer={10}
             updateWhenZooming={false}
             crossOrigin="anonymous"

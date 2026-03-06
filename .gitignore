@@ -31,5 +31,5 @@ tapspot
 frontend/node_modules/
 frontend/dist/
 
-# Map tiles (too large)
-tiles/
+# Map tiles - include in Docker but not git (too large)
+# tiles/ directory is copied during Docker build
