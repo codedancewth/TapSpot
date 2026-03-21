@@ -96,6 +96,12 @@ func migrateDB() {
 		&models.PlayerItem{},
 		&models.CheckinStreak{},
 		&models.Leaderboard{},
+		
+		// 关注系统
+		&models.Follow{},
+		
+		// 通知系统
+		&models.Notification{},
 	)
 	log.Println("✅ 数据库迁移完成")
 }

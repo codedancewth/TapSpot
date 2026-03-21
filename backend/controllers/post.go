@@ -15,6 +15,7 @@ type CreatePostRequest struct {
 	LocationName string  `json:"location_name"`
 	Latitude     float64 `json:"latitude" binding:"required"`
 	Longitude    float64 `json:"longitude" binding:"required"`
+	ImageURL     string  `json:"image_url"`
 }
 
 // PostResponse 帖子响应格式
@@ -26,6 +27,7 @@ type PostResponse struct {
 	LocationName string  `json:"location_name"`
 	Latitude     float64 `json:"latitude"`
 	Longitude    float64 `json:"longitude"`
+	ImageURL     string  `json:"image_url"`
 	Likes        int     `json:"likes"`
 	Author       string  `json:"author"`
 	AuthorID     uint    `json:"authorId"`
@@ -50,6 +52,7 @@ func formatPost(post models.Post) PostResponse {
 		LocationName: post.LocationName,
 		Latitude:     post.Latitude,
 		Longitude:    post.Longitude,
+		ImageURL:     post.ImageURL,
 		Likes:        int(likeCount),
 		Author:       author,
 		AuthorID:     post.UserID,
@@ -151,6 +154,7 @@ func CreatePost(c *gin.Context) {
 		LocationName: req.LocationName,
 		Latitude:     req.Latitude,
 		Longitude:    req.Longitude,
+		ImageURL:     req.ImageURL,
 	}
 
 	if err := models.DB.Create(&post).Error; err != nil {

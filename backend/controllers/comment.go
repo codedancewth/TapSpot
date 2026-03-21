@@ -4,9 +4,12 @@ import (
 	"net/http"
 	"sort"
 	"tapspot/models"
+	"tapspot/services"
 
 	"github.com/gin-gonic/gin"
 )
+
+var commentNotificationService = services.NewNotificationService()
 
 // GetComments 获取帖子评论
 func GetComments(c *gin.Context) {
@@ -99,6 +102,9 @@ func CreateComment(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "评论失败"})
 		return
 	}
+
+	// 创建评论通知（通知帖子作者）
+	commentNotificationService.CreateCommentNotification(post.UserID, userID, post.ID, post.Title, comment.ID, req.Content)
 
 	// 获取用户信息
 	var user models.User

@@ -37,6 +37,7 @@ type Post struct {
 	LocationName string         `json:"location_name" gorm:"size:255"`
 	Latitude     float64        `json:"latitude" gorm:"not null;index"`
 	Longitude    float64        `json:"longitude" gorm:"not null;index"`
+	ImageURL     string         `json:"image_url" gorm:"size:500;default:''"` // 帖子图片
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `json:"-" gorm:"index"`

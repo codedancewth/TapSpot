@@ -33,3 +33,4 @@ frontend/dist/
 
 # Map tiles - include in Docker but not git (too large)
 # tiles/ directory is copied during Docker build
+tiles/

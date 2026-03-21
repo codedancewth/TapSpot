@@ -27,8 +27,22 @@ func SetupRoutes(r *gin.Engine) {
 			auth.PUT("/me", authController.UpdateProfile)
 			auth.POST("/change-password", authController.ChangePassword)
 			auth.GET("/users/:id", authController.GetUserProfile)
-		auth.GET("/users/:id/posts", controllers.GetUserPosts)
-		auth.GET("/users/stats", controllers.GetUserStats)
+			auth.GET("/users/:id/posts", controllers.GetUserPosts)
+			auth.GET("/users/stats", controllers.GetUserStats)
+
+			// 关注相关
+			auth.POST("/users/:id/follow", controllers.FollowUser)
+			auth.DELETE("/users/:id/follow", controllers.UnfollowUser)
+			auth.GET("/users/:id/followers", controllers.GetFollowers)
+			auth.GET("/users/:id/following", controllers.GetFollowing)
+			auth.GET("/users/:id/stats", controllers.GetFollowStats)
+			auth.GET("/users/following/check", controllers.CheckFollowing)
+
+			// 通知相关
+			auth.GET("/notifications", controllers.GetNotifications)
+			auth.GET("/notifications/unread-count", controllers.GetUnreadNotificationCount)
+			auth.PUT("/notifications/:id/read", controllers.MarkNotificationAsRead)
+			auth.PUT("/notifications/read-all", controllers.MarkAllNotificationsAsRead)
 
 			// 帖子路由
 			auth.POST("/posts", controllers.CreatePost)
@@ -50,6 +64,10 @@ func SetupRoutes(r *gin.Engine) {
 			auth.GET("/conversations/:id/messages", controllers.GetMessages)
 			auth.POST("/messages", controllers.SendMessage)
 			auth.GET("/messages/unread", controllers.GetUnreadCount)
+
+			// 文件上传
+			auth.POST("/upload", controllers.UploadImage)
+			auth.POST("/upload/post-image", controllers.UploadPostImage)
 		}
 
 		// 公开路由

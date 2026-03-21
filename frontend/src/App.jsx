@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
-import { Heart, X, Plus, ZoomIn, ZoomOut, Compass, User, LogOut, MapPin, Clock, ChevronRight, Search, Loader2, MessageCircle, Send, Mail } from 'lucide-react'
+import { Heart, X, Plus, ZoomIn, ZoomOut, Compass, User, LogOut, MapPin, Clock, ChevronRight, Search, Loader2, MessageCircle, Send, Mail, Bell } from 'lucide-react'
 import './styles/modern.css'
 import { MessageCenter } from './components/Chat/MessageCenter.jsx'
 import AIAssistant from './components/AIAssistant.jsx'
@@ -171,7 +171,7 @@ export default function App() {
   const [mapZoom, setMapZoom] = useState(4)
   const [mapRef, setMapRef] = useState(null)
   const [showPost, setShowPost] = useState(false)
-  const [postForm, setPostForm] = useState({ title: '', content: '', type: 'post', location_name: '' })
+  const [postForm, setPostForm] = useState({ title: '', content: '', type: 'post', location_name: '', image_url: '' })
   const [postCoords, setPostCoords] = useState(null)
   const [selectingLocation, setSelectingLocation] = useState(false)
   const [showSidebar, setShowSidebar] = useState(true)
@@ -207,6 +207,143 @@ export default function App() {
   const [anyaAvatar, setAnyaAvatar] = useState(localStorage.getItem('anya_avatar') || '') // 阿尼亚自定义头像
   const [showUserSpace, setShowUserSpace] = useState(null) // 查看用户空间 { user, posts }
   const [loadingUserSpace, setLoadingUserSpace] = useState(false)
+  
+  // ============ 通知系统状态 ============
+  const [notifications, setNotifications] = useState([]) // 通知列表
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0) // 未读通知数
+  const [showNotificationPanel, setShowNotificationPanel] = useState(false) // 通知面板显示状态
+  const [loadingNotifications, setLoadingNotifications] = useState(false)
+  
+  // ============ 关注系统状态 ============
+  const [followStats, setFollowStats] = useState({ followers_count: 0, following_count: 0 }) // 用户关注统计
+  const [isFollowing, setIsFollowing] = useState(false) // 当前用户是否关注了查看的用户
+  const [followingLoading, setFollowingLoading] = useState(false) // 关注操作中
+
+  // ============ 游戏化系统状态 ============
+  const [showGamePanel, setShowGamePanel] = useState(false) // 游戏面板显示状态
+  const [gamePanelTab, setGamePanelTab] = useState('profile') // 'profile'|'achievements'|'quests'|'leaderboard'
+  const [playerProfile, setPlayerProfile] = useState(null) // 玩家资料
+  const [achievements, setAchievements] = useState([]) // 成就列表
+  const [quests, setQuests] = useState({ daily: [], weekly: [], main: [] }) // 任务列表
+  const [leaderboard, setLeaderboard] = useState({ level: [], checkin: [], likes: [] }) // 排行榜
+  const [checkinLoading, setCheckinLoading] = useState(false) // 签到中
+  const [checkinResult, setCheckinResult] = useState(null) // 签到结果
+  const [questTab, setQuestTab] = useState('daily') // 'daily'|'weekly'|'main'
+  const [leaderboardTab, setLeaderboardTab] = useState('level') // 'level'|'checkin'|'likes'
+  const [loadingGameData, setLoadingGameData] = useState(false)
+
+  // 获取玩家游戏资料
+  const fetchPlayerProfile = async () => {
+    if (!user) return
+    try {
+      const data = await api('/player/profile')
+      setPlayerProfile(data.data || data)
+    } catch (error) {
+      console.error('获取玩家资料失败:', error)
+    }
+  }
+
+  // 获取成就列表
+  const fetchAchievements = async () => {
+    if (!user) return
+    try {
+      const data = await api('/player/achievements')
+      setAchievements(data.achievements || data.data || [])
+    } catch (error) {
+      console.error('获取成就列表失败:', error)
+    }
+  }
+
+  // 获取任务列表
+  const fetchQuests = async () => {
+    if (!user) return
+    try {
+      const data = await api('/player/quests')
+      const questData = data.quests || data.data || data
+      setQuests({
+        daily: questData.daily || [],
+        weekly: questData.weekly || [],
+        main: questData.main || []
+      })
+    } catch (error) {
+      console.error('获取任务列表失败:', error)
+    }
+  }
+
+  // 获取排行榜
+  const fetchLeaderboard = async (type = 'level') => {
+    try {
+      const data = await api(`/leaderboard?type=${type}`)
+      const lbData = data.leaderboard || data.data || data
+      setLeaderboard(prev => ({ ...prev, [type]: lbData }))
+    } catch (error) {
+      console.error('获取排行榜失败:', error)
+    }
+  }
+
+  // 每日签到
+  const handleDailyCheckin = async () => {
+    if (!user) { setShowLogin(true); return }
+    setCheckinLoading(true)
+    try {
+      const data = await api('/player/daily-checkin', { method: 'POST' })
+      setCheckinResult(data.data || data)
+      // 刷新玩家资料
+      fetchPlayerProfile()
+    } catch (error) {
+      alert(error.message || '签到失败')
+    } finally {
+      setCheckinLoading(false)
+    }
+  }
+
+  // 打开游戏面板
+  const openGamePanel = (tab = 'profile') => {
+    if (!user) { setShowLogin(true); return }
+    setGamePanelTab(tab)
+    setShowGamePanel(true)
+    setCheckinResult(null)
+    // 加载游戏数据
+    fetchPlayerProfile()
+    fetchAchievements()
+    fetchQuests()
+    fetchLeaderboard('level')
+    fetchLeaderboard('checkin')
+    fetchLeaderboard('likes')
+  }
+
+  // 计算等级进度百分比
+  const getLevelProgress = () => {
+    if (!playerProfile) return 0
+    const { xp = 0, level = 1, xpToNextLevel = 100 } = playerProfile
+    const xpInCurrentLevel = xp % xpToNextLevel
+    return Math.min(100, (xpInCurrentLevel / xpToNextLevel) * 100)
+  }
+
+  // 获取称号
+  const getTitle = (level) => {
+    if (level >= 100) return '传奇冒险家'
+    if (level >= 80) return '资深旅行家'
+    if (level >= 60) return '探索达人'
+    if (level >= 40) return '资深打卡者'
+    if (level >= 20) return '初级探险家'
+    if (level >= 10) return '新手旅行者'
+    if (level >= 5) return '新手游客'
+    return '路人甲'
+  }
+
+  // 成就图标映射
+  const achievementIcons = {
+    first_post: '📮', first_like: '❤️', ten_posts: '📍', fifty_posts: '🎯',
+    hundred_posts: '🏆', first_checkin: '📅', week_streak: '🔥', month_streak: '💎',
+    ten_likes: '⭐', fifty_likes: '🌟', hundred_likes: '💫', first_comment: '💬',
+    ten_comments: '💭', explorer: '🗺️', foodie: '🍽️', photographer: '📷',
+  }
+
+  // 任务图标映射
+  const questIcons = {
+    post: '📝', like: '❤️', comment: '💬', checkin: '📅', share: '🔗', view: '👁️'
+  }
   
   // 合并所有需要显示的帖子（主列表 + 用户空间帖子）
   const allPostsForMap = React.useMemo(() => {
@@ -380,6 +517,8 @@ export default function App() {
       setUser(data.data.user)
       setShowLogin(false)
       setLoginForm({ username: '', password: '' })
+      // 刷新游戏数据
+      fetchPlayerProfile()
     } catch (error) {
       alert(error.message)
     }
@@ -632,7 +771,7 @@ export default function App() {
       setTimeout(() => setNewPostId(null), 5000)
       if (mapRef) mapRef.setView([postCoords.lat, postCoords.lng], 12)
       setShowPost(false)
-      setPostForm({ title: '', content: '', type: 'post', location_name: '' })
+      setPostForm({ title: '', content: '', type: 'post', location_name: '', image_url: '' })
       setPostCoords(null)
       fetchPosts()
     } catch (error) {
@@ -757,15 +896,20 @@ export default function App() {
   const openUserSpace = async (userId, authorName) => {
     setLoadingUserSpace(true)
     try {
-      const [userData, postsData] = await Promise.all([
+      const [userData, postsData, statsData] = await Promise.all([
         api(`/users/${userId}`),
-        api(`/users/${userId}/posts`)
+        api(`/users/${userId}/posts`),
+        api(`/users/${userId}/stats`)
       ])
       const userPosts = postsData.posts || []
+      const userInfo = userData.data?.user || userData.user
       setShowUserSpace({
-        user: userData.data?.user || userData.user,
+        user: userInfo,
         posts: userPosts
       })
+      // 设置关注状态
+      setFollowStats(statsData.stats || { followers_count: 0, following_count: 0 })
+      setIsFollowing(statsData.is_following || false)
       // 如果有帖子，自动缩放地图到这些帖子的范围
       if (userPosts.length > 0 && mapRef) {
         const bounds = userPosts.map(p => [p.latitude, p.longitude])
@@ -782,6 +926,201 @@ export default function App() {
       alert('获取用户信息失败')
     } finally {
       setLoadingUserSpace(false)
+    }
+  }
+
+  // ============ 通知相关函数 ============
+  
+  // 获取通知列表
+  const fetchNotifications = async () => {
+    if (!user) return
+    setLoadingNotifications(true)
+    try {
+      const data = await api('/notifications')
+      setNotifications(data.notifications || [])
+    } catch (error) {
+      console.error('获取通知失败:', error)
+    } finally {
+      setLoadingNotifications(false)
+    }
+  }
+  
+  // 获取未读通知数
+  const fetchUnreadNotificationCount = async () => {
+    if (!user) return
+    try {
+      const data = await api('/notifications/unread-count')
+      setUnreadNotificationCount(data.count || 0)
+    } catch (error) {
+      console.error('获取未读通知数失败:', error)
+    }
+  }
+  
+  // 标记通知为已读
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      await api(`/notifications/${notificationId}/read`, { method: 'PUT' })
+      setNotifications(prev => prev.map(n => 
+        n.id === notificationId ? { ...n, read: true } : n
+      ))
+      setUnreadNotificationCount(prev => Math.max(0, prev - 1))
+    } catch (error) {
+      console.error('标记已读失败:', error)
+    }
+  }
+  
+  // 标记所有通知为已读
+  const markAllNotificationsAsRead = async () => {
+    try {
+      await api('/notifications/read-all', { method: 'PUT' })
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+      setUnreadNotificationCount(0)
+    } catch (error) {
+      console.error('标记全部已读失败:', error)
+    }
+  }
+  
+  // 获取通知类型图标
+  const getNotificationIcon = (type) => {
+    const icons = {
+      like: '❤️',
+      comment: '💬',
+      follow: '👤',
+      achievement: '🏆',
+      quest_complete: '🎯'
+    }
+    return icons[type] || '🔔'
+  }
+  
+  // 获取通知类型文本
+  const getNotificationText = (notification) => {
+    const { type, data: notifData } = notification
+    switch (type) {
+      case 'like':
+        return `赞了你的帖子「${notifData?.post_title || '帖子'}」`
+      case 'comment':
+        return `评论了你的帖子「${notifData?.post_title || '帖子'}」`
+      case 'follow':
+        return `关注了你`
+      case 'achievement':
+        return `获得了成就「${notifData?.achievement_name || '成就'}」`
+      case 'quest_complete':
+        return `完成了任务「${notifData?.quest_name || '任务'}」`
+      default:
+        return '有新通知'
+    }
+  }
+  
+  // 点击通知
+  const handleNotificationClick = async (notification) => {
+    // 标记为已读
+    if (!notification.read) {
+      await markNotificationAsRead(notification.id)
+    }
+    
+    // 根据通知类型处理跳转
+    if (notification.type === 'follow') {
+      // 跳转到用户空间
+      if (notification.data?.actor_id) {
+        setShowNotificationPanel(false)
+        openUserSpace(notification.data.actor_id, notification.data.actor_name)
+      }
+    } else if (notification.type === 'like' || notification.type === 'comment') {
+      // 跳转到帖子详情
+      if (notification.data?.post_id) {
+        setShowNotificationPanel(false)
+        const post = posts.find(p => p.id === notification.data.post_id)
+        if (post) {
+          openPostDetail(post)
+        }
+      }
+    }
+  }
+  
+  // 打开通知面板
+  const openNotificationPanel = async () => {
+    setShowNotificationPanel(!showNotificationPanel)
+    if (!showNotificationPanel) {
+      fetchNotifications()
+      fetchUnreadNotificationCount()
+    }
+  }
+  
+  // 定期获取未读通知数
+  useEffect(() => {
+    if (user) {
+      fetchUnreadNotificationCount()
+      const interval = setInterval(() => {
+        fetchUnreadNotificationCount()
+      }, 30000) // 每30秒刷新一次
+      return () => clearInterval(interval)
+    }
+  }, [user])
+
+  // ============ 关注相关函数 ============
+  
+  // 获取用户关注统计
+  const fetchFollowStats = async (targetUserId) => {
+    try {
+      const data = await api(`/users/${targetUserId}/stats`)
+      setFollowStats(data.stats || { followers_count: 0, following_count: 0 })
+      setIsFollowing(data.is_following || false)
+    } catch (error) {
+      console.error('获取关注统计失败:', error)
+    }
+  }
+  
+  // 关注用户
+  const handleFollow = async (targetUserId) => {
+    if (!user) {
+      setShowLogin(true)
+      return
+    }
+    setFollowingLoading(true)
+    try {
+      await api(`/users/${targetUserId}/follow`, { method: 'POST' })
+      setIsFollowing(true)
+      setFollowStats(prev => ({
+        ...prev,
+        followers_count: prev.followers_count + 1
+      }))
+    } catch (error) {
+      console.error('关注失败:', error)
+      alert('关注失败')
+    } finally {
+      setFollowingLoading(false)
+    }
+  }
+  
+  // 取消关注
+  const handleUnfollow = async (targetUserId) => {
+    if (!user) return
+    setFollowingLoading(true)
+    try {
+      await api(`/users/${targetUserId}/follow`, { method: 'DELETE' })
+      setIsFollowing(false)
+      setFollowStats(prev => ({
+        ...prev,
+        followers_count: Math.max(0, prev.followers_count - 1)
+      }))
+    } catch (error) {
+      console.error('取消关注失败:', error)
+      alert('取消关注失败')
+    } finally {
+      setFollowingLoading(false)
+    }
+  }
+  
+  // 更新用户空间的关注状态
+  const updateUserSpaceFollowState = (targetUserId, following) => {
+    if (showUserSpace && showUserSpace.user && showUserSpace.user.id === targetUserId) {
+      setShowUserSpace(prev => ({
+        ...prev,
+        user: {
+          ...prev.user,
+          is_following: following
+        }
+      }))
     }
   }
 
@@ -1069,6 +1408,66 @@ export default function App() {
                     width: 32, height: 32, cursor: 'pointer', color: COLORS.text,
                   }}><X size={16} /></button>
                 )}
+              </div>
+
+              {/* 游戏化导航按钮 */}
+              <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+                <button
+                  onClick={() => openGamePanel('quests')}
+                  style={{
+                    flex: 1, padding: '8px 6px',
+                    background: gamePanelTab === 'quests' ? COLORS.accent + '20' : COLORS.cardBgDark,
+                    border: gamePanelTab === 'quests' ? `1px solid ${COLORS.accent}` : '1px solid ' + COLORS.border,
+                    borderRadius: 10, cursor: 'pointer',
+                    color: gamePanelTab === 'quests' ? COLORS.accent : '#888',
+                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>🎯</span>
+                  <span style={{ fontWeight: 600 }}>任务</span>
+                </button>
+                <button
+                  onClick={() => openGamePanel('achievements')}
+                  style={{
+                    flex: 1, padding: '8px 6px',
+                    background: gamePanelTab === 'achievements' ? COLORS.accent + '20' : COLORS.cardBgDark,
+                    border: gamePanelTab === 'achievements' ? `1px solid ${COLORS.accent}` : '1px solid ' + COLORS.border,
+                    borderRadius: 10, cursor: 'pointer',
+                    color: gamePanelTab === 'achievements' ? COLORS.accent : '#888',
+                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>🏆</span>
+                  <span style={{ fontWeight: 600 }}>成就</span>
+                </button>
+                <button
+                  onClick={() => openGamePanel('leaderboard')}
+                  style={{
+                    flex: 1, padding: '8px 6px',
+                    background: gamePanelTab === 'leaderboard' ? COLORS.accent + '20' : COLORS.cardBgDark,
+                    border: gamePanelTab === 'leaderboard' ? `1px solid ${COLORS.accent}` : '1px solid ' + COLORS.border,
+                    borderRadius: 10, cursor: 'pointer',
+                    color: gamePanelTab === 'leaderboard' ? COLORS.accent : '#888',
+                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>📊</span>
+                  <span style={{ fontWeight: 600 }}>排行</span>
+                </button>
+                <button
+                  onClick={() => openGamePanel('profile')}
+                  style={{
+                    flex: 1, padding: '8px 6px',
+                    background: gamePanelTab === 'profile' ? COLORS.accent + '20' : COLORS.cardBgDark,
+                    border: gamePanelTab === 'profile' ? `1px solid ${COLORS.accent}` : '1px solid ' + COLORS.border,
+                    borderRadius: 10, cursor: 'pointer',
+                    color: gamePanelTab === 'profile' ? COLORS.accent : '#888',
+                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>💰</span>
+                  <span style={{ fontWeight: 600 }}>签到</span>
+                </button>
               </div>
 
               {/* Tab */}
@@ -1435,6 +1834,9 @@ export default function App() {
                     {item.id === newPostId && <span style={{ background: COLORS.accent, color: '#fff', padding: '2px 6px', borderRadius: 4, fontSize: 10 }}>NEW</span>}
                     {item.title}
                   </div>
+                  {item.image_url && (
+                    <img src={item.image_url} alt="" style={{ width: '100%', maxHeight: 150, objectFit: 'cover', borderRadius: 6, marginBottom: 8 }} />
+                  )}
                   <div style={{ fontSize: 12, color: '#666', marginBottom: 6, lineHeight: 1.4 }}>{item.content?.substring(0, 80)}{item.content?.length > 80 ? '...' : ''}</div>
                   <div style={{ fontSize: 11, color: '#888', marginBottom: 8 }}>📍 {item.location_name} · 👤 {item.author}</div>
                   
@@ -1452,7 +1854,7 @@ export default function App() {
                     <button onClick={() => openPostDetail(item)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#f5f5f5', border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', color: '#666', fontSize: 12 }}>
                       <MessageCircle size={14} /> {commentCounts[item.id] || 0} 评论
                     </button>
-                    <button onClick={() => { setPostCoords({ lat: item.latitude, lng: item.longitude }); setPostForm({ title: '', content: '', type: item.type, location_name: item.location_name }); setShowPost(true) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', color: '#fff', fontSize: 12 }}>
+                    <button onClick={() => { setPostCoords({ lat: item.latitude, lng: item.longitude }); setPostForm({ title: '', content: '', type: item.type, location_name: item.location_name, image_url: '' }); setShowPost(true) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', color: '#fff', fontSize: 12 }}>
                       <Plus size={14} /> 在此打卡
                     </button>
                   </div>
@@ -1495,6 +1897,71 @@ export default function App() {
           <div style={{ flex: 1 }} />
           {user ? (
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10 }}>
+              {/* 游戏状态显示 */}
+              <button
+                onClick={() => openGamePanel('profile')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '8px 12px',
+                  background: COLORS.cardBg,
+                  border: 'none',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <span style={{ fontSize: 16 }}>💰</span>
+                <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 14, color: COLORS.gold }}>
+                  {playerProfile?.gold?.toLocaleString() || '?'}
+                </span>
+                <span style={{ color: '#666', fontSize: 11 }}>|</span>
+                <span style={{ fontWeight: 700, fontSize: 13, color: COLORS.accent }}>
+                  LV.{playerProfile?.level || '?'}
+                </span>
+                <span style={{ color: '#666', fontSize: 11 }}>|</span>
+                <span style={{ fontSize: 14 }}>🔥</span>
+                <span style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: 13, color: '#f97316' }}>
+                  {playerProfile?.streak || 0}天
+                </span>
+              </button>
+
+              {/* 通知图标 */}
+              <button 
+                onClick={openNotificationPanel}
+                style={{ 
+                  width: 44, height: 44, 
+                  background: COLORS.cardBg, 
+                  border: 'none', 
+                  borderRadius: 12, 
+                  cursor: 'pointer', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  position: 'relative',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                }}
+              >
+                <Bell size={20} color={COLORS.textDark} />
+                {unreadNotificationCount > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -4,
+                    background: COLORS.accent,
+                    color: '#fff',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    padding: '2px 6px',
+                    borderRadius: 10,
+                    minWidth: 18,
+                    textAlign: 'center'
+                  }}>
+                    {unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}
+                  </span>
+                )}
+              </button>
+
               {/* 消息图标 */}
               <button 
                 onClick={openChatList}
@@ -1613,6 +2080,100 @@ export default function App() {
         </div>
       )}
 
+      {/* 通知面板 */}
+      {showNotificationPanel && user && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 2000 }} onClick={() => setShowNotificationPanel(false)}>
+          <div style={{ position: 'absolute', top: 70, right: 16, width: 360, maxHeight: 480, background: COLORS.cardBg, borderRadius: 16, boxShadow: '0 8px 30px rgba(0,0,0,0.3)', overflow: 'hidden', zIndex: 2001 }} onClick={e => e.stopPropagation()}>
+            {/* 面板头部 */}
+            <div style={{ padding: '14px 16px', borderBottom: `1px solid ${COLORS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 18 }}>🔔</span>
+                <b style={{ fontSize: 16, color: COLORS.textDark }}>通知</b>
+                {unreadNotificationCount > 0 && (
+                  <span style={{ background: COLORS.accent, color: '#fff', fontSize: 11, padding: '2px 8px', borderRadius: 10 }}>
+                    {unreadNotificationCount} 未读
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {unreadNotificationCount > 0 && (
+                  <button 
+                    onClick={markAllNotificationsAsRead}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.accent, fontSize: 12 }}
+                  >
+                    全部已读
+                  </button>
+                )}
+                <button onClick={() => setShowNotificationPanel(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}>
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+            
+            {/* 通知列表 */}
+            <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+              {loadingNotifications ? (
+                <div style={{ padding: 40, textAlign: 'center' }}>
+                  <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: COLORS.accent }} />
+                </div>
+              ) : notifications.length === 0 ? (
+                <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>
+                  <div style={{ fontSize: 40, marginBottom: 8 }}>🔕</div>
+                  <div>暂无通知</div>
+                </div>
+              ) : (
+                notifications.map(notification => (
+                  <div
+                    key={notification.id}
+                    onClick={() => handleNotificationClick(notification)}
+                    style={{
+                      padding: '12px 16px',
+                      borderBottom: `1px solid ${COLORS.border}`,
+                      background: notification.read ? 'transparent' : `${COLORS.accent}08`,
+                      cursor: 'pointer',
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = notification.read ? '#f5f5f5' : `${COLORS.accent}15`}
+                    onMouseLeave={e => e.currentTarget.style.background = notification.read ? 'transparent' : `${COLORS.accent}08`}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                      <div style={{
+                        width: 36, height: 36,
+                        background: notification.read ? '#f0f0f0' : `${COLORS.accent}15`,
+                        borderRadius: '50%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 16,
+                        flexShrink: 0
+                      }}>
+                        {getNotificationIcon(notification.type)}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                          {notification.data?.actor_name && (
+                            <span style={{ fontWeight: 600, fontSize: 13, color: COLORS.textDark }}>
+                              {notification.data.actor_name}
+                            </span>
+                          )}
+                          {!notification.read && (
+                            <span style={{ width: 8, height: 8, background: COLORS.accent, borderRadius: '50%' }} />
+                          )}
+                        </div>
+                        <div style={{ fontSize: 13, color: '#666', marginBottom: 4 }}>
+                          {getNotificationText(notification)}
+                        </div>
+                        <div style={{ fontSize: 11, color: '#999' }}>
+                          {formatTime(notification.created_at)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 打卡弹窗 */}
       {showPost && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => { setShowPost(false); setPostCoords(null) }}>
@@ -1658,6 +2219,62 @@ export default function App() {
               </div>
               <input placeholder="标题 *" value={postForm.title} onChange={e => setPostForm({ ...postForm, title: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} />
               <textarea placeholder="分享你的发现... *" value={postForm.content} onChange={e => setPostForm({ ...postForm, content: e.target.value })} rows={4} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, resize: 'none', boxSizing: 'border-box' }} />
+              
+              {/* 图片上传 */}
+              <div style={{ marginBottom: 12 }}>
+                {postForm.image_url ? (
+                  <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden' }}>
+                    <img src={postForm.image_url} alt="上传预览" style={{ width: '100%', maxHeight: 200, objectFit: 'cover' }} />
+                    <button 
+                      onClick={() => setPostForm({ ...postForm, image_url: '' })}
+                      style={{
+                        position: 'absolute', top: 8, right: 8,
+                        background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%',
+                        width: 28, height: 28, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#fff'
+                      }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 16, background: '#f5f5f5', border: '2px dashed #ddd', borderRadius: 10, cursor: 'pointer', color: '#666', transition: 'all 0.2s' }}>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      style={{ display: 'none' }}
+                      onChange={async (e) => {
+                        const file = e.target.files[0]
+                        if (!file) return
+                        // 创建 FormData 上传
+                        const formData = new FormData()
+                        formData.append('image', file)
+                        try {
+                          const token = localStorage.getItem('tapspot_token')
+                          const res = await fetch('/api/upload/post-image', {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}` },
+                            body: formData
+                          })
+                          const data = await res.json()
+                          if (data.success && data.url) {
+                            setPostForm({ ...postForm, image_url: data.url })
+                          } else {
+                            alert(data.error || '上传失败')
+                          }
+                        } catch (err) {
+                          console.error('上传失败:', err)
+                          alert('上传失败')
+                        }
+                      }}
+                    />
+                    <span style={{ fontSize: 24 }}>📷</span>
+                    <span style={{ fontSize: 14, fontWeight: 500 }}>添加图片</span>
+                  </label>
+                )}
+              </div>
+              
               <input placeholder="地点名称（如：北京故宫）" value={postForm.location_name} onChange={e => setPostForm({ ...postForm, location_name: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} />
               
               {/* 位置选择区域 */}
@@ -1768,6 +2385,9 @@ export default function App() {
                 </div>
                 <button onClick={() => setShowPostDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={20} /></button>
               </div>
+              {showPostDetail.image_url && (
+                <img src={showPostDetail.image_url} alt="" style={{ width: '100%', maxHeight: 300, objectFit: 'cover', borderRadius: 10, marginBottom: 12 }} />
+              )}
               <div style={{ fontSize: 14, color: '#333', lineHeight: 1.6, marginBottom: 12 }}>{showPostDetail.content}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: '#888' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={14} /> {showPostDetail.location_name || '未知地点'}</span>
@@ -2193,7 +2813,7 @@ export default function App() {
                   )}
                   
                   {/* 统计数据 */}
-                  <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontWeight: 700, fontSize: 22 }}>{showUserSpace.user.postsCount}</div>
                       <div style={{ fontSize: 12, color: '#aaa' }}>打卡</div>
@@ -2202,28 +2822,66 @@ export default function App() {
                       <div style={{ fontWeight: 700, fontSize: 22 }}>{showUserSpace.user.likesCount}</div>
                       <div style={{ fontSize: 12, color: '#aaa' }}>获赞</div>
                     </div>
-                    {/* 发消息按钮 */}
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontWeight: 700, fontSize: 22 }}>{followStats.followers_count}</div>
+                      <div style={{ fontSize: 12, color: '#aaa' }}>粉丝</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontWeight: 700, fontSize: 22 }}>{followStats.following_count}</div>
+                      <div style={{ fontSize: 12, color: '#aaa' }}>关注</div>
+                    </div>
+                    {/* 操作按钮 */}
                     {user && user.id !== showUserSpace.user.id && (
-                      <button
-                        onClick={() => openChat(showUserSpace.user.id)}
-                        style={{
-                          marginLeft: 'auto',
-                          padding: '10px 20px',
-                          background: COLORS.accent,
-                          border: 'none',
-                          borderRadius: 20,
-                          cursor: 'pointer',
-                          color: '#fff',
-                          fontWeight: 600,
-                          fontSize: 14,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 6
-                        }}
-                      >
-                        <Mail size={16} />
-                        发消息
-                      </button>
+                      <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                        {/* 关注/取消关注按钮 */}
+                        <button
+                          onClick={() => isFollowing ? handleUnfollow(showUserSpace.user.id) : handleFollow(showUserSpace.user.id)}
+                          disabled={followingLoading}
+                          style={{
+                            padding: '10px 20px',
+                            background: isFollowing ? '#f5f5f5' : COLORS.accent,
+                            border: isFollowing ? '1px solid #ddd' : 'none',
+                            borderRadius: 20,
+                            cursor: followingLoading ? 'not-allowed' : 'pointer',
+                            color: isFollowing ? '#666' : '#fff',
+                            fontWeight: 600,
+                            fontSize: 14,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            opacity: followingLoading ? 0.7 : 1
+                          }}
+                        >
+                          {followingLoading ? (
+                            <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                          ) : (
+                            <>
+                              {isFollowing ? '✓ 已关注' : '+ 关注'}
+                            </>
+                          )}
+                        </button>
+                        {/* 发消息按钮 */}
+                        <button
+                          onClick={() => openChat(showUserSpace.user.id)}
+                          style={{
+                            padding: '10px 20px',
+                            background: '#f5f5f5',
+                            border: '1px solid #ddd',
+                            borderRadius: 20,
+                            cursor: 'pointer',
+                            color: '#666',
+                            fontWeight: 600,
+                            fontSize: 14,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6
+                          }}
+                        >
+                          <Mail size={16} />
+                          消息
+                        </button>
+                      </div>
+                    )}
                     )}
                   </div>
                 </div>
@@ -2286,6 +2944,558 @@ export default function App() {
         </div>
       )}
 
+
+      {/* 游戏面板弹窗 */}
+      {showGamePanel && (
+        <div
+          style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(0,0,0,0.7)',
+            zIndex: 2000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 16
+          }}
+          onClick={() => setShowGamePanel(false)}
+        >
+          <div
+            style={{
+              background: COLORS.primary,
+              borderRadius: 20,
+              width: '100%', maxWidth: 440,
+              maxHeight: '85vh',
+              overflow: 'hidden',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+              border: `1px solid ${COLORS.border}`
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* 面板头部 */}
+            <div style={{
+              padding: '16px 20px',
+              background: `linear-gradient(135deg, ${COLORS.secondary} 0%, ${COLORS.primary} 100%)`,
+              borderBottom: `1px solid ${COLORS.border}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 20 }}>🎮</span>
+                <span style={{ fontWeight: 700, fontSize: 18, color: COLORS.text }}>游戏中心</span>
+              </div>
+              <button
+                onClick={() => setShowGamePanel(false)}
+                style={{
+                  background: 'rgba(255,255,255,0.1)', border: 'none',
+                  borderRadius: 8, cursor: 'pointer', padding: 6
+                }}
+              >
+                <X size={18} color={COLORS.text} />
+              </button>
+            </div>
+
+            {/* 标签切换 */}
+            <div style={{
+              display: 'flex', gap: 4, padding: 12,
+              background: COLORS.cardBgDark,
+              borderBottom: `1px solid ${COLORS.border}`
+            }}>
+              {[
+                { key: 'profile', label: '📋 角色' },
+                { key: 'quests', label: '🎯 任务' },
+                { key: 'achievements', label: '🏆 成就' },
+                { key: 'leaderboard', label: '📊 排行' },
+              ].map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setGamePanelTab(tab.key)}
+                  style={{
+                    flex: 1, padding: '10px 8px',
+                    background: gamePanelTab === tab.key ? COLORS.accent : 'transparent',
+                    border: gamePanelTab === tab.key ? 'none' : `1px solid ${COLORS.border}`,
+                    borderRadius: 10, cursor: 'pointer',
+                    color: gamePanelTab === tab.key ? '#fff' : '#888',
+                    fontWeight: 600, fontSize: 12, transition: 'all 0.2s'
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 面板内容 */}
+            <div style={{
+              flex: 1, overflowY: 'auto', padding: 16,
+              maxHeight: 'calc(85vh - 130px)'
+            }}>
+              {/* ===== 角色/资料面板 ===== */}
+              {gamePanelTab === 'profile' && (
+                <div>
+                  {/* 签到结果提示 */}
+                  {checkinResult && (
+                    <div style={{
+                      padding: 14, marginBottom: 16,
+                      background: checkinResult.already ? '#fef3c7' : '#d1fae5',
+                      borderRadius: 12, textAlign: 'center',
+                      border: `1px solid ${checkinResult.already ? '#f59e0b' : '#10b981'}`
+                    }}>
+                      <div style={{ fontSize: 28, marginBottom: 6 }}>
+                        {checkinResult.already ? '✅' : '🎉'}
+                      </div>
+                      <div style={{
+                        fontWeight: 700, fontSize: 16,
+                        color: checkinResult.already ? '#92400e' : '#065f46'
+                      }}>
+                        {checkinResult.already ? '今日已签到' : '签到成功！'}
+                      </div>
+                      {!checkinResult.already && checkinResult.reward && (
+                        <div style={{ fontSize: 14, color: '#065f46', marginTop: 4 }}>
+                          获得 {checkinResult.reward} 💰
+                        </div>
+                      )}
+                      {checkinResult.streak !== undefined && (
+                        <div style={{ fontSize: 13, color: '#92400e', marginTop: 4 }}>
+                          🔥 连续签到 {checkinResult.streak} 天
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 角色卡片 */}
+                  <div style={{
+                    background: COLORS.cardBgDark,
+                    borderRadius: 16, padding: 20,
+                    marginBottom: 16,
+                    border: `1px solid ${COLORS.border}`,
+                    textAlign: 'center'
+                  }}>
+                    {/* 头像 */}
+                    <div style={{
+                      width: 80, height: 80, margin: '0 auto 12px',
+                      background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`,
+                      borderRadius: '50%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 36, position: 'relative',
+                      boxShadow: `0 4px 20px ${COLORS.accent}40`
+                    }}>
+                      👤
+                      {/* 等级徽章 */}
+                      <div style={{
+                        position: 'absolute', bottom: -4, right: -4,
+                        background: `linear-gradient(135deg, ${COLORS.gold} 0%, #f97316 100%)`,
+                        borderRadius: 10, padding: '2px 8px',
+                        fontSize: 11, fontWeight: 700, color: '#fff',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                      }}>
+                        LV.{playerProfile?.level || 1}
+                      </div>
+                    </div>
+
+                    {/* 昵称和称号 */}
+                    <div style={{ marginBottom: 8 }}>
+                      <div style={{ fontWeight: 700, fontSize: 20, color: COLORS.text }}>
+                        {user?.nickname || user?.username}
+                      </div>
+                      <div style={{
+                        fontSize: 13, color: COLORS.gold, marginTop: 4,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4
+                      }}>
+                        <span>👑</span>
+                        <span>{getTitle(playerProfile?.level || 1)}</span>
+                      </div>
+                    </div>
+
+                    {/* XP进度条 */}
+                    <div style={{ marginTop: 16, marginBottom: 8 }}>
+                      <div style={{
+                        display: 'flex', justifyContent: 'space-between',
+                        fontSize: 11, color: '#888', marginBottom: 4
+                      }}>
+                        <span>经验值</span>
+                        <span>{playerProfile?.xp || 0} / {playerProfile?.xpToNextLevel || 100}</span>
+                      </div>
+                      <div style={{
+                        height: 10, background: COLORS.border,
+                        borderRadius: 5, overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          width: `${getLevelProgress()}%`, height: '100%',
+                          background: `linear-gradient(90deg, ${COLORS.accent} 0%, #ff6b9d 100%)`,
+                          borderRadius: 5, transition: 'width 0.3s'
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 属性统计 */}
+                  <div style={{
+                    display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16
+                  }}>
+                    {[
+                      { icon: '💰', label: '金币', value: playerProfile?.gold?.toLocaleString() || 0, color: COLORS.gold },
+                      { icon: '🔥', label: '连续签到', value: `${playerProfile?.streak || 0}天`, color: '#f97316' },
+                      { icon: '📮', label: '帖子数', value: playerProfile?.postsCount || 0, color: '#3b82f6' },
+                      { icon: '❤️', label: '获赞数', value: playerProfile?.likesCount || 0, color: COLORS.accent },
+                      { icon: '🏆', label: '成就', value: `${playerProfile?.achievementsUnlocked || 0}/${achievements.length}`, color: '#10b981' },
+                      { icon: '🎯', label: '任务', value: `${playerProfile?.questsCompleted || 0}/${(quests.daily?.length || 0) + (quests.weekly?.length || 0) + (quests.main?.length || 0)}`, color: '#8b5cf6' },
+                    ].map((stat, i) => (
+                      <div key={i} style={{
+                        background: COLORS.cardBgDark, borderRadius: 12, padding: 14,
+                        textAlign: 'center', border: `1px solid ${COLORS.border}`
+                      }}>
+                        <div style={{ fontSize: 22, marginBottom: 4 }}>{stat.icon}</div>
+                        <div style={{ fontWeight: 700, fontSize: 16, color: stat.color }}>
+                          {stat.value}
+                        </div>
+                        <div style={{ fontSize: 11, color: '#888' }}>{stat.label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* 签到按钮 */}
+                  <button
+                    onClick={handleDailyCheckin}
+                    disabled={checkinLoading}
+                    style={{
+                      width: '100%', padding: 16,
+                      background: checkinLoading ? COLORS.border :
+                        playerProfile?.checkedInToday ? COLORS.cardBgDark :
+                          `linear-gradient(135deg, ${COLORS.gold} 0%, #f97316 100%)`,
+                      border: playerProfile?.checkedInToday ? `1px solid ${COLORS.border}` : 'none',
+                      borderRadius: 14, cursor: checkinLoading || playerProfile?.checkedInToday ? 'default' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {checkinLoading ? (
+                      <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+                    ) : (
+                      <>
+                        <span style={{ fontSize: 24 }}>📅</span>
+                        <span style={{ fontWeight: 700, fontSize: 16, color: playerProfile?.checkedInToday ? '#888' : '#fff' }}>
+                          {playerProfile?.checkedInToday ? '今日已签到' : '每日签到'}
+                        </span>
+                        {!playerProfile?.checkedInToday && (
+                          <span style={{ fontSize: 14, opacity: 0.9 }}>+💰</span>
+                        )}
+                      </>
+                    )}
+                  </button>
+                  {playerProfile?.checkedInToday && (
+                    <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: '#888' }}>
+                      明天再来签到可获得更多奖励哦~
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ===== 任务面板 ===== */}
+              {gamePanelTab === 'quests' && (
+                <div>
+                  {/* 任务类型切换 */}
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                    {[
+                      { key: 'daily', label: '📅 每日' },
+                      { key: 'weekly', label: '📆 每周' },
+                      { key: 'main', label: '🎯 主线' },
+                    ].map(tab => (
+                      <button
+                        key={tab.key}
+                        onClick={() => setQuestTab(tab.key)}
+                        style={{
+                          flex: 1, padding: '10px 8px',
+                          background: questTab === tab.key ? COLORS.accent : COLORS.cardBgDark,
+                          border: questTab === tab.key ? 'none' : `1px solid ${COLORS.border}`,
+                          borderRadius: 10, cursor: 'pointer',
+                          color: questTab === tab.key ? '#fff' : '#888',
+                          fontWeight: 600, fontSize: 12, transition: 'all 0.2s'
+                        }}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* 任务列表 */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {(quests[questTab] || []).map((quest, index) => (
+                      <div key={index} style={{
+                        background: COLORS.cardBgDark,
+                        borderRadius: 12, padding: 14,
+                        border: `1px solid ${quest.completed ? COLORS.success + '40' : COLORS.border}`
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                          <div style={{
+                            width: 40, height: 40,
+                            background: quest.completed ? COLORS.success + '20' : COLORS.border,
+                            borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 20, flexShrink: 0
+                          }}>
+                            {questIcons[quest.type] || '🎯'}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                              <span style={{ fontWeight: 600, fontSize: 14, color: COLORS.text }}>
+                                {quest.name}
+                              </span>
+                              {quest.completed && (
+                                <span style={{
+                                  background: COLORS.success, color: '#fff',
+                                  padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600
+                                }}>
+                                  完成
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>
+                              {quest.description}
+                            </div>
+
+                            {/* 进度条 */}
+                            <div style={{ marginBottom: 8 }}>
+                              <div style={{
+                                display: 'flex', justifyContent: 'space-between',
+                                fontSize: 11, color: '#666', marginBottom: 4
+                              }}>
+                                <span>进度</span>
+                                <span>{quest.progress || 0} / {quest.target || 1}</span>
+                              </div>
+                              <div style={{
+                                height: 6, background: COLORS.border,
+                                borderRadius: 3, overflow: 'hidden'
+                              }}>
+                                <div style={{
+                                  width: `${Math.min(100, ((quest.progress || 0) / (quest.target || 1)) * 100)}%`,
+                                  height: '100%',
+                                  background: quest.completed ? COLORS.success : COLORS.accent,
+                                  borderRadius: 3, transition: 'width 0.3s'
+                                }} />
+                              </div>
+                            </div>
+
+                            {/* 奖励和领取 */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <span style={{ fontSize: 12, color: COLORS.gold }}>💰</span>
+                                <span style={{ fontSize: 12, fontWeight: 600, color: COLORS.gold }}>
+                                  +{quest.reward || 0}
+                                </span>
+                              </div>
+                              {quest.completed && !quest.claimed && (
+                                <button
+                                  onClick={() => {
+                                    // TODO: 调用领取API
+                                    alert('奖励已领取！')
+                                    fetchQuests()
+                                    fetchPlayerProfile()
+                                  }}
+                                  style={{
+                                    padding: '6px 14px',
+                                    background: `linear-gradient(135deg, ${COLORS.gold} 0%, #f97316 100%)`,
+                                    border: 'none', borderRadius: 8,
+                                    cursor: 'pointer',
+                                    fontWeight: 600, fontSize: 12, color: '#fff'
+                                  }}
+                                >
+                                  领取
+                                </button>
+                              )}
+                              {quest.claimed && (
+                                <span style={{ fontSize: 11, color: '#888' }}>已领取</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {(quests[questTab] || []).length === 0 && (
+                      <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
+                        <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
+                        <div>暂无{questTab === 'daily' ? '每日' : questTab === 'weekly' ? '每周' : '主线'}任务</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ===== 成就面板 ===== */}
+              {gamePanelTab === 'achievements' && (
+                <div>
+                  <div style={{
+                    display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12
+                  }}>
+                    {achievements.map((achievement, index) => (
+                      <div
+                        key={index}
+                        onClick={() => {
+                          // 显示成就详情
+                          alert(`${achievement.name}\n\n${achievement.description}\n\n${achievement.unlocked ? '✅ 已解锁' : '🔒 未解锁'}`)
+                        }}
+                        style={{
+                          background: COLORS.cardBgDark,
+                          borderRadius: 12, padding: 14,
+                          textAlign: 'center',
+                          cursor: 'pointer',
+                          border: achievement.unlocked ?
+                            `1px solid ${COLORS.gold}40` : `1px solid ${COLORS.border}`,
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <div style={{
+                          width: 48, height: 48, margin: '0 auto 8px',
+                          background: achievement.unlocked ?
+                            `linear-gradient(135deg, ${COLORS.gold} 0%, #f97316 100%)` :
+                            COLORS.border,
+                          borderRadius: '50%',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 24,
+                          filter: achievement.unlocked ? 'none' : 'grayscale(100%)',
+                          opacity: achievement.unlocked ? 1 : 0.5
+                        }}>
+                          {achievement.unlocked ?
+                            (achievementIcons[achievement.id] || '🏆') :
+                            '?'}
+                        </div>
+                        <div style={{
+                          fontSize: 11, fontWeight: 600,
+                          color: achievement.unlocked ? COLORS.text : '#666',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                        }}>
+                          {achievement.name || '???'}
+                        </div>
+                        {achievement.unlocked && achievement.unlockedAt && (
+                          <div style={{ fontSize: 9, color: '#888', marginTop: 2 }}>
+                            {new Date(achievement.unlockedAt).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {achievements.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
+                      <div style={{ fontSize: 40, marginBottom: 12 }}>🏆</div>
+                      <div>暂无成就数据</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ===== 排行榜面板 ===== */}
+              {gamePanelTab === 'leaderboard' && (
+                <div>
+                  {/* 排行榜类型切换 */}
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                    {[
+                      { key: 'level', label: '👑 等级' },
+                      { key: 'checkin', label: '📅 打卡' },
+                      { key: 'likes', label: '❤️ 点赞' },
+                    ].map(tab => (
+                      <button
+                        key={tab.key}
+                        onClick={() => {
+                          setLeaderboardTab(tab.key)
+                          if (!leaderboard[tab.key] || leaderboard[tab.key].length === 0) {
+                            fetchLeaderboard(tab.key)
+                          }
+                        }}
+                        style={{
+                          flex: 1, padding: '10px 8px',
+                          background: leaderboardTab === tab.key ? COLORS.accent : COLORS.cardBgDark,
+                          border: leaderboardTab === tab.key ? 'none' : `1px solid ${COLORS.border}`,
+                          borderRadius: 10, cursor: 'pointer',
+                          color: leaderboardTab === tab.key ? '#fff' : '#888',
+                          fontWeight: 600, fontSize: 12, transition: 'all 0.2s'
+                        }}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* 排行榜列表 */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {(leaderboard[leaderboardTab] || []).map((entry, index) => {
+                      const isMe = entry.userId === user?.id || entry.id === user?.id
+                      const rank = index + 1
+                      return (
+                        <div
+                          key={index}
+                          style={{
+                            background: isMe ? COLORS.accent + '15' : COLORS.cardBgDark,
+                            borderRadius: 12, padding: 12,
+                            display: 'flex', alignItems: 'center', gap: 12,
+                            border: isMe ? `1px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          {/* 排名 */}
+                          <div style={{
+                            width: 32, height: 32,
+                            background: rank === 1 ? '#f4a261' : rank === 2 ? '#94a3b8' : rank === 3 ? '#cd7f32' : COLORS.border,
+                            borderRadius: '50%',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontWeight: 700, fontSize: 14,
+                            color: rank <= 3 ? '#fff' : '#888'
+                          }}>
+                            {rank <= 3 ? ['🥇', '🥈', '🥉'][rank - 1] : rank}
+                          </div>
+
+                          {/* 头像 */}
+                          <div style={{
+                            width: 40, height: 40,
+                            background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`,
+                            borderRadius: '50%',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 18
+                          }}>
+                            {entry.avatar ? (
+                              <img src={entry.avatar} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                            ) : '👤'}
+                          </div>
+
+                          {/* 用户信息 */}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <span style={{ fontWeight: 600, fontSize: 14, color: COLORS.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {entry.nickname || entry.username || '用户'}
+                              </span>
+                              {isMe && (
+                                <span style={{ fontSize: 10, background: COLORS.accent, color: '#fff', padding: '1px 4px', borderRadius: 3 }}>
+                                  我
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: 11, color: '#888' }}>
+                              {leaderboardTab === 'level' && `LV.${entry.level || 1}`}
+                              {leaderboardTab === 'checkin' && `${entry.checkinCount || entry.count || 0} 天打卡`}
+                              {leaderboardTab === 'likes' && `${entry.likesReceived || entry.likes || 0} 获赞`}
+                            </div>
+                          </div>
+
+                          {/* 分数 */}
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontWeight: 700, fontSize: 16, color: COLORS.gold }}>
+                              {leaderboardTab === 'level' && `LV.${entry.level || 1}`}
+                              {leaderboardTab === 'checkin' && `${entry.checkinCount || entry.count || 0}`}
+                              {leaderboardTab === 'likes' && `${entry.likesReceived || entry.likes || 0}`}
+                            </div>
+                            {leaderboardTab === 'level' && (
+                              <div style={{ fontSize: 10, color: '#888' }}>{entry.title || getTitle(entry.level || 1)}</div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  {(leaderboard[leaderboardTab] || []).length === 0 && (
+                    <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
+                      <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
+                      <div>暂无排行数据</div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 消息中心 */}
       {showChat && (

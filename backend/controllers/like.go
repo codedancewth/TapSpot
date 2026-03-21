@@ -3,9 +3,12 @@ package controllers
 import (
 	"net/http"
 	"tapspot/models"
+	"tapspot/services"
 
 	"github.com/gin-gonic/gin"
 )
+
+var likeNotificationService = services.NewNotificationService()
 
 // PostLike 点赞/取消点赞帖子
 func PostLike(c *gin.Context) {
@@ -36,6 +39,10 @@ func PostLike(c *gin.Context) {
 			PostID: postIDUint,
 		}
 		models.DB.Create(&like)
+		
+		// 创建点赞通知
+		likeNotificationService.CreateLikeNotification(post.UserID, userID, post.ID, post.Title)
+		
 		c.JSON(http.StatusOK, gin.H{"success": true, "liked": true})
 	}
 }
