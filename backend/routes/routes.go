@@ -77,5 +77,19 @@ func SetupRoutes(r *gin.Engine) {
 		// 聊天 API
 		api.POST("/chat", controllers.ChatWithAnya)
 		auth.GET("/chat/history/:user_id", controllers.GetChatHistory)
+
+		// 游戏化功能
+		gamificationController := controllers.NewGamificationController()
+		
+		// 公开路由
+		api.GET("/leaderboard", gamificationController.GetLeaderboard)
+		
+		// 需要认证的路由
+		auth.GET("/player/profile", gamificationController.GetPlayerProfile)
+		auth.GET("/player/achievements", gamificationController.GetAchievements)
+		auth.GET("/player/quests", gamificationController.GetQuests)
+		auth.POST("/player/quests/:id/accept", gamificationController.AcceptQuest)
+		auth.POST("/player/quests/:id/claim", gamificationController.ClaimQuestReward)
+		auth.POST("/player/daily-checkin", gamificationController.DailyCheckin)
 	}
 }

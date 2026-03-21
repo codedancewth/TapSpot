@@ -59,6 +59,9 @@ func main() {
 
 	// 创建测试用户 root/root
 	services.CreateTestUser()
+	
+	// 初始化游戏化数据
+	services.InitGamificationData()
 
 	// 启动服务器
 	log.Println("🚀 TapSpot API running on http://localhost:8080")
@@ -81,6 +84,18 @@ func migrateDB() {
 		&models.Message{},
 		&models.Visit{}, // 访客记录
 		&controllers.ChatMessage{}, // 阿尼亚聊天记录
+		
+		// 游戏化功能
+		&models.PlayerLevel{},
+		&models.Achievement{},
+		&models.PlayerAchievement{},
+		&models.Quest{},
+		&models.PlayerQuest{},
+		&models.PlayerWallet{},
+		&models.Item{},
+		&models.PlayerItem{},
+		&models.CheckinStreak{},
+		&models.Leaderboard{},
 	)
 	log.Println("✅ 数据库迁移完成")
 }
