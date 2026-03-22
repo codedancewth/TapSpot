@@ -207,6 +207,14 @@ export default function App() {
   const [anyaAvatar, setAnyaAvatar] = useState(localStorage.getItem('anya_avatar') || '') // 阿尼亚自定义头像
   const [showUserSpace, setShowUserSpace] = useState(null) // 查看用户空间 { user, posts }
   const [loadingUserSpace, setLoadingUserSpace] = useState(false)
+
+  // 游戏中心状态
+  const [showGamePanel, setShowGamePanel] = useState(false)
+  const [gamePanelTab, setGamePanelTab] = useState('achievements') // 'achievements'|'quests'|'leaderboard'|'profile'
+  const [achievements, setAchievements] = useState([])
+  const [playerProfile, setPlayerProfile] = useState(null)
+  const [leaderboard, setLeaderboard] = useState({ level: [], checkin: [], likes: [] })
+  const [leaderboardTab, setLeaderboardTab] = useState('level')
   
   // 合并所有需要显示的帖子（主列表 + 用户空间帖子）
   const allPostsForMap = React.useMemo(() => {
@@ -807,6 +815,49 @@ export default function App() {
     } catch (error) {
       console.error('获取未读消息数失败:', error)
     }
+  }
+
+  // 游戏中心相关函数
+  const fetchAchievements = async () => {
+    if (!user) return
+    try {
+      const data = await api('/player/achievements')
+      setAchievements(data.achievements || [])
+    } catch (error) {
+      console.error('获取成就列表失败:', error)
+    }
+  }
+
+  const fetchPlayerProfile = async () => {
+    if (!user) return
+    try {
+      const data = await api('/player/profile')
+      setPlayerProfile(data.data || data)
+    } catch (error) {
+      console.error('获取玩家资料失败:', error)
+    }
+  }
+
+  const fetchLeaderboard = async (type = 'level') => {
+    try {
+      const data = await api(`/leaderboard?type=${type}`)
+      const raw = data.entries || data.leaderboard || data.data || data
+      const lbData = Array.isArray(raw) ? raw : (Array.isArray(raw?.entries) ? raw.entries : [])
+      setLeaderboard(prev => ({ ...prev, [type]: lbData }))
+    } catch (error) {
+      console.error('获取排行榜失败:', error)
+    }
+  }
+
+  const openGamePanel = (tab = 'achievements') => {
+    if (!user) { setShowLogin(true); return }
+    setGamePanelTab(tab)
+    setShowGamePanel(true)
+    fetchAchievements()
+    fetchPlayerProfile()
+    fetchLeaderboard('level')
+    fetchLeaderboard('checkin')
+    fetchLeaderboard('likes')
   }
 
   // 连接WebSocket
@@ -1548,6 +1599,7 @@ export default function App() {
             <button onClick={() => setShowLogin(true)} style={{ padding: '10px 18px', background: COLORS.cardBg, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.textDark, fontWeight: 600, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}><User size={16} /> 登录</button>
           )}
           <button onClick={() => { if (!user) { setShowLogin(true); return }; setShowPost(true) }} style={{ padding: '10px 18px', background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#fff', fontWeight: 600, boxShadow: `0 4px 15px ${COLORS.accent}40` }}><Plus size={18} /> 打卡</button>
+          <button onClick={() => openGamePanel('achievements')} style={{ padding: '10px 14px', background: '#1a1a2e', border: '1px solid #2d2d44', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#f59e0b', fontWeight: 600, boxShadow: '0 2px 10px rgba(0,0,0,0.2)' }}>🏆 游戏中心</button>
         </div>
 
         {/* 缩放控制 - 移到右侧中间靠上位置 */}
@@ -2358,6 +2410,191 @@ export default function App() {
         ::-webkit-scrollbar-thumb { background: ${COLORS.border}; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: ${COLORS.accent}; }
       `}</style>
+
+      {/* 游戏中心面板 */}
+      {showGamePanel && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowGamePanel(false)}>
+          <div style={{ background: '#0a0a0f', border: '1px solid #2d2d44', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '80vh', overflow: 'hidden', boxShadow: '0 0 40px rgba(168,85,247,0.2)' }} onClick={e => e.stopPropagation()}>
+            {/* 头部 */}
+            <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid #2d2d44', background: 'linear-gradient(135deg, #12121a 0%, #1a1a2e 100%)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 24 }}>🏆</span>
+                  <span style={{ fontWeight: 700, fontSize: 18, color: '#f1f5f9' }}>游戏中心</span>
+                </div>
+                <button onClick={() => setShowGamePanel(false)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: 8, cursor: 'pointer', padding: 6 }}>
+                  <X size={18} color="#94a3b8" />
+                </button>
+              </div>
+              {/* Tab 切换 */}
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[
+                  { key: 'achievements', label: '🏆 成就', emoji: '🏆' },
+                  { key: 'profile', label: '👤 资料', emoji: '👤' },
+                  { key: 'leaderboard', label: '📊 排行', emoji: '📊' },
+                ].map(tab => (
+                  <button key={tab.key} onClick={() => setGamePanelTab(tab.key)} style={{
+                    flex: 1, padding: '10px 8px',
+                    background: gamePanelTab === tab.key ? 'rgba(168,85,247,0.2)' : 'transparent',
+                    border: gamePanelTab === tab.key ? '1px solid #a855f7' : '1px solid #2d2d44',
+                    borderRadius: 10, cursor: 'pointer',
+                    color: gamePanelTab === tab.key ? '#a855f7' : '#94a3b8',
+                    fontWeight: 600, fontSize: 13, transition: 'all 0.2s'
+                  }}>
+                    {tab.emoji} {tab.label.replace(/^[^\s]+\s/, '')}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* 内容区 */}
+            <div style={{ padding: 16, maxHeight: '60vh', overflowY: 'auto' }}>
+              {/* 成就面板 */}
+              {gamePanelTab === 'achievements' && (
+                <div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                    {achievements.length === 0 ? (
+                      <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 40, color: '#666' }}>
+                        <div style={{ fontSize: 40, marginBottom: 12 }}>🏆</div>
+                        <div style={{ color: '#94a3b8' }}>暂无成就数据</div>
+                      </div>
+                    ) : achievements.map((achievement, index) => (
+                      <div key={index} onClick={() => {
+                        const reward = achievement.reward_json ? JSON.parse(achievement.reward_json) : {}
+                        alert(`🏆 ${achievement.name}\n\n${achievement.description}\n\n🎁 奖励: ${reward.gold || 0} 金币 + ${reward.exp || 0} 经验\n\n${achievement.obtained ? '✅ 已解锁' : '🔒 未解锁'}`)
+                      }} style={{
+                        background: '#1a1a2e',
+                        borderRadius: 12, padding: 14,
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        border: achievement.obtained ? '1px solid rgba(245,158,11,0.3)' : '1px solid #2d2d44',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={e => { if (!achievement.obtained) e.currentTarget.style.borderColor = '#4d4d6c' }}
+                      onMouseLeave={e => { if (!achievement.obtained) e.currentTarget.style.borderColor = '#2d2d44' }}>
+                        <div style={{
+                          width: 48, height: 48, margin: '0 auto 8px',
+                          background: achievement.obtained
+                            ? 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)'
+                            : '#2d2d44',
+                          borderRadius: '50%',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 24,
+                          filter: achievement.obtained ? 'none' : 'grayscale(100%)',
+                          opacity: achievement.obtained ? 1 : 0.4
+                        }}>
+                          {achievement.icon_url || '🏆'}
+                        </div>
+                        <div style={{
+                          fontSize: 11, fontWeight: 600,
+                          color: achievement.obtained ? '#f1f5f9' : '#666',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                        }}>
+                          {achievement.name}
+                        </div>
+                        {achievement.obtained && (
+                          <div style={{ fontSize: 9, color: '#f59e0b', marginTop: 2 }}>已解锁</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* 玩家资料面板 */}
+              {gamePanelTab === 'profile' && (
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                  {playerProfile ? (
+                    <div>
+                      <div style={{ fontSize: 48, marginBottom: 8 }}>👤</div>
+                      <div style={{ fontWeight: 700, fontSize: 20, color: '#f1f5f9', marginBottom: 4 }}>{user?.nickname || user?.username}</div>
+                      <div style={{ color: '#94a3b8', fontSize: 13, marginBottom: 20 }}>等级 {playerProfile.level || 1}</div>
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: 24 }}>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontWeight: 700, fontSize: 22, color: '#f59e0b' }}>{playerProfile.gold || 0}</div>
+                          <div style={{ fontSize: 12, color: '#94a3b8' }}>💰 金币</div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontWeight: 700, fontSize: 22, color: '#a855f7' }}>{playerProfile.experience || 0}</div>
+                          <div style={{ fontSize: 12, color: '#94a3b8' }}>⭐ 经验</div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontWeight: 700, fontSize: 22, color: '#ec4899' }}>{playerProfile.streak || 0}</div>
+                          <div style={{ fontSize: 12, color: '#94a3b8' }}>🔥 连续</div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ color: '#94a3b8' }}>加载中...</div>
+                  )}
+                </div>
+              )}
+              {/* 排行榜面板 */}
+              {gamePanelTab === 'leaderboard' && (
+                <div>
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+                    {[
+                      { key: 'level', label: '等级' },
+                      { key: 'checkin', label: '打卡' },
+                      { key: 'likes', label: '点赞' },
+                    ].map(tab => (
+                      <button key={tab.key} onClick={() => setLeaderboardTab(tab.key)} style={{
+                        flex: 1, padding: '8px',
+                        background: leaderboardTab === tab.key ? '#a855f7' : '#1a1a2e',
+                        border: leaderboardTab === tab.key ? 'none' : '1px solid #2d2d44',
+                        borderRadius: 8, cursor: 'pointer',
+                        color: leaderboardTab === tab.key ? '#fff' : '#94a3b8',
+                        fontWeight: 600, fontSize: 12
+                      }}>
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {(leaderboard[leaderboardTab] || []).map((entry, index) => {
+                      const isMe = entry.user_id === user?.id
+                      const rank = index + 1
+                      return (
+                        <div key={index} style={{
+                          background: isMe ? 'rgba(168,85,247,0.1)' : '#1a1a2e',
+                          borderRadius: 10, padding: 10, display: 'flex', alignItems: 'center', gap: 10,
+                          border: isMe ? '1px solid #a855f7' : '1px solid #2d2d44'
+                        }}>
+                          <div style={{
+                            width: 28, height: 28, borderRadius: '50%',
+                            background: rank === 1 ? '#f59e0b' : rank === 2 ? '#94a3b8' : rank === 3 ? '#cd7f32' : '#2d2d44',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontWeight: 700, fontSize: 12, color: rank <= 3 ? '#fff' : '#666'
+                          }}>
+                            {rank <= 3 ? ['🥇','🥈','🥉'][rank-1] : rank}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 600, fontSize: 13, color: '#f1f5f9' }}>
+                              {entry.username || '用户'}
+                              {isMe && <span style={{ fontSize: 10, background: '#a855f7', color: '#fff', padding: '1px 4px', borderRadius: 3, marginLeft: 6 }}>我</span>}
+                            </div>
+                            <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                              {leaderboardTab === 'level' && `LV.${entry.level || 1}`}
+                              {leaderboardTab === 'checkin' && `${entry.checkin_count || entry.count || 0} 天打卡`}
+                              {leaderboardTab === 'likes' && `${entry.like_count || entry.likes || 0} 获赞`}
+                            </div>
+                          </div>
+                          <div style={{ fontWeight: 700, fontSize: 14, color: '#f59e0b' }}>
+                            {leaderboardTab === 'level' && `LV.${entry.level || 1}`}
+                            {leaderboardTab === 'checkin' && `${entry.checkin_count || entry.count || 0}`}
+                            {leaderboardTab === 'likes' && `${entry.like_count || entry.likes || 0}`}
+                          </div>
+                        </div>
+                      )
+                    })}
+                    {(leaderboard[leaderboardTab] || []).length === 0 && (
+                      <div style={{ textAlign: 'center', padding: 30, color: '#666' }}>暂无排行数据</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

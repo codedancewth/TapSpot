@@ -24,7 +24,7 @@ func initAchievements() {
 		{
 			Name:        "新手上路",
 			Description: "完成第一次打卡",
-			IconURL:     "/achievements/first_checkin.png",
+			IconURL:     "📍",
 			Category:    "exploration",
 			Requirement: json.RawMessage(`{"type":"checkin_count","value":1}`),
 			RewardJSON:  json.RawMessage(`{"gold":50,"exp":20}`),
@@ -32,7 +32,7 @@ func initAchievements() {
 		{
 			Name:        "探索者",
 			Description: "累计打卡 10 次",
-			IconURL:     "/achievements/explorer.png",
+			IconURL:     "🗺️",
 			Category:    "exploration",
 			Requirement: json.RawMessage(`{"type":"checkin_count","value":10}`),
 			RewardJSON:  json.RawMessage(`{"gold":200,"exp":50}`),
@@ -40,7 +40,7 @@ func initAchievements() {
 		{
 			Name:        "旅行家",
 			Description: "累计打卡 50 次",
-			IconURL:     "/achievements/traveler.png",
+			IconURL:     "✈️",
 			Category:    "exploration",
 			Requirement: json.RawMessage(`{"type":"checkin_count","value":50}`),
 			RewardJSON:  json.RawMessage(`{"gold":500,"exp":100}`),
@@ -48,7 +48,7 @@ func initAchievements() {
 		{
 			Name:        "城市达人",
 			Description: "累计打卡 100 次",
-			IconURL:     "/achievements/city_master.png",
+			IconURL:     "🏙️",
 			Category:    "exploration",
 			Requirement: json.RawMessage(`{"type":"checkin_count","value":100}`),
 			RewardJSON:  json.RawMessage(`{"gold":1000,"exp":200}`),
@@ -58,7 +58,7 @@ func initAchievements() {
 		{
 			Name:        "人气新星",
 			Description: "获得 10 个赞",
-			IconURL:     "/achievements/popular.png",
+			IconURL:     "⭐",
 			Category:    "social",
 			Requirement: json.RawMessage(`{"type":"like_count","value":10}`),
 			RewardJSON:  json.RawMessage(`{"gold":100,"exp":30}`),
@@ -66,7 +66,7 @@ func initAchievements() {
 		{
 			Name:        "社交达人",
 			Description: "获得 100 个赞",
-			IconURL:     "/achievements/social_star.png",
+			IconURL:     "🌟",
 			Category:    "social",
 			Requirement: json.RawMessage(`{"type":"like_count","value":100}`),
 			RewardJSON:  json.RawMessage(`{"gold":300,"exp":80}`),
@@ -76,7 +76,7 @@ func initAchievements() {
 		{
 			Name:        "坚持不懈",
 			Description: "连续打卡 7 天",
-			IconURL:     "/achievements/streak_7.png",
+			IconURL:     "🔥",
 			Category:    "special",
 			Requirement: json.RawMessage(`{"type":"streak","value":7}`),
 			RewardJSON:  json.RawMessage(`{"gold":300,"exp":100}`),
@@ -84,7 +84,7 @@ func initAchievements() {
 		{
 			Name:        "毅力王者",
 			Description: "连续打卡 30 天",
-			IconURL:     "/achievements/streak_30.png",
+			IconURL:     "💎",
 			Category:    "special",
 			Requirement: json.RawMessage(`{"type":"streak","value":30}`),
 			RewardJSON:  json.RawMessage(`{"gold":1000,"exp":300}`),
@@ -94,7 +94,7 @@ func initAchievements() {
 		{
 			Name:        "初出茅庐",
 			Description: "达到 5 级",
-			IconURL:     "/achievements/level_5.png",
+			IconURL:     "🎖️",
 			Category:    "special",
 			Requirement: json.RawMessage(`{"type":"level","value":5}`),
 			RewardJSON:  json.RawMessage(`{"gold":200,"exp":50}`),
@@ -102,7 +102,7 @@ func initAchievements() {
 		{
 			Name:        "渐入佳境",
 			Description: "达到 10 级",
-			IconURL:     "/achievements/level_10.png",
+			IconURL:     "🎗️",
 			Category:    "special",
 			Requirement: json.RawMessage(`{"type":"level","value":10}`),
 			RewardJSON:  json.RawMessage(`{"gold":500,"exp":100}`),
@@ -110,7 +110,7 @@ func initAchievements() {
 		{
 			Name:        "登堂入室",
 			Description: "达到 20 级",
-			IconURL:     "/achievements/level_20.png",
+			IconURL:     "👑",
 			Category:    "special",
 			Requirement: json.RawMessage(`{"type":"level","value":20}`),
 			RewardJSON:  json.RawMessage(`{"gold":1000,"exp":200}`),
@@ -123,6 +123,9 @@ func initAchievements() {
 		if err := models.DB.Where("name = ?", achievement.Name).First(&existing).Error; err != nil {
 			// 不存在则创建
 			models.DB.Create(&achievement)
+		} else {
+			// 已存在则更新 IconURL
+			models.DB.Model(&existing).Update("icon_url", achievement.IconURL)
 		}
 	}
 }
