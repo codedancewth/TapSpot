@@ -1821,7 +1821,7 @@ export default function App() {
         left: isMobile ? 0 : (showSidebar ? 360 : 0),
         right: 0, bottom: 0,
         transition: 'left 0.3s ease',
-      }}>
+      }} className="map-container">
         <MapContainer center={[35.8617, 104.1954]} zoom={mapZoom} style={{ width: '100%', height: '100%' }} zoomControl={false} worldCopyJump={true}>
           {/* 高德在线瓦片 */}
           <TileLayer 
@@ -1931,7 +1931,7 @@ export default function App() {
         />
 
         {/* 工具栏 */}
-        <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 1000, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="top-hud" style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 1000, display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => setShowSidebar(!showSidebar)} style={{ width: 44, height: 44, background: '#1a1a2e', border: '1px solid #2d2d44', borderRadius: 12, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f1f5f9" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="15" y2="12" /><line x1="3" y1="18" x2="18" y2="18" /></svg>
           </button>
@@ -2194,6 +2194,54 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {/* 移动端侧边栏遮罩 */}
+      {isMobile && showSidebar && (
+        <div
+          onClick={() => setShowSidebar(false)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+            zIndex: 1999
+          }}
+        />
+      )}
+
+      {/* 移动端底部导航 */}
+      {isMobile && (
+        <div className="bottom-nav mobile-safe-bottom" style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          background: '#0a0a0f', borderTop: '1px solid #2d2d44',
+          zIndex: 1000, display: 'flex', justifyContent: 'space-around'
+        }}>
+          {[
+            { key: 'home', icon: '🏠', label: '首页' },
+            { key: 'post', icon: '➕', label: '打卡' },
+            { key: 'game', icon: '🏆', label: '游戏' },
+            { key: 'chat', icon: '💬', label: '消息' },
+            { key: 'me', icon: '👤', label: '我的' },
+          ].map(item => (
+            <div
+              key={item.key}
+              onClick={() => {
+                if (item.key === 'home') setShowSidebar(!showSidebar)
+                if (item.key === 'post') { setShowPost(true); setSelectingLocation(true) }
+                if (item.key === 'game') openGamePanel('achievements')
+                if (item.key === 'chat') openChatList()
+                if (item.key === 'me') { user ? openUserProfile() : setShowLogin(true) }
+              }}
+              className={`bottom-nav-item ${item.key === 'home' && showSidebar ? 'active' : ''}`}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                padding: '8px 16px', cursor: 'pointer',
+                color: item.key === 'home' && showSidebar ? '#a855f7' : '#64748b'
+              }}
+            >
+              <span style={{ fontSize: 22 }}>{item.icon}</span>
+              <span style={{ fontSize: 10, fontWeight: 600 }}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* 登录弹窗 */}
       {showLogin && (
@@ -3016,8 +3064,8 @@ export default function App() {
 
       {/* 游戏中心面板 */}
       {showGamePanel && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowGamePanel(false)}>
-          <div style={{ background: '#0a0a0f', border: '1px solid #2d2d44', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '80vh', overflow: 'hidden', boxShadow: '0 0 40px rgba(168,85,247,0.2)' }} onClick={e => e.stopPropagation()}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? 0 : 16, paddingTop: isMobile ? 0 : undefined }} onClick={() => setShowGamePanel(false)}>
+          <div style={{ background: '#0a0a0f', border: '1px solid #2d2d44', borderRadius: isMobile ? 0 : 20, width: '100%', maxWidth: isMobile ? '100%' : 520, maxHeight: isMobile ? '100vh' : '80vh', overflow: 'hidden', boxShadow: '0 0 40px rgba(168,85,247,0.2)' }} onClick={e => e.stopPropagation()}>
             {/* 头部 */}
             <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid #2d2d44', background: 'linear-gradient(135deg, #12121a 0%, #1a1a2e 100%)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -3030,7 +3078,7 @@ export default function App() {
                 </button>
               </div>
               {/* Tab 切换 */}
-              <div style={{ display: 'flex', gap: 4 }}>
+              <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
                 {[
                   { key: 'achievements', label: '🏆 成就' },
                   { key: 'profile', label: '👤 资料' },
@@ -3060,11 +3108,11 @@ export default function App() {
               </div>
             </div>
             {/* 内容区 */}
-            <div style={{ padding: 16, maxHeight: '60vh', overflowY: 'auto' }}>
+            <div style={{ padding: isMobile ? '12px 8px' : 16, maxHeight: isMobile ? 'calc(100vh - 130px)' : '60vh', overflowY: 'auto' }}>
               {/* 成就面板 */}
               {gamePanelTab === 'achievements' && (
                 <div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: isMobile ? 8 : 12 }}>
                     {achievements.length === 0 ? (
                       <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 40, color: '#666' }}>
                         <div style={{ fontSize: 40, marginBottom: 12 }}>🏆</div>
