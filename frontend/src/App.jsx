@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
-import { Heart, X, Plus, ZoomIn, ZoomOut, Compass, User, LogOut, MapPin, Clock, ChevronRight, Search, Loader2, MessageCircle, Send, Mail, Bell } from 'lucide-react'
-import './styles/gaming.css'
+import { Heart, X, Plus, ZoomIn, ZoomOut, Compass, User, LogOut, MapPin, Clock, ChevronRight, Search, Loader2, MessageCircle, Send, Mail } from 'lucide-react'
+import './styles/modern.css'
 import { MessageCenter } from './components/Chat/MessageCenter.jsx'
 import AIAssistant from './components/AIAssistant.jsx'
 import TextSelectionAI from './components/TextSelectionAI.jsx'
@@ -18,24 +18,18 @@ L.Icon.Default.mergeOptions({
 // API 配置
 const API_BASE = '/api'
 
-// 游戏化配色方案
+// 配色方案
 const COLORS = {
   primary: '#1a1a2e',
   secondary: '#16213e',
-  accent: '#ec4899',
-  gold: '#f59e0b',
-  text: '#f1f5f9',
-  textDark: '#f1f5f9',
+  accent: '#e94560',
+  gold: '#f4a261',
+  text: '#eaeaea',
+  textDark: '#1a1a2e',
   cardBg: '#ffffff',
-  cardBgDark: '#0a0a0f',
+  cardBgDark: '#0f0f23',
   border: '#2d2d44',
   success: '#10b981',
-  // 霓虹游戏色系
-  neonPurple: '#a855f7',
-  neonPink: '#ec4899',
-  neonBlue: '#3b82f6',
-  neonOrange: '#f97316',
-  glow: 'rgba(168, 85, 247, 0.4)',
 }
 
 const createIcon = (type, isNew = false, isMyPost = false, zoom = 10) => {
@@ -177,7 +171,7 @@ export default function App() {
   const [mapZoom, setMapZoom] = useState(4)
   const [mapRef, setMapRef] = useState(null)
   const [showPost, setShowPost] = useState(false)
-  const [postForm, setPostForm] = useState({ title: '', content: '', type: 'post', location_name: '', image_url: '' })
+  const [postForm, setPostForm] = useState({ title: '', content: '', type: 'post', location_name: '' })
   const [postCoords, setPostCoords] = useState(null)
   const [selectingLocation, setSelectingLocation] = useState(false)
   const [showSidebar, setShowSidebar] = useState(true)
@@ -213,145 +207,6 @@ export default function App() {
   const [anyaAvatar, setAnyaAvatar] = useState(localStorage.getItem('anya_avatar') || '') // 阿尼亚自定义头像
   const [showUserSpace, setShowUserSpace] = useState(null) // 查看用户空间 { user, posts }
   const [loadingUserSpace, setLoadingUserSpace] = useState(false)
-  
-  // ============ 通知系统状态 ============
-  const [notifications, setNotifications] = useState([]) // 通知列表
-  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0) // 未读通知数
-  const [showNotificationPanel, setShowNotificationPanel] = useState(false) // 通知面板显示状态
-  const [loadingNotifications, setLoadingNotifications] = useState(false)
-  
-  // ============ 关注系统状态 ============
-  const [followStats, setFollowStats] = useState({ followers_count: 0, following_count: 0 }) // 用户关注统计
-  const [isFollowing, setIsFollowing] = useState(false) // 当前用户是否关注了查看的用户
-  const [followingLoading, setFollowingLoading] = useState(false) // 关注操作中
-
-  // ============ 游戏化系统状态 ============
-  const [showGamePanel, setShowGamePanel] = useState(false) // 游戏面板显示状态
-  const [gamePanelTab, setGamePanelTab] = useState('profile') // 'profile'|'achievements'|'quests'|'leaderboard'
-  const [playerProfile, setPlayerProfile] = useState(null) // 玩家资料
-  const [achievements, setAchievements] = useState([]) // 成就列表
-  const [quests, setQuests] = useState({ daily: [], weekly: [], main: [] }) // 任务列表
-  const [leaderboard, setLeaderboard] = useState({ level: [], checkin: [], likes: [] }) // 排行榜
-  const [checkinLoading, setCheckinLoading] = useState(false) // 签到中
-  const [checkinResult, setCheckinResult] = useState(null) // 签到结果
-  const [questTab, setQuestTab] = useState('daily') // 'daily'|'weekly'|'main'
-  const [leaderboardTab, setLeaderboardTab] = useState('level') // 'level'|'checkin'|'likes'
-  const [loadingGameData, setLoadingGameData] = useState(false)
-
-  // 获取玩家游戏资料
-  const fetchPlayerProfile = async () => {
-    if (!user) return
-    try {
-      const data = await api('/player/profile')
-      setPlayerProfile(data.data || data)
-    } catch (error) {
-      console.error('获取玩家资料失败:', error)
-    }
-  }
-
-  // 获取成就列表
-  const fetchAchievements = async () => {
-    if (!user) return
-    try {
-      const data = await api('/player/achievements')
-      setAchievements(data.achievements || data.data || [])
-    } catch (error) {
-      console.error('获取成就列表失败:', error)
-    }
-  }
-
-  // 获取任务列表
-  const fetchQuests = async () => {
-    if (!user) return
-    try {
-      const data = await api('/player/quests')
-      const questData = data.quests || data.data || data
-      setQuests({
-        daily: questData.daily || [],
-        weekly: questData.weekly || [],
-        main: questData.main || []
-      })
-    } catch (error) {
-      console.error('获取任务列表失败:', error)
-    }
-  }
-
-  // 获取排行榜
-  const fetchLeaderboard = async (type = 'level') => {
-    try {
-      const data = await api(`/leaderboard?type=${type}`)
-      const raw = data.entries || data.leaderboard || data.data || data
-      // 确保是数组
-      const lbData = Array.isArray(raw) ? raw : (Array.isArray(raw?.entries) ? raw.entries : [])
-      setLeaderboard(prev => ({ ...prev, [type]: lbData }))
-    } catch (error) {
-      console.error('获取排行榜失败:', error)
-    }
-  }
-
-  // 每日签到
-  const handleDailyCheckin = async () => {
-    if (!user) { setShowLogin(true); return }
-    setCheckinLoading(true)
-    try {
-      const data = await api('/player/daily-checkin', { method: 'POST' })
-      setCheckinResult(data.data || data)
-      // 刷新玩家资料
-      fetchPlayerProfile()
-    } catch (error) {
-      alert(error.message || '签到失败')
-    } finally {
-      setCheckinLoading(false)
-    }
-  }
-
-  // 打开游戏面板
-  const openGamePanel = (tab = 'profile') => {
-    if (!user) { setShowLogin(true); return }
-    setGamePanelTab(tab)
-    setShowGamePanel(true)
-    setCheckinResult(null)
-    // 加载游戏数据
-    fetchPlayerProfile()
-    fetchAchievements()
-    fetchQuests()
-    fetchLeaderboard('level')
-    fetchLeaderboard('checkin')
-    fetchLeaderboard('likes')
-  }
-
-  // 计算等级进度百分比
-  const getLevelProgress = () => {
-    if (!playerProfile) return 0
-    const { xp = 0, level = 1, xpToNextLevel = 100 } = playerProfile
-    const xpInCurrentLevel = xp % xpToNextLevel
-    return Math.min(100, (xpInCurrentLevel / xpToNextLevel) * 100)
-  }
-
-  // 获取称号
-  const getTitle = (level) => {
-    if (level >= 100) return '传奇冒险家'
-    if (level >= 80) return '资深旅行家'
-    if (level >= 60) return '探索达人'
-    if (level >= 40) return '资深打卡者'
-    if (level >= 20) return '初级探险家'
-    if (level >= 10) return '新手旅行者'
-    if (level >= 5) return '新手游客'
-    return '路人甲'
-  }
-
-  // 成就图标映射
-  const achievementIcons = {
-    first_post: '📮', first_like: '❤️', ten_posts: '📍', fifty_posts: '🎯',
-    hundred_posts: '🏆', first_checkin: '📅', week_streak: '🔥', month_streak: '💎',
-    ten_likes: '⭐', fifty_likes: '🌟', hundred_likes: '💫', first_comment: '💬',
-    ten_comments: '💭', explorer: '🗺️', foodie: '🍽️', photographer: '📷',
-  }
-
-  // 任务图标映射
-  const questIcons = {
-    post: '📝', like: '❤️', comment: '💬', checkin: '📅', share: '🔗', view: '👁️'
-  }
   
   // 合并所有需要显示的帖子（主列表 + 用户空间帖子）
   const allPostsForMap = React.useMemo(() => {
@@ -525,8 +380,6 @@ export default function App() {
       setUser(data.data.user)
       setShowLogin(false)
       setLoginForm({ username: '', password: '' })
-      // 刷新游戏数据
-      fetchPlayerProfile()
     } catch (error) {
       alert(error.message)
     }
@@ -779,7 +632,7 @@ export default function App() {
       setTimeout(() => setNewPostId(null), 5000)
       if (mapRef) mapRef.setView([postCoords.lat, postCoords.lng], 12)
       setShowPost(false)
-      setPostForm({ title: '', content: '', type: 'post', location_name: '', image_url: '' })
+      setPostForm({ title: '', content: '', type: 'post', location_name: '' })
       setPostCoords(null)
       fetchPosts()
     } catch (error) {
@@ -904,20 +757,15 @@ export default function App() {
   const openUserSpace = async (userId, authorName) => {
     setLoadingUserSpace(true)
     try {
-      const [userData, postsData, statsData] = await Promise.all([
+      const [userData, postsData] = await Promise.all([
         api(`/users/${userId}`),
-        api(`/users/${userId}/posts`),
-        api(`/users/${userId}/stats`)
+        api(`/users/${userId}/posts`)
       ])
       const userPosts = postsData.posts || []
-      const userInfo = userData.data?.user || userData.user
       setShowUserSpace({
-        user: userInfo,
+        user: userData.data?.user || userData.user,
         posts: userPosts
       })
-      // 设置关注状态
-      setFollowStats(statsData.stats || { followers_count: 0, following_count: 0 })
-      setIsFollowing(statsData.is_following || false)
       // 如果有帖子，自动缩放地图到这些帖子的范围
       if (userPosts.length > 0 && mapRef) {
         const bounds = userPosts.map(p => [p.latitude, p.longitude])
@@ -934,201 +782,6 @@ export default function App() {
       alert('获取用户信息失败')
     } finally {
       setLoadingUserSpace(false)
-    }
-  }
-
-  // ============ 通知相关函数 ============
-  
-  // 获取通知列表
-  const fetchNotifications = async () => {
-    if (!user) return
-    setLoadingNotifications(true)
-    try {
-      const data = await api('/notifications')
-      setNotifications(data.notifications || [])
-    } catch (error) {
-      console.error('获取通知失败:', error)
-    } finally {
-      setLoadingNotifications(false)
-    }
-  }
-  
-  // 获取未读通知数
-  const fetchUnreadNotificationCount = async () => {
-    if (!user) return
-    try {
-      const data = await api('/notifications/unread-count')
-      setUnreadNotificationCount(data.count || 0)
-    } catch (error) {
-      console.error('获取未读通知数失败:', error)
-    }
-  }
-  
-  // 标记通知为已读
-  const markNotificationAsRead = async (notificationId) => {
-    try {
-      await api(`/notifications/${notificationId}/read`, { method: 'PUT' })
-      setNotifications(prev => prev.map(n => 
-        n.id === notificationId ? { ...n, read: true } : n
-      ))
-      setUnreadNotificationCount(prev => Math.max(0, prev - 1))
-    } catch (error) {
-      console.error('标记已读失败:', error)
-    }
-  }
-  
-  // 标记所有通知为已读
-  const markAllNotificationsAsRead = async () => {
-    try {
-      await api('/notifications/read-all', { method: 'PUT' })
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })))
-      setUnreadNotificationCount(0)
-    } catch (error) {
-      console.error('标记全部已读失败:', error)
-    }
-  }
-  
-  // 获取通知类型图标
-  const getNotificationIcon = (type) => {
-    const icons = {
-      like: '❤️',
-      comment: '💬',
-      follow: '👤',
-      achievement: '🏆',
-      quest_complete: '🎯'
-    }
-    return icons[type] || '🔔'
-  }
-  
-  // 获取通知类型文本
-  const getNotificationText = (notification) => {
-    const { type, data: notifData } = notification
-    switch (type) {
-      case 'like':
-        return `赞了你的帖子「${notifData?.post_title || '帖子'}」`
-      case 'comment':
-        return `评论了你的帖子「${notifData?.post_title || '帖子'}」`
-      case 'follow':
-        return `关注了你`
-      case 'achievement':
-        return `获得了成就「${notifData?.achievement_name || '成就'}」`
-      case 'quest_complete':
-        return `完成了任务「${notifData?.quest_name || '任务'}」`
-      default:
-        return '有新通知'
-    }
-  }
-  
-  // 点击通知
-  const handleNotificationClick = async (notification) => {
-    // 标记为已读
-    if (!notification.read) {
-      await markNotificationAsRead(notification.id)
-    }
-    
-    // 根据通知类型处理跳转
-    if (notification.type === 'follow') {
-      // 跳转到用户空间
-      if (notification.data?.actor_id) {
-        setShowNotificationPanel(false)
-        openUserSpace(notification.data.actor_id, notification.data.actor_name)
-      }
-    } else if (notification.type === 'like' || notification.type === 'comment') {
-      // 跳转到帖子详情
-      if (notification.data?.post_id) {
-        setShowNotificationPanel(false)
-        const post = posts.find(p => p.id === notification.data.post_id)
-        if (post) {
-          openPostDetail(post)
-        }
-      }
-    }
-  }
-  
-  // 打开通知面板
-  const openNotificationPanel = async () => {
-    setShowNotificationPanel(!showNotificationPanel)
-    if (!showNotificationPanel) {
-      fetchNotifications()
-      fetchUnreadNotificationCount()
-    }
-  }
-  
-  // 定期获取未读通知数
-  useEffect(() => {
-    if (user) {
-      fetchUnreadNotificationCount()
-      const interval = setInterval(() => {
-        fetchUnreadNotificationCount()
-      }, 30000) // 每30秒刷新一次
-      return () => clearInterval(interval)
-    }
-  }, [user])
-
-  // ============ 关注相关函数 ============
-  
-  // 获取用户关注统计
-  const fetchFollowStats = async (targetUserId) => {
-    try {
-      const data = await api(`/users/${targetUserId}/stats`)
-      setFollowStats(data.stats || { followers_count: 0, following_count: 0 })
-      setIsFollowing(data.is_following || false)
-    } catch (error) {
-      console.error('获取关注统计失败:', error)
-    }
-  }
-  
-  // 关注用户
-  const handleFollow = async (targetUserId) => {
-    if (!user) {
-      setShowLogin(true)
-      return
-    }
-    setFollowingLoading(true)
-    try {
-      await api(`/users/${targetUserId}/follow`, { method: 'POST' })
-      setIsFollowing(true)
-      setFollowStats(prev => ({
-        ...prev,
-        followers_count: prev.followers_count + 1
-      }))
-    } catch (error) {
-      console.error('关注失败:', error)
-      alert('关注失败')
-    } finally {
-      setFollowingLoading(false)
-    }
-  }
-  
-  // 取消关注
-  const handleUnfollow = async (targetUserId) => {
-    if (!user) return
-    setFollowingLoading(true)
-    try {
-      await api(`/users/${targetUserId}/follow`, { method: 'DELETE' })
-      setIsFollowing(false)
-      setFollowStats(prev => ({
-        ...prev,
-        followers_count: Math.max(0, prev.followers_count - 1)
-      }))
-    } catch (error) {
-      console.error('取消关注失败:', error)
-      alert('取消关注失败')
-    } finally {
-      setFollowingLoading(false)
-    }
-  }
-  
-  // 更新用户空间的关注状态
-  const updateUserSpaceFollowState = (targetUserId, following) => {
-    if (showUserSpace && showUserSpace.user && showUserSpace.user.id === targetUserId) {
-      setShowUserSpace(prev => ({
-        ...prev,
-        user: {
-          ...prev.user,
-          is_following: following
-        }
-      }))
     }
   }
 
@@ -1372,52 +1025,42 @@ export default function App() {
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', background: COLORS.cardBgDark }}>
       
-      {/* 侧边栏 - 游戏风格 */}
+      {/* 侧边栏 */}
       <div style={{
         position: 'absolute',
         top: 0,
         left: 0,
         bottom: 0,
         width: isMobile ? (showSidebar ? '100%' : 0) : (showSidebar ? 360 : 0),
-        background: 'linear-gradient(180deg, #12121a 0%, #0a0a0f 100%)',
+        background: COLORS.primary,
         zIndex: 1001,
         transition: 'width 0.3s ease',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '4px 0 30px rgba(168, 85, 247, 0.15)',
-        borderRight: '1px solid #2d2d44',
+        boxShadow: '4px 0 20px rgba(0,0,0,0.3)',
       }}>
         {showSidebar && (
           <>
-            {/* 头部 - 游戏风格 Logo */}
+            {/* 头部 */}
             <div style={{
               padding: '20px 20px 16px',
-              borderBottom: '1px solid #2d2d44',
-              background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)',
-              position: 'relative',
+              borderBottom: `1px solid ${COLORS.border}`,
+              background: `linear-gradient(135deg, ${COLORS.secondary} 0%, ${COLORS.primary} 100%)`,
             }}>
-              {/* 网格纹理效果 */}
-              <div style={{
-                position: 'absolute', inset: 0,
-                background: 'linear-gradient(90deg, rgba(168,85,247,0.03) 1px, transparent 1px), linear-gradient(rgba(168,85,247,0.03) 1px, transparent 1px)',
-                backgroundSize: '20px 20px',
-                pointerEvents: 'none',
-              }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', zIndex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{
-                    width: 44, height: 44,
-                    background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
-                    borderRadius: 14,
+                    width: 40, height: 40,
+                    background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`,
+                    borderRadius: 12,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 22,
-                    boxShadow: '0 4px 20px rgba(168, 85, 247, 0.5), 0 0 30px rgba(168, 85, 247, 0.3)',
-                    animation: 'gaming-glow-pulse 3s ease-in-out infinite',
+                    fontSize: 20,
+                    boxShadow: `0 4px 15px ${COLORS.accent}40`,
                   }}>📍</div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: 22, color: '#f1f5f9', textShadow: '0 0 20px rgba(168, 85, 247, 0.5)' }}>TapSpot</div>
-                    <div style={{ fontSize: 11, color: '#94a3b8' }}>🎮 发现精彩地点</div>
+                    <div style={{ fontWeight: 700, fontSize: 20, color: COLORS.text }}>TapSpot</div>
+                    <div style={{ fontSize: 11, color: '#888' }}>发现精彩地点</div>
                   </div>
                 </div>
                 {isMobile && (
@@ -1428,76 +1071,12 @@ export default function App() {
                 )}
               </div>
 
-              {/* 游戏化导航按钮 - 霓虹风格 */}
-              <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-                <button
-                  onClick={() => openGamePanel('quests')}
-                  style={{
-                    flex: 1, padding: '8px 6px',
-                    background: gamePanelTab === 'quests' ? 'linear-gradient(135deg, rgba(168,85,247,0.3) 0%, rgba(168,85,247,0.1) 100%)' : 'rgba(0,0,0,0.3)',
-                    border: gamePanelTab === 'quests' ? '1px solid #a855f7' : '1px solid #2d2d44',
-                    borderRadius: 10, cursor: 'pointer',
-                    color: gamePanelTab === 'quests' ? '#a855f7' : '#94a3b8',
-                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                    boxShadow: gamePanelTab === 'quests' ? '0 0 15px rgba(168,85,247,0.4)' : 'none',
-                  }}
-                >
-                  <span style={{ fontSize: 16 }}>🎯</span>
-                  <span style={{ fontWeight: 700 }}>任务</span>
-                </button>
-                <button
-                  onClick={() => openGamePanel('achievements')}
-                  style={{
-                    flex: 1, padding: '8px 6px',
-                    background: gamePanelTab === 'achievements' ? 'linear-gradient(135deg, rgba(245,158,11,0.3) 0%, rgba(245,158,11,0.1) 100%)' : 'rgba(0,0,0,0.3)',
-                    border: gamePanelTab === 'achievements' ? '1px solid #f59e0b' : '1px solid #2d2d44',
-                    borderRadius: 10, cursor: 'pointer',
-                    color: gamePanelTab === 'achievements' ? '#f59e0b' : '#94a3b8',
-                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                    boxShadow: gamePanelTab === 'achievements' ? '0 0 15px rgba(245,158,11,0.4)' : 'none',
-                  }}
-                >
-                  <span style={{ fontSize: 16 }}>🏆</span>
-                  <span style={{ fontWeight: 700 }}>成就</span>
-                </button>
-                <button
-                  onClick={() => openGamePanel('leaderboard')}
-                  style={{
-                    flex: 1, padding: '8px 6px',
-                    background: gamePanelTab === 'leaderboard' ? 'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(59,130,246,0.1) 100%)' : 'rgba(0,0,0,0.3)',
-                    border: gamePanelTab === 'leaderboard' ? '1px solid #3b82f6' : '1px solid #2d2d44',
-                    borderRadius: 10, cursor: 'pointer',
-                    color: gamePanelTab === 'leaderboard' ? '#3b82f6' : '#94a3b8',
-                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                    boxShadow: gamePanelTab === 'leaderboard' ? '0 0 15px rgba(59,130,246,0.4)' : 'none',
-                  }}
-                >
-                  <span style={{ fontSize: 16 }}>📊</span>
-                  <span style={{ fontWeight: 700 }}>排行</span>
-                </button>
-                <button
-                  onClick={() => openGamePanel('profile')}
-                  style={{
-                    flex: 1, padding: '8px 6px',
-                    background: gamePanelTab === 'profile' ? 'linear-gradient(135deg, rgba(236,72,153,0.3) 0%, rgba(236,72,153,0.1) 100%)' : 'rgba(0,0,0,0.3)',
-                    border: gamePanelTab === 'profile' ? '1px solid #ec4899' : '1px solid #2d2d44',
-                    borderRadius: 10, cursor: 'pointer',
-                    color: gamePanelTab === 'profile' ? '#ec4899' : '#94a3b8',
-                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                    boxShadow: gamePanelTab === 'profile' ? '0 0 15px rgba(236,72,153,0.4)' : 'none',
-                  }}
-                >
-                  <span style={{ fontSize: 16 }}>💰</span>
-                  <span style={{ fontWeight: 700 }}>签到</span>
-                </button>
-              </div>
-
-              {/* Tab - 游戏风格 */}
+              {/* Tab */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                 {[
-                  { key: 'all', label: '🌐 全部', count: posts.length },
-                  { key: 'mine', label: '👤 我的', count: myPostsCount },
-                  { key: 'liked', label: '❤️ 喜欢', count: likedPosts.size },
+                  { key: 'all', label: '全部', count: posts.length },
+                  { key: 'mine', label: '我的', count: myPostsCount },
+                  { key: 'liked', label: '喜欢', count: likedPosts.size },
                 ].map(tab => (
                   <button
                     key={tab.key}
@@ -1507,30 +1086,26 @@ export default function App() {
                     }}
                     style={{
                       flex: 1, padding: '10px 8px',
-                      background: activeTab === tab.key 
-                        ? 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)' 
-                        : 'rgba(0,0,0,0.3)',
-                      border: activeTab === tab.key ? 'none' : '1px solid #2d2d44',
-                      borderRadius: 10, cursor: 'pointer',
-                      color: activeTab === tab.key ? '#fff' : '#94a3b8',
-                      fontWeight: 700, fontSize: 12, transition: 'all 0.2s',
-                      boxShadow: activeTab === tab.key ? '0 4px 15px rgba(236,72,153,0.4)' : 'none',
+                      background: activeTab === tab.key ? COLORS.accent : COLORS.cardBgDark,
+                      border: 'none', borderRadius: 10, cursor: 'pointer',
+                      color: activeTab === tab.key ? '#fff' : '#888',
+                      fontWeight: 600, fontSize: 13, transition: 'all 0.2s',
                     }}
                   >
                     {tab.label}
                     <span style={{
                       marginLeft: 4, padding: '2px 6px',
-                      background: activeTab === tab.key ? 'rgba(255,255,255,0.25)' : '#2d2d44',
+                      background: activeTab === tab.key ? 'rgba(255,255,255,0.2)' : COLORS.border,
                       borderRadius: 6, fontSize: 11,
                     }}>{tab.count}</span>
                   </button>
                 ))}
               </div>
 
-              {/* 类型筛选 - 游戏风格霓虹按钮 */}
+              {/* 类型筛选 */}
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {[
-                  { key: 'all', label: '✨ 全部' },
+                  { key: 'all', label: '全部' },
                   { key: 'post', label: '📍 日常' },
                   { key: 'food', label: '🍽️ 美食' },
                   { key: 'hotel', label: '🏨 住宿' },
@@ -1544,37 +1119,30 @@ export default function App() {
                     key={type.key}
                     onClick={() => setFilterType(type.key)}
                     style={{
-                      padding: '6px 12px',
-                      background: filterType === type.key 
-                        ? 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)' 
-                        : 'rgba(0,0,0,0.3)',
-                      border: filterType === type.key ? 'none' : '1px solid #2d2d44',
+                      padding: '6px 10px',
+                      background: filterType === type.key ? COLORS.secondary : 'transparent',
+                      border: filterType === type.key ? `1px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
                       borderRadius: 16, cursor: 'pointer',
-                      color: filterType === type.key ? '#fff' : '#94a3b8',
-                      fontSize: 11, transition: 'all 0.2s',
-                      fontWeight: filterType === type.key ? 700 : 500,
-                      boxShadow: filterType === type.key ? '0 2px 10px rgba(168,85,247,0.4)' : 'none',
+                      color: filterType === type.key ? COLORS.accent : '#888',
+                      fontSize: 12, transition: 'all 0.2s',
                     }}
                   >{type.label}</button>
                 ))}
               </div>
             </div>
 
-            {/* 搜索 - 游戏风格 */}
-            <div style={{ padding: '12px 20px', borderBottom: '1px solid #2d2d44' }}>
+            {/* 搜索 */}
+            <div style={{ padding: '12px 20px', borderBottom: `1px solid ${COLORS.border}` }}>
               {/* 搜索类型切换 */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                 <button
                   onClick={() => { setSearchType('posts'); setSelectedUser(null); }}
                   style={{
-                    flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700,
-                    background: searchType === 'posts' 
-                      ? 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)' 
-                      : 'rgba(0,0,0,0.3)',
-                    color: searchType === 'posts' ? '#fff' : '#94a3b8',
-                    border: searchType === 'posts' ? 'none' : '1px solid #2d2d44',
+                    flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 500,
+                    background: searchType === 'posts' ? COLORS.accent : 'transparent',
+                    color: searchType === 'posts' ? '#fff' : '#888',
+                    border: `1px solid ${searchType === 'posts' ? COLORS.accent : COLORS.border}`,
                     cursor: 'pointer', transition: 'all 0.2s',
-                    boxShadow: searchType === 'posts' ? '0 2px 10px rgba(236,72,153,0.4)' : 'none',
                   }}
                 >
                   📝 帖子
@@ -1582,39 +1150,27 @@ export default function App() {
                 <button
                   onClick={() => { setSearchType('users'); setSelectedUser(null); }}
                   style={{
-                    flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700,
-                    background: searchType === 'users' 
-                      ? 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)' 
-                      : 'rgba(0,0,0,0.3)',
-                    color: searchType === 'users' ? '#fff' : '#94a3b8',
-                    border: searchType === 'users' ? 'none' : '1px solid #2d2d44',
+                    flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 500,
+                    background: searchType === 'users' ? COLORS.accent : 'transparent',
+                    color: searchType === 'users' ? '#fff' : '#888',
+                    border: `1px solid ${searchType === 'users' ? COLORS.accent : COLORS.border}`,
                     cursor: 'pointer', transition: 'all 0.2s',
-                    boxShadow: searchType === 'users' ? '0 2px 10px rgba(236,72,153,0.4)' : 'none',
                   }}
                 >
                   👤 用户
                 </button>
               </div>
-              {/* 搜索输入框 - 发光效果 */}
+              {/* 搜索输入框 */}
               <div style={{ position: 'relative' }}>
-                <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#666' }} />
                 <input
-                  placeholder={searchType === 'posts' ? "🔍 搜索帖子、地点..." : "🔍 搜索用户..."}
+                  placeholder={searchType === 'posts' ? "搜索帖子、地点..." : "搜索用户..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   style={{
                     width: '100%', padding: '10px 12px 10px 36px',
-                    background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44',
-                    borderRadius: 10, color: '#f1f5f9', fontSize: 14,
-                    transition: 'all 0.2s',
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#a855f7';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#2d2d44';
-                    e.target.style.boxShadow = 'none';
+                    background: COLORS.cardBgDark, border: `1px solid ${COLORS.border}`,
+                    borderRadius: 10, color: COLORS.text, fontSize: 14,
                   }}
                 />
               </div>
@@ -1750,35 +1306,20 @@ export default function App() {
                       key={post.id}
                       onClick={(e) => {
                         e.stopPropagation()
+                        // 直接导航到帖子位置，不受任何状态影响
                         if (mapRef) {
                           mapRef.setView([post.latitude, post.longitude], 13, { animate: false })
                         }
                         if (isMobile) setShowSidebar(false)
                       }}
                       style={{
-                        background: post.id === newPostId 
-                          ? 'linear-gradient(135deg, rgba(236,72,153,0.15) 0%, #1a1a2e 100%)' 
-                          : '#1a1a2e',
+                        background: post.id === newPostId ? `${COLORS.accent}20` : COLORS.cardBgDark,
                         borderRadius: 12, padding: 14, marginBottom: 10, cursor: 'pointer',
-                        border: post.id === newPostId ? '2px solid #ec4899' : '1px solid #2d2d44',
-                        transition: 'all 0.3s ease',
-                        position: 'relative',
-                        overflow: 'hidden',
+                        border: post.id === newPostId ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
+                        transition: 'all 0.2s',
                       }}
-                      onMouseEnter={(e) => { 
-                        if (post.id !== newPostId) {
-                          e.currentTarget.style.borderColor = '#a855f7';
-                          e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3), 0 0 30px rgba(168,85,247,0.1)';
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                        }
-                      }}
-                      onMouseLeave={(e) => { 
-                        if (post.id !== newPostId) {
-                          e.currentTarget.style.borderColor = '#2d2d44';
-                          e.currentTarget.style.boxShadow = 'none';
-                          e.currentTarget.style.transform = 'translateY(0)';
-                        }
-                      }}
+                      onMouseEnter={(e) => { if (post.id !== newPostId) e.currentTarget.style.borderColor = COLORS.accent }}
+                      onMouseLeave={(e) => { if (post.id !== newPostId) e.currentTarget.style.borderColor = COLORS.border }}
                     >
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                         <div style={{
@@ -1894,9 +1435,6 @@ export default function App() {
                     {item.id === newPostId && <span style={{ background: COLORS.accent, color: '#fff', padding: '2px 6px', borderRadius: 4, fontSize: 10 }}>NEW</span>}
                     {item.title}
                   </div>
-                  {item.image_url && (
-                    <img src={item.image_url} alt="" style={{ width: '100%', maxHeight: 150, objectFit: 'cover', borderRadius: 6, marginBottom: 8 }} />
-                  )}
                   <div style={{ fontSize: 12, color: '#666', marginBottom: 6, lineHeight: 1.4 }}>{item.content?.substring(0, 80)}{item.content?.length > 80 ? '...' : ''}</div>
                   <div style={{ fontSize: 11, color: '#888', marginBottom: 8 }}>📍 {item.location_name} · 👤 {item.author}</div>
                   
@@ -1914,7 +1452,7 @@ export default function App() {
                     <button onClick={() => openPostDetail(item)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#f5f5f5', border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', color: '#666', fontSize: 12 }}>
                       <MessageCircle size={14} /> {commentCounts[item.id] || 0} 评论
                     </button>
-                    <button onClick={() => { setPostCoords({ lat: item.latitude, lng: item.longitude }); setPostForm({ title: '', content: '', type: item.type, location_name: item.location_name, image_url: '' }); setShowPost(true) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', color: '#fff', fontSize: 12 }}>
+                    <button onClick={() => { setPostCoords({ lat: item.latitude, lng: item.longitude }); setPostForm({ title: '', content: '', type: item.type, location_name: item.location_name }); setShowPost(true) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', color: '#fff', fontSize: 12 }}>
                       <Plus size={14} /> 在此打卡
                     </button>
                   </div>
@@ -1949,281 +1487,74 @@ export default function App() {
           onAnalyzeText={handleAnalyzeText}
         />
 
-        {/* 工具栏 - 游戏 HUD 风格 */}
-        <div style={{ 
-          position: 'absolute', top: 12, left: 12, right: 12, zIndex: 1000, 
-          display: 'flex', alignItems: 'center', gap: 10 
-        }}>
-          <button 
-            onClick={() => setShowSidebar(!showSidebar)} 
-            style={{ 
-              width: 44, height: 44, 
-              background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)', 
-              border: '1px solid #2d2d44',
-              borderRadius: 12, cursor: 'pointer', 
-              boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f1f5f9" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="15" y2="12" /><line x1="3" y1="18" x2="18" y2="18" /></svg>
+        {/* 工具栏 */}
+        <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 1000, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button onClick={() => setShowSidebar(!showSidebar)} style={{ width: 44, height: 44, background: COLORS.cardBg, border: 'none', borderRadius: 12, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.textDark} strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="15" y2="12" /><line x1="3" y1="18" x2="18" y2="18" /></svg>
           </button>
           <div style={{ flex: 1 }} />
           {user ? (
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10 }}>
-              {/* 游戏 HUD 状态栏 */}
-              <button
-                onClick={() => openGamePanel('profile')}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '8px 14px',
-                  background: 'linear-gradient(135deg, rgba(26,26,46,0.95) 0%, rgba(18,18,26,0.9) 100%)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid #2d2d44',
-                  borderRadius: 12,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 25px rgba(168,85,247,0.4), inset 0 1px 0 rgba(255,255,255,0.05)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)'; }}
-              >
-                <span style={{ fontSize: 16 }}>💰</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 14, color: '#f59e0b', textShadow: '0 0 10px rgba(245,158,11,0.5)' }}>
-                  {playerProfile?.gold?.toLocaleString() || '?'}
-                </span>
-                <span style={{ color: '#2d2d44', fontSize: 11 }}>|</span>
-                <span style={{ fontWeight: 800, fontSize: 13, color: '#ec4899', textShadow: '0 0 10px rgba(236,72,153,0.5)' }}>
-                  LV.{playerProfile?.level || '?'}
-                </span>
-                <span style={{ color: '#2d2d44', fontSize: 11 }}>|</span>
-                <span style={{ fontSize: 14 }}>🔥</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 13, color: '#f97316', textShadow: '0 0 10px rgba(249,115,22,0.5)' }}>
-                  {playerProfile?.streak || 0}天
-                </span>
-              </button>
-
-              {/* 通知图标 */}
-              <button 
-                onClick={openNotificationPanel}
-                style={{ 
-                  width: 44, height: 44, 
-                  background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)', 
-                  border: '1px solid #2d2d44', 
-                  borderRadius: 12, 
-                  cursor: 'pointer', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  position: 'relative',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; }}
-              >
-                <Bell size={20} color="#f1f5f9" />
-                {unreadNotificationCount > 0 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: -4,
-                    right: -4,
-                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                    color: '#fff',
-                    fontSize: 10,
-                    fontWeight: 700,
-                    padding: '2px 6px',
-                    borderRadius: 10,
-                    minWidth: 18,
-                    textAlign: 'center',
-                    boxShadow: '0 2px 8px rgba(239,68,68,0.4)',
-                    animation: 'gaming-score-pop 0.3s ease',
-                  }}>
-                    {unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}
-                  </span>
-                )}
-              </button>
-
               {/* 消息图标 */}
               <button 
                 onClick={openChatList}
                 style={{ 
                   width: 44, height: 44, 
-                  background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)', 
-                  border: '1px solid #2d2d44', 
+                  background: COLORS.cardBg, 
+                  border: 'none', 
                   borderRadius: 12, 
                   cursor: 'pointer', 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
                   position: 'relative',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                  transition: 'all 0.2s',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; }}
               >
-                <Mail size={20} color="#f1f5f9" />
+                <Mail size={20} color={COLORS.textDark} />
                 {unreadCount > 0 && (
                   <span style={{
                     position: 'absolute',
                     top: -4,
                     right: -4,
-                    background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+                    background: COLORS.accent,
                     color: '#fff',
-                    fontSize: 10,
-                    fontWeight: 700,
+                    fontSize: 11,
+                    fontWeight: 600,
                     padding: '2px 6px',
                     borderRadius: 10,
                     minWidth: 18,
-                    textAlign: 'center',
-                    boxShadow: '0 2px 8px rgba(236,72,153,0.4)',
-                    animation: 'gaming-score-pop 0.3s ease',
+                    textAlign: 'center'
                   }}>
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
               </button>
 
-              {/* 用户头像带等级光环 */}
-              <button 
-                onClick={() => setShowUserMenu(!showUserMenu)} 
-                style={{ 
-                  padding: '8px 14px', 
-                  background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)', 
-                  border: 'none', 
-                  borderRadius: 12, 
-                  cursor: 'pointer', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: 8, 
-                  color: '#fff', 
-                  fontWeight: 700, 
-                  boxShadow: '0 4px 20px rgba(236,72,153,0.5), 0 0 30px rgba(168,85,247,0.3)',
-                  position: 'relative',
-                  overflow: 'hidden',
-                }}
-              >
-                <div style={{
-                  width: 28, height: 28,
-                  background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
-                  borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 14,
-                  boxShadow: '0 0 10px rgba(168,85,247,0.5)',
-                }}>
-                  <User size={14} />
-                </div>
+              <button onClick={() => setShowUserMenu(!showUserMenu)} style={{ padding: '8px 14px', background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#fff', fontWeight: 600, boxShadow: `0 4px 15px ${COLORS.accent}40` }}>
+                <User size={16} />
                 <span style={{ maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.nickname}</span>
               </button>
               {showUserMenu && (
-                <div style={{ 
-                  position: 'absolute', top: '100%', right: 0, marginTop: 8, 
-                  background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)',
-                  border: '1px solid #2d2d44',
-                  borderRadius: 12, 
-                  boxShadow: '0 8px 30px rgba(0,0,0,0.4), 0 0 20px rgba(168,85,247,0.2)', 
-                  minWidth: 180, overflow: 'hidden', zIndex: 1002 
-                }}>
-                  <div style={{ padding: 12, borderBottom: '1px solid #2d2d44', fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>@{user.username} · LV.{playerProfile?.level || 1}</div>
-                  <button onClick={openUserProfile} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#f1f5f9', fontSize: 13, fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(168,85,247,0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'none'}><User size={16} /> 编辑资料</button>
-                  <button onClick={openChatList} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#f1f5f9', fontSize: 13, fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(168,85,247,0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'none'}><Mail size={16} /> 消息 {unreadCount > 0 && <span style={{ background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', color: '#fff', padding: '2px 6px', borderRadius: 10, fontSize: 10, fontWeight: 700 }}>{unreadCount}</span>}</button>
-                  <button onClick={handleLogout} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#ef4444', fontSize: 13, fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'none'}><LogOut size={16} /> 退出登录</button>
+                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 8, background: COLORS.cardBg, borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', minWidth: 160, overflow: 'hidden', zIndex: 1002 }}>
+                  <div style={{ padding: 12, borderBottom: `1px solid ${COLORS.border}`, fontSize: 12, color: '#666' }}>@{user.username}</div>
+                  <button onClick={openUserProfile} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.textDark, fontSize: 13 }}><User size={16} /> 编辑资料</button>
+                  <button onClick={openChatList} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.textDark, fontSize: 13 }}><Mail size={16} /> 消息 {unreadCount > 0 && <span style={{ background: COLORS.accent, color: '#fff', padding: '2px 6px', borderRadius: 10, fontSize: 10 }}>{unreadCount}</span>}</button>
+                  <button onClick={handleLogout} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.accent, fontSize: 13 }}><LogOut size={16} /> 退出登录</button>
                 </div>
               )}
             </div>
           ) : (
-            <button 
-              onClick={() => setShowLogin(true)} 
-              style={{ 
-                padding: '10px 18px', 
-                background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)', 
-                border: '1px solid #2d2d44',
-                borderRadius: 12, 
-                cursor: 'pointer', 
-                display: 'flex', alignItems: 'center', gap: 8, 
-                color: '#f1f5f9', fontWeight: 700, 
-                boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; }}
-            >
-              <User size={16} /> 登录
-            </button>
+            <button onClick={() => setShowLogin(true)} style={{ padding: '10px 18px', background: COLORS.cardBg, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.textDark, fontWeight: 600, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}><User size={16} /> 登录</button>
           )}
-          <button 
-            onClick={() => { if (!user) { setShowLogin(true); return }; setShowPost(true) }} 
-            style={{ 
-              padding: '10px 18px', 
-              background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)', 
-              border: 'none', 
-              borderRadius: 12, 
-              cursor: 'pointer', 
-              display: 'flex', alignItems: 'center', gap: 8, 
-              color: '#fff', fontWeight: 700, 
-              boxShadow: '0 4px 20px rgba(236,72,153,0.5), 0 0 30px rgba(168,85,247,0.3)',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 25px rgba(236,72,153,0.6), 0 0 40px rgba(168,85,247,0.4)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(236,72,153,0.5), 0 0 30px rgba(168,85,247,0.3)'; }}
-          >
-            <Plus size={18} /> 打卡
-          </button>
+          <button onClick={() => { if (!user) { setShowLogin(true); return }; setShowPost(true) }} style={{ padding: '10px 18px', background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#fff', fontWeight: 600, boxShadow: `0 4px 15px ${COLORS.accent}40` }}><Plus size={18} /> 打卡</button>
         </div>
 
-        {/* 缩放控制 - 游戏风格 */}
+        {/* 缩放控制 - 移到右侧中间靠上位置 */}
         <div style={{ position: 'absolute', top: '50%', right: 16, transform: 'translateY(-50%)', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <button 
-            onClick={() => mapRef?.setZoom(mapZoom + 1)} 
-            style={{ 
-              width: 44, height: 44, 
-              background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)', 
-              border: '1px solid #2d2d44',
-              borderRadius: 12, cursor: 'pointer', 
-              boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; }}
-          >
-            <ZoomIn size={20} color="#f1f5f9" />
-          </button>
-          <button 
-            onClick={() => mapRef?.setZoom(mapZoom - 1)} 
-            style={{ 
-              width: 44, height: 44, 
-              background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)', 
-              border: '1px solid #2d2d44',
-              borderRadius: 12, cursor: 'pointer', 
-              boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; }}
-          >
-            <ZoomOut size={20} color="#f1f5f9" />
-          </button>
-          <button 
-            onClick={() => mapRef?.setView([35.8617, 104.1954], 4)} 
-            style={{ 
-              width: 44, height: 44, 
-              background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)', 
-              border: '1px solid #2d2d44',
-              borderRadius: 12, cursor: 'pointer', 
-              boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; }}
-          >
-            <Compass size={20} color="#f1f5f9" />
-          </button>
+          <button onClick={() => mapRef?.setZoom(mapZoom + 1)} style={{ width: 40, height: 40, background: COLORS.cardBg, border: 'none', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ZoomIn size={18} color={COLORS.textDark} /></button>
+          <button onClick={() => mapRef?.setZoom(mapZoom - 1)} style={{ width: 40, height: 40, background: COLORS.cardBg, border: 'none', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ZoomOut size={18} color={COLORS.textDark} /></button>
+          <button onClick={() => mapRef?.setView([35.8617, 104.1954], 4)} style={{ width: 40, height: 40, background: COLORS.cardBg, border: 'none', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Compass size={18} color={COLORS.textDark} /></button>
         </div>
 
         {/* 底部提示 */}
@@ -2242,188 +1573,53 @@ export default function App() {
         </div>
       </div>
 
-      {/* 登录弹窗 - 游戏风格 */}
+      {/* 登录弹窗 */}
       {showLogin && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowLogin(false)}>
-          <div style={{ 
-            background: 'linear-gradient(135deg, #12121a 0%, #0a0a0f 100%)', 
-            borderRadius: 20, width: '100%', maxWidth: 360, 
-            overflow: 'hidden', 
-            boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(168,85,247,0.3)',
-            border: '1px solid #2d2d44',
-            animation: 'gaming-breathe 0.3s ease',
-          }} onClick={e => e.stopPropagation()}>
-            {/* 顶部装饰条 */}
-            <div style={{ height: 4, background: 'linear-gradient(90deg, #a855f7, #ec4899, #f59e0b, #ec4899, #a855f7)', backgroundSize: '200% 100%', animation: 'gaming-shimmer 3s linear infinite' }} />
-            
-            <div style={{ padding: 20, borderBottom: '1px solid #2d2d44', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 4px 15px rgba(168,85,247,0.4)' }}>🎮</div>
-                <b style={{ fontSize: 20, color: '#f1f5f9', fontWeight: 800, textShadow: '0 0 20px rgba(168,85,247,0.5)' }}>{isRegister ? '注册账号' : '登录'}</b>
-              </div>
-              <button onClick={() => setShowLogin(false)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid #2d2d44', borderRadius: 8, cursor: 'pointer', padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={18} color="#94a3b8" /></button>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowLogin(false)}>
+          <div style={{ background: COLORS.cardBg, borderRadius: 16, width: '100%', maxWidth: 340, overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: 20, borderBottom: `1px solid ${COLORS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <b style={{ fontSize: 18, color: COLORS.textDark }}>{isRegister ? '注册账号' : '登录'}</b>
+              <button onClick={() => setShowLogin(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-            
             <div style={{ padding: 20, maxHeight: '70vh', overflowY: 'auto' }}>
               {isRegister ? (
                 <>
-                  <input type="text" placeholder="🎮 用户名 *" value={registerForm.username} onChange={e => setRegisterForm({ ...registerForm, username: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} autoComplete="off" onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
-                  <input type="password" placeholder="🔑 密码 *" value={registerForm.password} onChange={e => setRegisterForm({ ...registerForm, password: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} autoComplete="off" onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
-                  <input type="password" placeholder="🔑 确认密码 *" value={registerForm.password_conf} onChange={e => setRegisterForm({ ...registerForm, password_conf: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} autoComplete="off" onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
-                  <input type="text" placeholder="✨ 昵称 *" value={registerForm.nickname} onChange={e => setRegisterForm({ ...registerForm, nickname: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} autoComplete="off" onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
-                  <select value={registerForm.gender} onChange={e => setRegisterForm({ ...registerForm, gender: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9' }}>
+                  <input type="text" placeholder="用户名 *" value={registerForm.username} onChange={e => setRegisterForm({ ...registerForm, username: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <input type="password" placeholder="密码 *" value={registerForm.password} onChange={e => setRegisterForm({ ...registerForm, password: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <input type="password" placeholder="确认密码 *" value={registerForm.password_conf} onChange={e => setRegisterForm({ ...registerForm, password_conf: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <input type="text" placeholder="昵称 *" value={registerForm.nickname} onChange={e => setRegisterForm({ ...registerForm, nickname: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <select value={registerForm.gender} onChange={e => setRegisterForm({ ...registerForm, gender: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', background: 'white' }}>
                     <option value="male">♂️ 男</option>
                     <option value="female">♀️ 女</option>
                     <option value="other">🔹 其他</option>
                   </select>
-                  <textarea placeholder="📝 个人简介（选填）" value={registerForm.bio} onChange={e => setRegisterForm({ ...registerForm, bio: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', minHeight: 80, resize: 'vertical', color: '#f1f5f9' }} />
-                  <input type="email" placeholder="📧 邮箱（选填）" value={registerForm.email} onChange={e => setRegisterForm({ ...registerForm, email: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9' }} autoComplete="off" />
-                  <input type="tel" placeholder="📱 手机号（选填）" value={registerForm.phone} onChange={e => setRegisterForm({ ...registerForm, phone: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9' }} autoComplete="off" />
+                  <textarea placeholder="个人简介（选填）" value={registerForm.bio} onChange={e => setRegisterForm({ ...registerForm, bio: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', minHeight: 80, resize: 'vertical' }} />
+                  <input type="email" placeholder="邮箱（选填）" value={registerForm.email} onChange={e => setRegisterForm({ ...registerForm, email: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <input type="tel" placeholder="手机号（选填）" value={registerForm.phone} onChange={e => setRegisterForm({ ...registerForm, phone: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
                 </>
               ) : (
                 <>
-                  <input type="text" placeholder="🎮 用户名" value={loginForm.username} onChange={e => setLoginForm({ ...loginForm, username: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} autoComplete="off" onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
-                  <input type="password" placeholder="🔑 密码" value={loginForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} autoComplete="off" onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
-                  <div style={{ padding: 12, background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)', borderRadius: 10, fontSize: 12, color: '#a855f7', fontWeight: 600 }}>🔑 测试账号：<b>root</b> / <b>root</b></div>
+                  <input type="text" placeholder="用户名" value={loginForm.username} onChange={e => setLoginForm({ ...loginForm, username: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <input type="password" placeholder="密码" value={loginForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <div style={{ padding: 12, background: '#e3f2fd', borderRadius: 8, fontSize: 12, color: '#1565c0' }}>🔑 测试账号：<b>root</b> / <b>root</b></div>
                 </>
               )}
             </div>
-            <div style={{ padding: 20, borderTop: '1px solid #2d2d44', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button 
-                onClick={isRegister ? handleRegister : handleLogin} 
-                style={{ 
-                  width: '100%', padding: 14, 
-                  background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)', 
-                  color: 'white', border: 'none', borderRadius: 12, 
-                  cursor: 'pointer', fontWeight: 700, fontSize: 16,
-                  boxShadow: '0 4px 20px rgba(236,72,153,0.5), 0 0 30px rgba(168,85,247,0.3)',
-                  position: 'relative', overflow: 'hidden',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 25px rgba(236,72,153,0.6), 0 0 40px rgba(168,85,247,0.4)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(236,72,153,0.5), 0 0 30px rgba(168,85,247,0.3)'; }}
-              >
-                {isRegister ? '🚀 注册账号' : '🎮 开始游戏'}
-              </button>
-              <button onClick={() => setIsRegister(!isRegister)} style={{ width: '100%', padding: 10, background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 13, fontWeight: 600, transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#a855f7'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>
-                {isRegister ? '已有账号？去登录 →' : '没有账号？去注册 →'}
-              </button>
+            <div style={{ padding: 20, borderTop: `1px solid ${COLORS.border}`, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button onClick={isRegister ? handleRegister : handleLogin} style={{ width: '100%', padding: 14, background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 15 }}>{isRegister ? '注册' : '登录'}</button>
+              <button onClick={() => setIsRegister(!isRegister)} style={{ width: '100%', padding: 10, background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: 13 }}>{isRegister ? '已有账号？去登录' : '没有账号？去注册'}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 通知面板 */}
-      {showNotificationPanel && user && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 2000 }} onClick={() => setShowNotificationPanel(false)}>
-          <div style={{ position: 'absolute', top: 70, right: 16, width: 360, maxHeight: 480, background: COLORS.cardBg, borderRadius: 16, boxShadow: '0 8px 30px rgba(0,0,0,0.3)', overflow: 'hidden', zIndex: 2001 }} onClick={e => e.stopPropagation()}>
-            {/* 面板头部 */}
-            <div style={{ padding: '14px 16px', borderBottom: `1px solid ${COLORS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 18 }}>🔔</span>
-                <b style={{ fontSize: 16, color: COLORS.textDark }}>通知</b>
-                {unreadNotificationCount > 0 && (
-                  <span style={{ background: COLORS.accent, color: '#fff', fontSize: 11, padding: '2px 8px', borderRadius: 10 }}>
-                    {unreadNotificationCount} 未读
-                  </span>
-                )}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {unreadNotificationCount > 0 && (
-                  <button 
-                    onClick={markAllNotificationsAsRead}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.accent, fontSize: 12 }}
-                  >
-                    全部已读
-                  </button>
-                )}
-                <button onClick={() => setShowNotificationPanel(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}>
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
-            
-            {/* 通知列表 */}
-            <div style={{ maxHeight: 400, overflowY: 'auto' }}>
-              {loadingNotifications ? (
-                <div style={{ padding: 40, textAlign: 'center' }}>
-                  <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: COLORS.accent }} />
-                </div>
-              ) : notifications.length === 0 ? (
-                <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>
-                  <div style={{ fontSize: 40, marginBottom: 8 }}>🔕</div>
-                  <div>暂无通知</div>
-                </div>
-              ) : (
-                notifications.map(notification => (
-                  <div
-                    key={notification.id}
-                    onClick={() => handleNotificationClick(notification)}
-                    style={{
-                      padding: '12px 16px',
-                      borderBottom: `1px solid ${COLORS.border}`,
-                      background: notification.read ? 'transparent' : `${COLORS.accent}08`,
-                      cursor: 'pointer',
-                      transition: 'background 0.2s'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = notification.read ? '#f5f5f5' : `${COLORS.accent}15`}
-                    onMouseLeave={e => e.currentTarget.style.background = notification.read ? 'transparent' : `${COLORS.accent}08`}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                      <div style={{
-                        width: 36, height: 36,
-                        background: notification.read ? '#f0f0f0' : `${COLORS.accent}15`,
-                        borderRadius: '50%',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 16,
-                        flexShrink: 0
-                      }}>
-                        {getNotificationIcon(notification.type)}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                          {notification.data?.actor_name && (
-                            <span style={{ fontWeight: 600, fontSize: 13, color: COLORS.textDark }}>
-                              {notification.data.actor_name}
-                            </span>
-                          )}
-                          {!notification.read && (
-                            <span style={{ width: 8, height: 8, background: COLORS.accent, borderRadius: '50%' }} />
-                          )}
-                        </div>
-                        <div style={{ fontSize: 13, color: '#666', marginBottom: 4 }}>
-                          {getNotificationText(notification)}
-                        </div>
-                        <div style={{ fontSize: 11, color: '#999' }}>
-                          {formatTime(notification.created_at)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 打卡弹窗 - 游戏风格 */}
+      {/* 打卡弹窗 */}
       {showPost && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => { setShowPost(false); setPostCoords(null) }}>
-          <div style={{ 
-            background: 'linear-gradient(135deg, #12121a 0%, #0a0a0f 100%)', 
-            borderRadius: 20, width: '100%', maxWidth: 420, maxHeight: '90vh', 
-            overflow: 'auto', 
-            boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(168,85,247,0.3)',
-            border: '1px solid #2d2d44',
-          }} onClick={e => e.stopPropagation()}>
-            <div style={{ height: 4, background: 'linear-gradient(90deg, #ec4899, #a855f7, #3b82f6, #10b981)', backgroundSize: '200% 100%', animation: 'gaming-shimmer 3s linear infinite' }} />
-            <div style={{ padding: 20, borderBottom: '1px solid #2d2d44', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 4px 15px rgba(236,72,153,0.4)' }}>📍</div>
-                <b style={{ fontSize: 20, color: '#f1f5f9', fontWeight: 800 }}>发布打卡</b>
-              </div>
-              <button onClick={() => { setShowPost(false); setPostCoords(null) }} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid #2d2d44', borderRadius: 8, cursor: 'pointer', padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={18} color="#94a3b8" /></button>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => { setShowPost(false); setPostCoords(null) }}>
+          <div style={{ background: COLORS.cardBg, borderRadius: 16, width: '100%', maxWidth: 400, maxHeight: '90vh', overflow: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: 20, borderBottom: `1px solid ${COLORS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <b style={{ fontSize: 18, color: COLORS.textDark }}>发布帖子</b>
+              <button onClick={() => { setShowPost(false); setPostCoords(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             <div style={{ padding: 20 }}>
               <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -2441,86 +1637,28 @@ export default function App() {
                     key={item.type} 
                     onClick={() => setPostForm({ ...postForm, type: item.type })} 
                     style={{ 
-                      padding: '10px 14px', 
-                      background: postForm.type === item.type 
-                        ? `linear-gradient(135deg, ${item.color} 0%, ${item.color}99 100%)` 
-                        : 'rgba(0,0,0,0.3)', 
-                      border: postForm.type === item.type ? 'none' : '1px solid #2d2d44', 
+                      padding: '10px 16px', 
+                      background: postForm.type === item.type ? item.color : '#f5f5f5', 
+                      border: postForm.type === item.type ? 'none' : '1px solid #e0e0e0', 
                       borderRadius: 10, 
-                      color: postForm.type === item.type ? 'white' : '#94a3b8', 
+                      color: postForm.type === item.type ? 'white' : '#666', 
                       cursor: 'pointer', 
-                      fontWeight: 700, 
-                      fontSize: 12,
+                      fontWeight: 500, 
+                      fontSize: 13,
                       display: 'flex',
                       alignItems: 'center',
                       gap: 6,
-                      transition: 'all 0.2s',
-                      boxShadow: postForm.type === item.type ? `0 4px 15px ${item.color}40` : 'none',
+                      transition: 'all 0.2s'
                     }}
                   >
+                    {item.icon}
                     {item.label}
                   </button>
                 ))}
               </div>
-              <input placeholder="📝 标题 *" value={postForm.title} onChange={e => setPostForm({ ...postForm, title: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
-              <textarea placeholder="✨ 分享你的发现... *" value={postForm.content} onChange={e => setPostForm({ ...postForm, content: e.target.value })} rows={4} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, resize: 'none', boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
-              
-              {/* 图片上传 */}
-              <div style={{ marginBottom: 12 }}>
-                {postForm.image_url ? (
-                  <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden' }}>
-                    <img src={postForm.image_url} alt="上传预览" style={{ width: '100%', maxHeight: 200, objectFit: 'cover' }} />
-                    <button 
-                      onClick={() => setPostForm({ ...postForm, image_url: '' })}
-                      style={{
-                        position: 'absolute', top: 8, right: 8,
-                        background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%',
-                        width: 28, height: 28, cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#fff'
-                      }}
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 16, background: '#f5f5f5', border: '2px dashed #ddd', borderRadius: 10, cursor: 'pointer', color: '#666', transition: 'all 0.2s' }}>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      style={{ display: 'none' }}
-                      onChange={async (e) => {
-                        const file = e.target.files[0]
-                        if (!file) return
-                        // 创建 FormData 上传
-                        const formData = new FormData()
-                        formData.append('image', file)
-                        try {
-                          const token = localStorage.getItem('tapspot_token')
-                          const res = await fetch('/api/upload/post-image', {
-                            method: 'POST',
-                            headers: { 'Authorization': `Bearer ${token}` },
-                            body: formData
-                          })
-                          const data = await res.json()
-                          if (data.success && data.url) {
-                            setPostForm({ ...postForm, image_url: data.url })
-                          } else {
-                            alert(data.error || '上传失败')
-                          }
-                        } catch (err) {
-                          console.error('上传失败:', err)
-                          alert('上传失败')
-                        }
-                      }}
-                    />
-                    <span style={{ fontSize: 24 }}>📷</span>
-                    <span style={{ fontSize: 14, fontWeight: 500 }}>添加图片</span>
-                  </label>
-                )}
-              </div>
-              
-              <input placeholder="📍 地点名称（如：北京故宫）" value={postForm.location_name} onChange={e => setPostForm({ ...postForm, location_name: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
+              <input placeholder="标题 *" value={postForm.title} onChange={e => setPostForm({ ...postForm, title: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} />
+              <textarea placeholder="分享你的发现... *" value={postForm.content} onChange={e => setPostForm({ ...postForm, content: e.target.value })} rows={4} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, resize: 'none', boxSizing: 'border-box' }} />
+              <input placeholder="地点名称（如：北京故宫）" value={postForm.location_name} onChange={e => setPostForm({ ...postForm, location_name: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} />
               
               {/* 位置选择区域 */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
@@ -2630,9 +1768,6 @@ export default function App() {
                 </div>
                 <button onClick={() => setShowPostDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={20} /></button>
               </div>
-              {showPostDetail.image_url && (
-                <img src={showPostDetail.image_url} alt="" style={{ width: '100%', maxHeight: 300, objectFit: 'cover', borderRadius: 10, marginBottom: 12 }} />
-              )}
               <div style={{ fontSize: 14, color: '#333', lineHeight: 1.6, marginBottom: 12 }}>{showPostDetail.content}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: '#888' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={14} /> {showPostDetail.location_name || '未知地点'}</span>
@@ -3058,7 +2193,7 @@ export default function App() {
                   )}
                   
                   {/* 统计数据 */}
-                  <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontWeight: 700, fontSize: 22 }}>{showUserSpace.user.postsCount}</div>
                       <div style={{ fontSize: 12, color: '#aaa' }}>打卡</div>
@@ -3067,66 +2202,28 @@ export default function App() {
                       <div style={{ fontWeight: 700, fontSize: 22 }}>{showUserSpace.user.likesCount}</div>
                       <div style={{ fontSize: 12, color: '#aaa' }}>获赞</div>
                     </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontWeight: 700, fontSize: 22 }}>{followStats.followers_count}</div>
-                      <div style={{ fontSize: 12, color: '#aaa' }}>粉丝</div>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontWeight: 700, fontSize: 22 }}>{followStats.following_count}</div>
-                      <div style={{ fontSize: 12, color: '#aaa' }}>关注</div>
-                    </div>
-                    {/* 操作按钮 */}
+                    {/* 发消息按钮 */}
                     {user && user.id !== showUserSpace.user.id && (
-                      <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-                        {/* 关注/取消关注按钮 */}
-                        <button
-                          onClick={() => isFollowing ? handleUnfollow(showUserSpace.user.id) : handleFollow(showUserSpace.user.id)}
-                          disabled={followingLoading}
-                          style={{
-                            padding: '10px 20px',
-                            background: isFollowing ? '#f5f5f5' : COLORS.accent,
-                            border: isFollowing ? '1px solid #ddd' : 'none',
-                            borderRadius: 20,
-                            cursor: followingLoading ? 'not-allowed' : 'pointer',
-                            color: isFollowing ? '#666' : '#fff',
-                            fontWeight: 600,
-                            fontSize: 14,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            opacity: followingLoading ? 0.7 : 1
-                          }}
-                        >
-                          {followingLoading ? (
-                            <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-                          ) : (
-                            <>
-                              {isFollowing ? '✓ 已关注' : '+ 关注'}
-                            </>
-                          )}
-                        </button>
-                        {/* 发消息按钮 */}
-                        <button
-                          onClick={() => openChat(showUserSpace.user.id)}
-                          style={{
-                            padding: '10px 20px',
-                            background: '#f5f5f5',
-                            border: '1px solid #ddd',
-                            borderRadius: 20,
-                            cursor: 'pointer',
-                            color: '#666',
-                            fontWeight: 600,
-                            fontSize: 14,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 6
-                          }}
-                        >
-                          <Mail size={16} />
-                          消息
-                        </button>
-                      </div>
-                    )}
+                      <button
+                        onClick={() => openChat(showUserSpace.user.id)}
+                        style={{
+                          marginLeft: 'auto',
+                          padding: '10px 20px',
+                          background: COLORS.accent,
+                          border: 'none',
+                          borderRadius: 20,
+                          cursor: 'pointer',
+                          color: '#fff',
+                          fontWeight: 600,
+                          fontSize: 14,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6
+                        }}
+                      >
+                        <Mail size={16} />
+                        发消息
+                      </button>
                     )}
                   </div>
                 </div>
@@ -3189,558 +2286,6 @@ export default function App() {
         </div>
       )}
 
-
-      {/* 游戏面板弹窗 */}
-      {showGamePanel && (
-        <div
-          style={{
-            position: 'fixed', inset: 0,
-            background: 'rgba(0,0,0,0.7)',
-            zIndex: 2000,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 16
-          }}
-          onClick={() => setShowGamePanel(false)}
-        >
-          <div
-            style={{
-              background: COLORS.primary,
-              borderRadius: 20,
-              width: '100%', maxWidth: 440,
-              maxHeight: '85vh',
-              overflow: 'hidden',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-              border: `1px solid ${COLORS.border}`
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            {/* 面板头部 */}
-            <div style={{
-              padding: '16px 20px',
-              background: `linear-gradient(135deg, ${COLORS.secondary} 0%, ${COLORS.primary} 100%)`,
-              borderBottom: `1px solid ${COLORS.border}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 20 }}>🎮</span>
-                <span style={{ fontWeight: 700, fontSize: 18, color: COLORS.text }}>游戏中心</span>
-              </div>
-              <button
-                onClick={() => setShowGamePanel(false)}
-                style={{
-                  background: 'rgba(255,255,255,0.1)', border: 'none',
-                  borderRadius: 8, cursor: 'pointer', padding: 6
-                }}
-              >
-                <X size={18} color={COLORS.text} />
-              </button>
-            </div>
-
-            {/* 标签切换 */}
-            <div style={{
-              display: 'flex', gap: 4, padding: 12,
-              background: COLORS.cardBgDark,
-              borderBottom: `1px solid ${COLORS.border}`
-            }}>
-              {[
-                { key: 'profile', label: '📋 角色' },
-                { key: 'quests', label: '🎯 任务' },
-                { key: 'achievements', label: '🏆 成就' },
-                { key: 'leaderboard', label: '📊 排行' },
-              ].map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setGamePanelTab(tab.key)}
-                  style={{
-                    flex: 1, padding: '10px 8px',
-                    background: gamePanelTab === tab.key ? COLORS.accent : 'transparent',
-                    border: gamePanelTab === tab.key ? 'none' : `1px solid ${COLORS.border}`,
-                    borderRadius: 10, cursor: 'pointer',
-                    color: gamePanelTab === tab.key ? '#fff' : '#888',
-                    fontWeight: 600, fontSize: 12, transition: 'all 0.2s'
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            {/* 面板内容 */}
-            <div style={{
-              flex: 1, overflowY: 'auto', padding: 16,
-              maxHeight: 'calc(85vh - 130px)'
-            }}>
-              {/* ===== 角色/资料面板 ===== */}
-              {gamePanelTab === 'profile' && (
-                <div>
-                  {/* 签到结果提示 */}
-                  {checkinResult && (
-                    <div style={{
-                      padding: 14, marginBottom: 16,
-                      background: checkinResult.already ? '#fef3c7' : '#d1fae5',
-                      borderRadius: 12, textAlign: 'center',
-                      border: `1px solid ${checkinResult.already ? '#f59e0b' : '#10b981'}`
-                    }}>
-                      <div style={{ fontSize: 28, marginBottom: 6 }}>
-                        {checkinResult.already ? '✅' : '🎉'}
-                      </div>
-                      <div style={{
-                        fontWeight: 700, fontSize: 16,
-                        color: checkinResult.already ? '#92400e' : '#065f46'
-                      }}>
-                        {checkinResult.already ? '今日已签到' : '签到成功！'}
-                      </div>
-                      {!checkinResult.already && checkinResult.reward && (
-                        <div style={{ fontSize: 14, color: '#065f46', marginTop: 4 }}>
-                          获得 {checkinResult.reward} 💰
-                        </div>
-                      )}
-                      {checkinResult.streak !== undefined && (
-                        <div style={{ fontSize: 13, color: '#92400e', marginTop: 4 }}>
-                          🔥 连续签到 {checkinResult.streak} 天
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* 角色卡片 */}
-                  <div style={{
-                    background: COLORS.cardBgDark,
-                    borderRadius: 16, padding: 20,
-                    marginBottom: 16,
-                    border: `1px solid ${COLORS.border}`,
-                    textAlign: 'center'
-                  }}>
-                    {/* 头像 */}
-                    <div style={{
-                      width: 80, height: 80, margin: '0 auto 12px',
-                      background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`,
-                      borderRadius: '50%',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 36, position: 'relative',
-                      boxShadow: `0 4px 20px ${COLORS.accent}40`
-                    }}>
-                      👤
-                      {/* 等级徽章 */}
-                      <div style={{
-                        position: 'absolute', bottom: -4, right: -4,
-                        background: `linear-gradient(135deg, ${COLORS.gold} 0%, #f97316 100%)`,
-                        borderRadius: 10, padding: '2px 8px',
-                        fontSize: 11, fontWeight: 700, color: '#fff',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
-                      }}>
-                        LV.{playerProfile?.level || 1}
-                      </div>
-                    </div>
-
-                    {/* 昵称和称号 */}
-                    <div style={{ marginBottom: 8 }}>
-                      <div style={{ fontWeight: 700, fontSize: 20, color: COLORS.text }}>
-                        {user?.nickname || user?.username}
-                      </div>
-                      <div style={{
-                        fontSize: 13, color: COLORS.gold, marginTop: 4,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4
-                      }}>
-                        <span>👑</span>
-                        <span>{getTitle(playerProfile?.level || 1)}</span>
-                      </div>
-                    </div>
-
-                    {/* XP进度条 */}
-                    <div style={{ marginTop: 16, marginBottom: 8 }}>
-                      <div style={{
-                        display: 'flex', justifyContent: 'space-between',
-                        fontSize: 11, color: '#888', marginBottom: 4
-                      }}>
-                        <span>经验值</span>
-                        <span>{playerProfile?.xp || 0} / {playerProfile?.xpToNextLevel || 100}</span>
-                      </div>
-                      <div style={{
-                        height: 10, background: COLORS.border,
-                        borderRadius: 5, overflow: 'hidden'
-                      }}>
-                        <div style={{
-                          width: `${getLevelProgress()}%`, height: '100%',
-                          background: `linear-gradient(90deg, ${COLORS.accent} 0%, #ff6b9d 100%)`,
-                          borderRadius: 5, transition: 'width 0.3s'
-                        }} />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 属性统计 */}
-                  <div style={{
-                    display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16
-                  }}>
-                    {[
-                      { icon: '💰', label: '金币', value: playerProfile?.gold?.toLocaleString() || 0, color: COLORS.gold },
-                      { icon: '🔥', label: '连续签到', value: `${playerProfile?.streak || 0}天`, color: '#f97316' },
-                      { icon: '📮', label: '帖子数', value: playerProfile?.postsCount || 0, color: '#3b82f6' },
-                      { icon: '❤️', label: '获赞数', value: playerProfile?.likesCount || 0, color: COLORS.accent },
-                      { icon: '🏆', label: '成就', value: `${playerProfile?.achievementsUnlocked || 0}/${achievements.length}`, color: '#10b981' },
-                      { icon: '🎯', label: '任务', value: `${playerProfile?.questsCompleted || 0}/${(quests.daily?.length || 0) + (quests.weekly?.length || 0) + (quests.main?.length || 0)}`, color: '#8b5cf6' },
-                    ].map((stat, i) => (
-                      <div key={i} style={{
-                        background: COLORS.cardBgDark, borderRadius: 12, padding: 14,
-                        textAlign: 'center', border: `1px solid ${COLORS.border}`
-                      }}>
-                        <div style={{ fontSize: 22, marginBottom: 4 }}>{stat.icon}</div>
-                        <div style={{ fontWeight: 700, fontSize: 16, color: stat.color }}>
-                          {stat.value}
-                        </div>
-                        <div style={{ fontSize: 11, color: '#888' }}>{stat.label}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* 签到按钮 */}
-                  <button
-                    onClick={handleDailyCheckin}
-                    disabled={checkinLoading}
-                    style={{
-                      width: '100%', padding: 16,
-                      background: checkinLoading ? COLORS.border :
-                        playerProfile?.checkedInToday ? COLORS.cardBgDark :
-                          `linear-gradient(135deg, ${COLORS.gold} 0%, #f97316 100%)`,
-                      border: playerProfile?.checkedInToday ? `1px solid ${COLORS.border}` : 'none',
-                      borderRadius: 14, cursor: checkinLoading || playerProfile?.checkedInToday ? 'default' : 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    {checkinLoading ? (
-                      <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
-                    ) : (
-                      <>
-                        <span style={{ fontSize: 24 }}>📅</span>
-                        <span style={{ fontWeight: 700, fontSize: 16, color: playerProfile?.checkedInToday ? '#888' : '#fff' }}>
-                          {playerProfile?.checkedInToday ? '今日已签到' : '每日签到'}
-                        </span>
-                        {!playerProfile?.checkedInToday && (
-                          <span style={{ fontSize: 14, opacity: 0.9 }}>+💰</span>
-                        )}
-                      </>
-                    )}
-                  </button>
-                  {playerProfile?.checkedInToday && (
-                    <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: '#888' }}>
-                      明天再来签到可获得更多奖励哦~
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ===== 任务面板 ===== */}
-              {gamePanelTab === 'quests' && (
-                <div>
-                  {/* 任务类型切换 */}
-                  <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                    {[
-                      { key: 'daily', label: '📅 每日' },
-                      { key: 'weekly', label: '📆 每周' },
-                      { key: 'main', label: '🎯 主线' },
-                    ].map(tab => (
-                      <button
-                        key={tab.key}
-                        onClick={() => setQuestTab(tab.key)}
-                        style={{
-                          flex: 1, padding: '10px 8px',
-                          background: questTab === tab.key ? COLORS.accent : COLORS.cardBgDark,
-                          border: questTab === tab.key ? 'none' : `1px solid ${COLORS.border}`,
-                          borderRadius: 10, cursor: 'pointer',
-                          color: questTab === tab.key ? '#fff' : '#888',
-                          fontWeight: 600, fontSize: 12, transition: 'all 0.2s'
-                        }}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* 任务列表 */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {(quests[questTab] || []).map((quest, index) => (
-                      <div key={index} style={{
-                        background: COLORS.cardBgDark,
-                        borderRadius: 12, padding: 14,
-                        border: `1px solid ${quest.completed ? COLORS.success + '40' : COLORS.border}`
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                          <div style={{
-                            width: 40, height: 40,
-                            background: quest.completed ? COLORS.success + '20' : COLORS.border,
-                            borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 20, flexShrink: 0
-                          }}>
-                            {questIcons[quest.type] || '🎯'}
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                              <span style={{ fontWeight: 600, fontSize: 14, color: COLORS.text }}>
-                                {quest.name}
-                              </span>
-                              {quest.completed && (
-                                <span style={{
-                                  background: COLORS.success, color: '#fff',
-                                  padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600
-                                }}>
-                                  完成
-                                </span>
-                              )}
-                            </div>
-                            <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>
-                              {quest.description}
-                            </div>
-
-                            {/* 进度条 */}
-                            <div style={{ marginBottom: 8 }}>
-                              <div style={{
-                                display: 'flex', justifyContent: 'space-between',
-                                fontSize: 11, color: '#666', marginBottom: 4
-                              }}>
-                                <span>进度</span>
-                                <span>{quest.progress || 0} / {quest.target || 1}</span>
-                              </div>
-                              <div style={{
-                                height: 6, background: COLORS.border,
-                                borderRadius: 3, overflow: 'hidden'
-                              }}>
-                                <div style={{
-                                  width: `${Math.min(100, ((quest.progress || 0) / (quest.target || 1)) * 100)}%`,
-                                  height: '100%',
-                                  background: quest.completed ? COLORS.success : COLORS.accent,
-                                  borderRadius: 3, transition: 'width 0.3s'
-                                }} />
-                              </div>
-                            </div>
-
-                            {/* 奖励和领取 */}
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <span style={{ fontSize: 12, color: COLORS.gold }}>💰</span>
-                                <span style={{ fontSize: 12, fontWeight: 600, color: COLORS.gold }}>
-                                  +{quest.reward || 0}
-                                </span>
-                              </div>
-                              {quest.completed && !quest.claimed && (
-                                <button
-                                  onClick={() => {
-                                    // TODO: 调用领取API
-                                    alert('奖励已领取！')
-                                    fetchQuests()
-                                    fetchPlayerProfile()
-                                  }}
-                                  style={{
-                                    padding: '6px 14px',
-                                    background: `linear-gradient(135deg, ${COLORS.gold} 0%, #f97316 100%)`,
-                                    border: 'none', borderRadius: 8,
-                                    cursor: 'pointer',
-                                    fontWeight: 600, fontSize: 12, color: '#fff'
-                                  }}
-                                >
-                                  领取
-                                </button>
-                              )}
-                              {quest.claimed && (
-                                <span style={{ fontSize: 11, color: '#888' }}>已领取</span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    {(quests[questTab] || []).length === 0 && (
-                      <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
-                        <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
-                        <div>暂无{questTab === 'daily' ? '每日' : questTab === 'weekly' ? '每周' : '主线'}任务</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* ===== 成就面板 ===== */}
-              {gamePanelTab === 'achievements' && (
-                <div>
-                  <div style={{
-                    display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12
-                  }}>
-                    {achievements.map((achievement, index) => (
-                      <div
-                        key={index}
-                        onClick={() => {
-                          // 显示成就详情
-                          alert(`${achievement.name}\n\n${achievement.description}\n\n${achievement.unlocked ? '✅ 已解锁' : '🔒 未解锁'}`)
-                        }}
-                        style={{
-                          background: COLORS.cardBgDark,
-                          borderRadius: 12, padding: 14,
-                          textAlign: 'center',
-                          cursor: 'pointer',
-                          border: achievement.unlocked ?
-                            `1px solid ${COLORS.gold}40` : `1px solid ${COLORS.border}`,
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        <div style={{
-                          width: 48, height: 48, margin: '0 auto 8px',
-                          background: achievement.unlocked ?
-                            `linear-gradient(135deg, ${COLORS.gold} 0%, #f97316 100%)` :
-                            COLORS.border,
-                          borderRadius: '50%',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 24,
-                          filter: achievement.unlocked ? 'none' : 'grayscale(100%)',
-                          opacity: achievement.unlocked ? 1 : 0.5
-                        }}>
-                          {achievement.unlocked ?
-                            (achievementIcons[achievement.id] || '🏆') :
-                            '?'}
-                        </div>
-                        <div style={{
-                          fontSize: 11, fontWeight: 600,
-                          color: achievement.unlocked ? COLORS.text : '#666',
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-                        }}>
-                          {achievement.name || '???'}
-                        </div>
-                        {achievement.unlocked && achievement.unlockedAt && (
-                          <div style={{ fontSize: 9, color: '#888', marginTop: 2 }}>
-                            {new Date(achievement.unlockedAt).toLocaleDateString()}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  {achievements.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
-                      <div style={{ fontSize: 40, marginBottom: 12 }}>🏆</div>
-                      <div>暂无成就数据</div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ===== 排行榜面板 ===== */}
-              {gamePanelTab === 'leaderboard' && (
-                <div>
-                  {/* 排行榜类型切换 */}
-                  <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                    {[
-                      { key: 'level', label: '👑 等级' },
-                      { key: 'checkin', label: '📅 打卡' },
-                      { key: 'likes', label: '❤️ 点赞' },
-                    ].map(tab => (
-                      <button
-                        key={tab.key}
-                        onClick={() => {
-                          setLeaderboardTab(tab.key)
-                          if (!leaderboard[tab.key] || leaderboard[tab.key].length === 0) {
-                            fetchLeaderboard(tab.key)
-                          }
-                        }}
-                        style={{
-                          flex: 1, padding: '10px 8px',
-                          background: leaderboardTab === tab.key ? COLORS.accent : COLORS.cardBgDark,
-                          border: leaderboardTab === tab.key ? 'none' : `1px solid ${COLORS.border}`,
-                          borderRadius: 10, cursor: 'pointer',
-                          color: leaderboardTab === tab.key ? '#fff' : '#888',
-                          fontWeight: 600, fontSize: 12, transition: 'all 0.2s'
-                        }}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* 排行榜列表 */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {(leaderboard[leaderboardTab] || []).map((entry, index) => {
-                      const isMe = entry.userId === user?.id || entry.id === user?.id
-                      const rank = index + 1
-                      return (
-                        <div
-                          key={index}
-                          style={{
-                            background: isMe ? COLORS.accent + '15' : COLORS.cardBgDark,
-                            borderRadius: 12, padding: 12,
-                            display: 'flex', alignItems: 'center', gap: 12,
-                            border: isMe ? `1px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
-                            transition: 'all 0.2s'
-                          }}
-                        >
-                          {/* 排名 */}
-                          <div style={{
-                            width: 32, height: 32,
-                            background: rank === 1 ? '#f4a261' : rank === 2 ? '#94a3b8' : rank === 3 ? '#cd7f32' : COLORS.border,
-                            borderRadius: '50%',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontWeight: 700, fontSize: 14,
-                            color: rank <= 3 ? '#fff' : '#888'
-                          }}>
-                            {rank <= 3 ? ['🥇', '🥈', '🥉'][rank - 1] : rank}
-                          </div>
-
-                          {/* 头像 */}
-                          <div style={{
-                            width: 40, height: 40,
-                            background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`,
-                            borderRadius: '50%',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 18
-                          }}>
-                            {entry.avatar ? (
-                              <img src={entry.avatar} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                            ) : '👤'}
-                          </div>
-
-                          {/* 用户信息 */}
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <span style={{ fontWeight: 600, fontSize: 14, color: COLORS.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {entry.nickname || entry.username || '用户'}
-                              </span>
-                              {isMe && (
-                                <span style={{ fontSize: 10, background: COLORS.accent, color: '#fff', padding: '1px 4px', borderRadius: 3 }}>
-                                  我
-                                </span>
-                              )}
-                            </div>
-                            <div style={{ fontSize: 11, color: '#888' }}>
-                              {leaderboardTab === 'level' && `LV.${entry.level || 1}`}
-                              {leaderboardTab === 'checkin' && `${entry.checkinCount || entry.count || 0} 天打卡`}
-                              {leaderboardTab === 'likes' && `${entry.likesReceived || entry.likes || 0} 获赞`}
-                            </div>
-                          </div>
-
-                          {/* 分数 */}
-                          <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontWeight: 700, fontSize: 16, color: COLORS.gold }}>
-                              {leaderboardTab === 'level' && `LV.${entry.level || 1}`}
-                              {leaderboardTab === 'checkin' && `${entry.checkinCount || entry.count || 0}`}
-                              {leaderboardTab === 'likes' && `${entry.likesReceived || entry.likes || 0}`}
-                            </div>
-                            {leaderboardTab === 'level' && (
-                              <div style={{ fontSize: 10, color: '#888' }}>{entry.title || getTitle(entry.level || 1)}</div>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                  {(leaderboard[leaderboardTab] || []).length === 0 && (
-                    <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
-                      <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
-                      <div>暂无排行数据</div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 消息中心 */}
       {showChat && (
