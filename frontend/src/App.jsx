@@ -219,11 +219,32 @@ export default function App() {
 
   // 游戏中心状态
   const [showGamePanel, setShowGamePanel] = useState(false)
-  const [gamePanelTab, setGamePanelTab] = useState('achievements') // 'achievements'|'quests'|'leaderboard'|'profile'
+  const [gamePanelTab, setGamePanelTab] = useState('achievements') // 'achievements'|'quests'|'leaderboard'|'profile'|'shop'|'team'|'season'|'stats'
   const [achievements, setAchievements] = useState([])
   const [playerProfile, setPlayerProfile] = useState(null)
   const [leaderboard, setLeaderboard] = useState({ level: [], checkin: [], likes: [] })
   const [leaderboardTab, setLeaderboardTab] = useState('level')
+
+  // Phase 3: 道具商城
+  const [shopItems, setShopItems] = useState([])
+  const [myItems, setMyItems] = useState([])
+  const [shopTab, setShopTab] = useState('shop') // 'shop'|'myitems'
+
+  // Phase 3: 组队
+  const [myTeams, setMyTeams] = useState([])
+  const [selectedTeam, setSelectedTeam] = useState(null)
+  const [teamMembers, setTeamMembers] = useState([])
+  const [teamTab, setTeamTab] = useState('list') // 'list'|'create'|'join'|'members'
+
+  // Phase 3: 赛季
+  const [currentSeason, setCurrentSeason] = useState(null)
+  const [seasonLeaderboard, setSeasonLeaderboard] = useState([])
+
+  // Phase 3: 统计
+  const [myStats, setMyStats] = useState(null)
+
+  // Phase 3: 每日礼包
+  const [rewardStatus, setRewardStatus] = useState({ can_claim_daily: false, can_claim_weekly: false, daily_streak: 0, weekly_streak: 0 })
   
   // 合并所有需要显示的帖子（主列表 + 用户空间帖子）
   const allPostsForMap = React.useMemo(() => {
@@ -1048,6 +1069,139 @@ export default function App() {
     }
   }
 
+  // Phase 3: 道具商城
+  const fetchShopItems = async () => {
+    try {
+      const data = await api('/items')
+      setShopItems(data.items || [])
+    } catch (error) { console.error('获取商城道具失败:', error) }
+  }
+  const fetchMyItems = async () => {
+    try {
+      const data = await api('/items/my')
+      setMyItems(data.items || [])
+    } catch (error) { console.error('获取我的道具失败:', error) }
+  }
+  const buyItem = async (itemId) => {
+    try {
+      const data = await api('/items/buy', 'POST', { item_id: itemId })
+      alert(data.message || '购买成功')
+      fetchMyItems()
+      fetchPlayerProfile()
+    } catch (error) {
+      alert(error.message || '购买失败，金币不足')
+    }
+  }
+  const useItem = async (itemId) => {
+    try {
+      const data = await api(`/items/use/${itemId}`, 'POST')
+      alert(data.message || '使用成功')
+      fetchMyItems()
+    } catch (error) {
+      alert(error.message || '使用失败')
+    }
+  }
+
+  // Phase 3: 组队
+  const fetchMyTeams = async () => {
+    try {
+      const data = await api('/teams')
+      setMyTeams(data.teams || [])
+    } catch (error) { console.error('获取我的队伍失败:', error) }
+  }
+  const fetchTeamMembers = async (teamId) => {
+    try {
+      const data = await api(`/teams/${teamId}/members`)
+      setTeamMembers(data.members || [])
+    } catch (error) { console.error('获取队员列表失败:', error) }
+  }
+  const createTeam = async (name) => {
+    try {
+      const data = await api('/teams', 'POST', { name })
+      alert(data.team ? '创建成功！邀请码：' + data.team.invite_code : '创建成功')
+      fetchMyTeams()
+      setTeamTab('list')
+    } catch (error) { alert(error.message || '创建失败') }
+  }
+  const joinTeamByCode = async (code) => {
+    try {
+      const data = await api('/teams/join', 'POST', { invite_code: code })
+      alert('加入成功')
+      fetchMyTeams()
+      setTeamTab('list')
+    } catch (error) { alert(error.message || '加入失败') }
+  }
+  const leaveTeam = async (teamId) => {
+    try {
+      const data = await api(`/teams/${teamId}/leave`, 'POST')
+      alert(data.message || '已离开')
+      fetchMyTeams()
+      setSelectedTeam(null)
+    } catch (error) { alert(error.message || '离开失败') }
+  }
+  const teamCheckin = async (teamId) => {
+    if (!currentLocation) { alert('需要定位权限'); return }
+    try {
+      const data = await api(`/teams/${teamId}/checkin`, 'POST', {
+        latitude: currentLocation.lat,
+        longitude: currentLocation.lng
+      })
+      alert(`${data.message}\n已打卡：${data.checkin_count}/${data.total_members}人\n全员打卡奖励：${data.all_checked_in ? data.reward + '金币' : '待全员完成'}`)
+      fetchTeamMembers(teamId)
+    } catch (error) { alert(error.message || '打卡失败') }
+  }
+
+  // Phase 3: 赛季
+  const fetchSeason = async () => {
+    try {
+      const data = await api('/seasons/current')
+      setCurrentSeason(data)
+      if (data.season) {
+        const lbData = await api(`/seasons/${data.season.id}/leaderboard`)
+        setSeasonLeaderboard(lbData.leaderboard || [])
+      }
+    } catch (error) { console.error('获取赛季信息失败:', error) }
+  }
+  const joinSeason = async (seasonId) => {
+    try {
+      const data = await api(`/seasons/${seasonId}/join`, 'POST')
+      alert(data.message || '加入成功')
+      fetchSeason()
+    } catch (error) { alert(error.message || '加入失败') }
+  }
+
+  // Phase 3: 统计
+  const fetchMyStats = async () => {
+    try {
+      const data = await api('/stats/me')
+      setMyStats(data)
+    } catch (error) { console.error('获取统计数据失败:', error) }
+  }
+
+  // Phase 3: 每日/每周礼包
+  const fetchRewardStatus = async () => {
+    try {
+      const data = await api('/reward/status')
+      setRewardStatus(data)
+    } catch (error) { console.error('获取礼包状态失败:', error) }
+  }
+  const claimDailyReward = async () => {
+    try {
+      const data = await api('/daily-reward', 'POST')
+      alert(`🎁 领取成功！\n💰 金币 +${data.gold_reward}\n⭐ 经验 +${data.exp_reward}\n🎴 获得道具：${data.item_reward || '无'}\n🔥 连续天数：${data.daily_streak}`)
+      fetchRewardStatus()
+      fetchPlayerProfile()
+    } catch (error) { alert(error.message || '领取失败') }
+  }
+  const claimWeeklyReward = async () => {
+    try {
+      const data = await api('/weekly-reward', 'POST')
+      alert(`🎁 领取成功！\n💰 金币 +${data.gold_reward}\n⭐ 经验 +${data.exp_reward}\n🔥 连续周数：${data.weekly_streak}`)
+      fetchRewardStatus()
+      fetchPlayerProfile()
+    } catch (error) { alert(error.message || '领取失败') }
+  }
+
   const openGamePanel = (tab = 'achievements') => {
     if (!user) { setShowLogin(true); return }
     setGamePanelTab(tab)
@@ -1057,6 +1211,11 @@ export default function App() {
     fetchLeaderboard('level')
     fetchLeaderboard('checkin')
     fetchLeaderboard('likes')
+    fetchRewardStatus()
+    if (tab === 'shop') { fetchShopItems(); fetchMyItems() }
+    if (tab === 'team') { fetchMyTeams() }
+    if (tab === 'season') { fetchSeason() }
+    if (tab === 'stats') { fetchMyStats() }
   }
 
   // 连接WebSocket
@@ -1801,6 +1960,32 @@ export default function App() {
             
             {/* 游戏中心按钮 */}
             <button onClick={() => openGamePanel('achievements')} style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #a855f7, #7c3aed)', border: 'none', borderRadius: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(168,85,247,0.4)', fontSize: 16 }}>🏆</button>
+
+            {/* 每日礼包按钮 */}
+            <button
+              onClick={() => { fetchRewardStatus(); if (rewardStatus.can_claim_daily) { claimDailyReward() } else { alert('今日已领取每日礼包，明天再来吧！') } }}
+              style={{
+                width: 36, height: 36,
+                background: rewardStatus.can_claim_daily
+                  ? 'linear-gradient(135deg, #f59e0b, #d97706)'
+                  : '#1a1a2e',
+                border: rewardStatus.can_claim_daily
+                  ? 'none'
+                  : '1px solid #2d2d44',
+                borderRadius: 10,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: rewardStatus.can_claim_daily
+                  ? '0 0 15px rgba(245,158,11,0.5)'
+                  : 'none',
+                fontSize: 16,
+                animation: rewardStatus.can_claim_daily ? 'pulse 2s infinite' : 'none'
+              }}
+            >
+              🎁
+            </button>
           </div>
           
           <div style={{ flex: 1 }} />
@@ -2845,19 +3030,29 @@ export default function App() {
                 </button>
               </div>
               {/* Tab 切换 */}
-              <div style={{ display: 'flex', gap: 6 }}>
+              <div style={{ display: 'flex', gap: 4 }}>
                 {[
-                  { key: 'achievements', label: '🏆 成就', emoji: '🏆' },
-                  { key: 'profile', label: '👤 资料', emoji: '👤' },
-                  { key: 'leaderboard', label: '📊 排行', emoji: '📊' },
+                  { key: 'achievements', label: '🏆 成就' },
+                  { key: 'profile', label: '👤 资料' },
+                  { key: 'leaderboard', label: '📊 排行' },
+                  { key: 'shop', label: '🛒 商城' },
+                  { key: 'team', label: '👥 组队' },
+                  { key: 'season', label: '🏅 赛季' },
+                  { key: 'stats', label: '📊 统计' },
                 ].map(tab => (
-                  <button key={tab.key} onClick={() => setGamePanelTab(tab.key)} style={{
-                    flex: 1, padding: '10px 8px',
+                  <button key={tab.key} onClick={() => {
+                    setGamePanelTab(tab.key)
+                    if (tab.key === 'shop') { fetchShopItems(); fetchMyItems() }
+                    if (tab.key === 'team') { fetchMyTeams() }
+                    if (tab.key === 'season') { fetchSeason() }
+                    if (tab.key === 'stats') { fetchMyStats() }
+                  }} style={{
+                    flex: 1, padding: '8px 4px',
                     background: gamePanelTab === tab.key ? 'rgba(168,85,247,0.2)' : 'transparent',
                     border: gamePanelTab === tab.key ? '1px solid #a855f7' : '1px solid #2d2d44',
-                    borderRadius: 10, cursor: 'pointer',
+                    borderRadius: 8, cursor: 'pointer',
                     color: gamePanelTab === tab.key ? '#a855f7' : '#94a3b8',
-                    fontWeight: 600, fontSize: 13, transition: 'all 0.2s'
+                    fontWeight: 600, fontSize: 11, transition: 'all 0.2s', whiteSpace: 'nowrap'
                   }}>
                     {tab.emoji} {tab.label.replace(/^[^\s]+\s/, '')}
                   </button>
@@ -3007,6 +3202,306 @@ export default function App() {
                       <div style={{ textAlign: 'center', padding: 30, color: '#666' }}>暂无排行数据</div>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* 道具商城 */}
+              {gamePanelTab === 'shop' && (
+                <div>
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+                    {[
+                      { key: 'shop', label: '🛒 商城' },
+                      { key: 'myitems', label: '🎒 我的道具' },
+                    ].map(tab => (
+                      <button key={tab.key} onClick={() => setShopTab(tab.key)} style={{
+                        flex: 1, padding: '8px',
+                        background: shopTab === tab.key ? '#a855f7' : '#1a1a2e',
+                        border: shopTab === tab.key ? 'none' : '1px solid #2d2d44',
+                        borderRadius: 8, cursor: 'pointer',
+                        color: shopTab === tab.key ? '#fff' : '#94a3b8',
+                        fontWeight: 600, fontSize: 12
+                      }}>
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                  {shopTab === 'shop' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {(shopItems || []).map((item, index) => (
+                        <div key={index} style={{ background: '#1a1a2e', borderRadius: 12, padding: 14, display: 'flex', alignItems: 'center', gap: 12, border: '1px solid #2d2d44' }}>
+                          <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg, #a855f7, #7c3aed)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
+                            {item.type === 'boost' ? '⚡' : item.type === 'card' ? '🎴' : '📦'}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 600, color: '#f1f5f9', marginBottom: 4 }}>{item.name}</div>
+                            <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 4 }}>{item.description}</div>
+                            <div style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>💰 {item.price}</div>
+                          </div>
+                          <button onClick={() => buyItem(item.id)} style={{ background: '#a855f7', border: 'none', borderRadius: 8, padding: '8px 16px', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 12 }}>
+                            购买
+                          </button>
+                        </div>
+                      ))}
+                      {(shopItems || []).length === 0 && <div style={{ textAlign: 'center', padding: 30, color: '#666' }}>商城暂无道具</div>}
+                    </div>
+                  )}
+                  {shopTab === 'myitems' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {(myItems || []).map((pi, index) => (
+                        <div key={index} style={{ background: '#1a1a2e', borderRadius: 12, padding: 14, display: 'flex', alignItems: 'center', gap: 12, border: '1px solid #2d2d44' }}>
+                          <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg, #10b981, #059669)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
+                            {pi.item?.type === 'boost' ? '⚡' : '🎴'}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 600, color: '#f1f5f9', marginBottom: 4 }}>{pi.item?.name || '道具'}</div>
+                            <div style={{ fontSize: 11, color: '#94a3b8' }}>x{pi.quantity}</div>
+                          </div>
+                          <button onClick={() => useItem(pi.item_id)} style={{ background: '#10b981', border: 'none', borderRadius: 8, padding: '8px 16px', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 12 }}>
+                            使用
+                          </button>
+                        </div>
+                      ))}
+                      {(myItems || []).length === 0 && <div style={{ textAlign: 'center', padding: 30, color: '#666' }}>暂无道具</div>}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 组队打卡 */}
+              {gamePanelTab === 'team' && (
+                <div>
+                  {teamTab === 'list' && (
+                    <div>
+                      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                        <button onClick={() => setTeamTab('create')} style={{ flex: 1, padding: '10px', background: '#a855f7', border: 'none', borderRadius: 10, color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                          ➕ 创建队伍
+                        </button>
+                        <button onClick={() => setTeamTab('join')} style={{ flex: 1, padding: '10px', background: '#1a1a2e', border: '1px solid #a855f7', borderRadius: 10, color: '#a855f7', cursor: 'pointer', fontWeight: 600 }}>
+                          🔗 加入队伍
+                        </button>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {(myTeams || []).map((team, index) => (
+                          <div key={index} style={{ background: '#1a1a2e', borderRadius: 12, padding: 14, border: '1px solid #2d2d44' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                              <div style={{ fontWeight: 600, color: '#f1f5f9' }}>{team.name}</div>
+                              <div style={{ fontSize: 11, color: '#94a3b8' }}>{team.member_count}人</div>
+                            </div>
+                            <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 8 }}>邀请码：{team.invite_code}</div>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                              <button onClick={() => { setSelectedTeam(team); setTeamTab('members'); fetchTeamMembers(team.id) }} style={{ flex: 1, padding: '8px', background: '#2d2d44', border: 'none', borderRadius: 8, color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 11 }}>
+                                查看队员
+                              </button>
+                              {team.leader_id !== user?.id && (
+                                <button onClick={() => leaveTeam(team.id)} style={{ flex: 1, padding: '8px', background: '#dc2626', border: 'none', borderRadius: 8, color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 11 }}>
+                                  离开队伍
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        {(myTeams || []).length === 0 && <div style={{ textAlign: 'center', padding: 30, color: '#666' }}>暂无队伍，点击上方创建或加入</div>}
+                      </div>
+                    </div>
+                  )}
+                  {teamTab === 'create' && (
+                    <div>
+                      <div style={{ marginBottom: 12 }}>
+                        <input id="team-name-input" placeholder="输入队名..." style={{ width: '100%', padding: '12px', background: '#1a1a2e', border: '1px solid #2d2d44', borderRadius: 10, color: '#f1f5f9', fontSize: 14, boxSizing: 'border-box' }} />
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => { const name = document.getElementById('team-name-input').value; if (name) createTeam(name) }} style={{ flex: 1, padding: '12px', background: '#a855f7', border: 'none', borderRadius: 10, color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                          创建
+                        </button>
+                        <button onClick={() => setTeamTab('list')} style={{ flex: 1, padding: '12px', background: '#2d2d44', border: 'none', borderRadius: 10, color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                          取消
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {teamTab === 'join' && (
+                    <div>
+                      <div style={{ marginBottom: 12 }}>
+                        <input id="team-code-input" placeholder="输入邀请码..." style={{ width: '100%', padding: '12px', background: '#1a1a2e', border: '1px solid #2d2d44', borderRadius: 10, color: '#f1f5f9', fontSize: 14, boxSizing: 'border-box' }} />
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => { const code = document.getElementById('team-code-input').value; if (code) joinTeamByCode(code) }} style={{ flex: 1, padding: '12px', background: '#a855f7', border: 'none', borderRadius: 10, color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                          加入
+                        </button>
+                        <button onClick={() => setTeamTab('list')} style={{ flex: 1, padding: '12px', background: '#2d2d44', border: 'none', borderRadius: 10, color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                          取消
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {teamTab === 'members' && selectedTeam && (
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <div style={{ fontWeight: 600, color: '#f1f5f9' }}>{selectedTeam.name} - 队员列表</div>
+                        <button onClick={() => setTeamTab('list')} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>← 返回</button>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+                        {(teamMembers || []).map((m, index) => (
+                          <div key={index} style={{ background: '#1a1a2e', borderRadius: 10, padding: 10, display: 'flex', alignItems: 'center', gap: 10, border: '1px solid #2d2d44' }}>
+                            <div style={{ width: 36, height: 36, background: '#a855f7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
+                              {m.is_leader ? '👑' : '👤'}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: 600, color: '#f1f5f9' }}>{m.nickname || '用户'}</div>
+                              <div style={{ fontSize: 11, color: '#94a3b8' }}>LV.{m.level || 1} {m.is_leader ? '(队长)' : ''}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={() => teamCheckin(selectedTeam.id)} style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', borderRadius: 10, color: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                        🔥 组队打卡
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 赛季系统 */}
+              {gamePanelTab === 'season' && (
+                <div>
+                  {currentSeason?.season ? (
+                    <div>
+                      <div style={{ background: 'linear-gradient(135deg, #1a1a2e, #2d2d44)', borderRadius: 16, padding: 16, marginBottom: 12, textAlign: 'center', border: '1px solid #a855f7' }}>
+                        <div style={{ fontSize: 28, marginBottom: 8 }}>🏅</div>
+                        <div style={{ fontWeight: 700, fontSize: 18, color: '#f1f5f9', marginBottom: 4 }}>{currentSeason.season.name}</div>
+                        <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 8 }}>
+                          {currentSeason.season.type === 'weekly' ? '每周挑战' : '每月挑战'}
+                        </div>
+                        <div style={{ fontSize: 14, color: '#a855f7', fontWeight: 600 }}>
+                          剩余: {Math.floor(currentSeason.remain_seconds / 86400)}天 {Math.floor((currentSeason.remain_seconds % 86400) / 3600)}小时
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: 12, color: '#f59e0b' }}>
+                          我的积分: {currentSeason.score || 0} 分 | 排名: #{currentSeason.rank || '-'}
+                        </div>
+                        {!currentSeason.joined && (
+                          <button onClick={() => joinSeason(currentSeason.season.id)} style={{ marginTop: 12, padding: '10px 24px', background: '#a855f7', border: 'none', borderRadius: 10, color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                            加入赛季
+                          </button>
+                        )}
+                      </div>
+                      <div style={{ marginBottom: 12 }}>
+                        <div style={{ fontWeight: 600, color: '#f1f5f9', marginBottom: 8 }}>🏆 赛季奖励</div>
+                        {(currentSeason.season.rewards || []).map((r, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: '1px solid #2d2d44' }}>
+                            <div style={{ fontSize: 20 }}>{r.badge || ['👑','🥈','🥉'][i]}</div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: 600, color: '#f1f5f9' }}>{r.title}</div>
+                              <div style={{ fontSize: 11, color: '#94a3b8' }}>💰 {r.gold} + ⭐ {r.exp}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, color: '#f1f5f9', marginBottom: 8 }}>📊 赛季排行</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {(seasonLeaderboard || []).slice(0, 10).map((entry, index) => (
+                            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1a1a2e', borderRadius: 8, padding: 8, border: '1px solid #2d2d44' }}>
+                              <div style={{ width: 24, height: 24, borderRadius: '50%', background: index === 0 ? '#f59e0b' : '#2d2d44', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
+                                {index + 1}
+                              </div>
+                              <div style={{ flex: 1, fontSize: 12, color: '#f1f5f9' }}>{entry.nickname}</div>
+                              <div style={{ fontSize: 12, color: '#a855f7', fontWeight: 600 }}>{entry.score}分</div>
+                            </div>
+                          ))}
+                          {(seasonLeaderboard || []).length === 0 && <div style={{ textAlign: 'center', padding: 20, color: '#666' }}>暂无排行</div>}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>暂无进行中的赛季</div>
+                  )}
+                </div>
+              )}
+
+              {/* 统计面板 */}
+              {gamePanelTab === 'stats' && (
+                <div>
+                  {myStats ? (
+                    <div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 16 }}>
+                        <div style={{ background: '#1a1a2e', borderRadius: 12, padding: 14, textAlign: 'center', border: '1px solid #2d2d44' }}>
+                          <div style={{ fontSize: 24, marginBottom: 4 }}>📍</div>
+                          <div style={{ fontWeight: 700, fontSize: 20, color: '#f1f5f9' }}>{myStats.total_checkins || 0}</div>
+                          <div style={{ fontSize: 11, color: '#94a3b8' }}>总打卡</div>
+                        </div>
+                        <div style={{ background: '#1a1a2e', borderRadius: 12, padding: 14, textAlign: 'center', border: '1px solid #2d2d44' }}>
+                          <div style={{ fontSize: 24, marginBottom: 4 }}>🔥</div>
+                          <div style={{ fontWeight: 700, fontSize: 20, color: '#f1f5f9' }}>{myStats.current_streak || 0}</div>
+                          <div style={{ fontSize: 11, color: '#94a3b8' }}>连续天数</div>
+                        </div>
+                        <div style={{ background: '#1a1a2e', borderRadius: 12, padding: 14, textAlign: 'center', border: '1px solid #2d2d44' }}>
+                          <div style={{ fontSize: 24, marginBottom: 4 }}>🌆</div>
+                          <div style={{ fontWeight: 700, fontSize: 20, color: '#f1f5f9' }}>{myStats.unique_cities || 0}</div>
+                          <div style={{ fontSize: 11, color: '#94a3b8' }}>城市数</div>
+                        </div>
+                        <div style={{ background: '#1a1a2e', borderRadius: 12, padding: 14, textAlign: 'center', border: '1px solid #2d2d44' }}>
+                          <div style={{ fontSize: 24, marginBottom: 4 }}>🏆</div>
+                          <div style={{ fontWeight: 700, fontSize: 20, color: '#f1f5f9' }}>{myStats.checkin_days || 0}</div>
+                          <div style={{ fontSize: 11, color: '#94a3b8' }}>打卡天数</div>
+                        </div>
+                      </div>
+
+                      {/* 热力图 */}
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={{ fontWeight: 600, color: '#f1f5f9', marginBottom: 8 }}>📅 年度打卡热力图</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
+                          {(myStats.heatmap || []).slice(-63).map((day, i) => {
+                            const intensity = day.count > 0 ? Math.min(day.count, 4) : 0
+                            const colors = ['#1a1a2e', '#0d4429', '#006d32', '#26a641', '#39d353']
+                            return (
+                              <div key={i} title={`${day.date}: ${day.count}次`} style={{ width: '100%', aspectRatio: '1', background: colors[intensity], borderRadius: 2 }} />
+                            )
+                          })}
+                        </div>
+                        <div style={{ display: 'flex', gap: 4, marginTop: 4, justifyContent: 'flex-end', alignItems: 'center' }}>
+                          <span style={{ fontSize: 10, color: '#666' }}>少</span>
+                          {['#1a1a2e', '#0d4429', '#006d32', '#26a641', '#39d353'].map((c, i) => (
+                            <div key={i} style={{ width: 10, height: 10, background: c, borderRadius: 2 }} />
+                          ))}
+                          <span style={{ fontSize: 10, color: '#666' }}>多</span>
+                        </div>
+                      </div>
+
+                      {/* 类型分布 */}
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={{ fontWeight: 600, color: '#f1f5f9', marginBottom: 8 }}>📊 打卡类型分布</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {Object.entries(myStats.type_distribution || {}).map(([type, pct]) => (
+                            <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <div style={{ width: 60, fontSize: 11, color: '#94a3b8' }}>{type}</div>
+                              <div style={{ flex: 1, background: '#1a1a2e', borderRadius: 4, height: 16, overflow: 'hidden' }}>
+                                <div style={{ width: `${pct}%`, height: '100%', background: '#a855f7', borderRadius: 4 }} />
+                              </div>
+                              <div style={{ width: 40, fontSize: 11, color: '#a855f7', textAlign: 'right' }}>{pct.toFixed(1)}%</div>
+                            </div>
+                          ))}
+                          {Object.keys(myStats.type_distribution || {}).length === 0 && <div style={{ color: '#666', fontSize: 12 }}>暂无数据</div>}
+                        </div>
+                      </div>
+
+                      {/* 月度日历 */}
+                      <div>
+                        <div style={{ fontWeight: 600, color: '#f1f5f9', marginBottom: 8 }}>📆 本月打卡日历</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
+                          {['一','二','三','四','五','六','日'].map(d => (
+                            <div key={d} style={{ textAlign: 'center', fontSize: 10, color: '#666', marginBottom: 4 }}>{d}</div>
+                          ))}
+                          {(myStats.calendar || []).map((day, i) => (
+                            <div key={i} style={{ textAlign: 'center', padding: '4px 0', background: day.count > 0 ? '#a855f7' : '#1a1a2e', borderRadius: 4, fontSize: 10, color: day.count > 0 ? '#fff' : '#666' }}>
+                              {day.date.split('-')[2]}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>加载中...</div>
+                  )}
                 </div>
               )}
             </div>

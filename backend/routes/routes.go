@@ -112,5 +112,38 @@ func SetupRoutes(r *gin.Engine) {
 		auth.POST("/player/quests/:id/accept", gamificationController.AcceptQuest)
 		auth.POST("/player/quests/:id/claim", gamificationController.ClaimQuestReward)
 		auth.POST("/player/daily-checkin", gamificationController.DailyCheckin)
+
+		// Phase 3: 道具商城
+		itemController := controllers.NewItemController()
+		auth.GET("/items", itemController.GetItems)
+		auth.POST("/items/buy", itemController.BuyItem)
+		auth.GET("/items/my", itemController.GetMyItems)
+		auth.POST("/items/use/:id", itemController.UseItem)
+
+		// Phase 3: 组队打卡
+		teamController := controllers.NewTeamController()
+		auth.GET("/teams", teamController.GetMyTeams)
+		auth.POST("/teams", teamController.CreateTeam)
+		auth.POST("/teams/join", teamController.JoinTeamByCode)
+		auth.POST("/teams/:id/join", teamController.JoinTeam)
+		auth.POST("/teams/:id/leave", teamController.LeaveTeam)
+		auth.GET("/teams/:id/members", teamController.GetTeamMembers)
+		auth.POST("/teams/:id/checkin", teamController.TeamCheckin)
+
+		// Phase 3: 赛季系统
+		seasonController := controllers.NewSeasonController()
+		auth.GET("/seasons/current", seasonController.GetCurrentSeason)
+		auth.POST("/seasons/:id/join", seasonController.JoinSeason)
+		auth.GET("/seasons/:id/leaderboard", seasonController.GetSeasonLeaderboard)
+
+		// Phase 3: 数据统计
+		statsController := controllers.NewPhaseStatsController()
+		auth.GET("/stats/me", statsController.GetMyStats)
+
+		// Phase 3: 每日/每周礼包
+		rewardController := controllers.NewRewardController()
+		auth.GET("/reward/status", rewardController.GetDailyRewardStatus)
+		auth.POST("/daily-reward", rewardController.ClaimDailyReward)
+		auth.POST("/weekly-reward", rewardController.ClaimWeeklyReward)
 	}
 }

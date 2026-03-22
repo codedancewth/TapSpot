@@ -96,10 +96,23 @@ func migrateDB() {
 		&models.PlayerItem{},
 		&models.CheckinStreak{},
 		&models.Leaderboard{},
-		
+
+		// Phase 3: 组队打卡
+		&models.Team{},
+		&models.TeamMember{},
+		&models.TeamCheckin{},
+
+		// Phase 3: 赛季系统
+		&models.Season{},
+		&models.SeasonScore{},
+		&models.UserSeason{},
+
+		// Phase 3: 每日/每周奖励
+		&models.DailyReward{},
+
 		// 关注系统
 		&models.Follow{},
-		
+
 		// 通知系统
 		&models.Notification{},
 	)

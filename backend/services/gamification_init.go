@@ -3,7 +3,9 @@ package services
 import (
 	"tapspot/models"
 	"encoding/json"
+	"fmt"
 	"log"
+	"time"
 )
 
 // InitGamificationData 初始化游戏化数据（成就和任务）
@@ -13,6 +15,7 @@ func InitGamificationData() {
 	initAchievements()
 	initQuests()
 	initItems()
+	initSeasons()
 	
 	log.Println("✅ 游戏化数据初始化完成")
 }
@@ -271,6 +274,78 @@ func initItems() {
 		if err := models.DB.Where("name = ?", item.Name).First(&existing).Error; err != nil {
 			// 不存在则创建
 			models.DB.Create(&item)
+		}
+	}
+}
+
+// initSeasons 初始化赛季数据
+func initSeasons() {
+	// 检查是否已有活跃赛季
+	var existing models.Season
+	now := time.Now()
+	weekday := int(now.Weekday())
+	daysToMonday := 0
+	if weekday == 0 {
+		daysToMonday = 6
+	} else {
+		daysToMonday = weekday - 1
+	}
+	thisMonday := now.AddDate(0, 0, -daysToMonday).Truncate(24 * time.Hour)
+	nextMonday := thisMonday.AddDate(0, 0, 7)
+
+	if err := models.DB.Where("status = ?", "active").First(&existing).Error; err != nil {
+		// 创建本周赛季
+		weekNum := (thisMonday.YearDay()-1)/7 + 1
+		seasonName := fmt.Sprintf("第 %d 周挑战", weekNum)
+
+		// 冠军/亚军/季军奖励
+		rewards := []map[string]interface{}{
+			{"rank": 1, "title": "冠军", "gold": 2000, "exp": 500, "badge": "👑"},
+			{"rank": 2, "title": "亚军", "gold": 1000, "exp": 300, "badge": "🥈"},
+			{"rank": 3, "title": "季军", "gold": 500, "exp": 200, "badge": "🥉"},
+		}
+		rewardsJSON, _ := json.Marshal(rewards)
+
+		season := models.Season{
+			Name:        seasonName,
+			Type:        "weekly",
+			StartDate:   thisMonday,
+			EndDate:     nextMonday,
+			Status:      "active",
+			RewardsJSON: string(rewardsJSON),
+		}
+		models.DB.Create(&season)
+
+		// 结束上周赛季（如果存在）
+		models.DB.Model(&models.Season{}).Where("status = ? AND id != ?", "active", season.ID).Update("status", "ended")
+
+		log.Printf("🏅 赛季 '%s' 已创建，截止日期: %s", seasonName, nextMonday.Format("2006-01-02"))
+	} else {
+		// 检查是否需要结束赛季
+		if existing.EndDate.Before(now) {
+			models.DB.Model(&existing).Update("status", "ended")
+
+			// 创建新赛季
+			weekNum := (now.YearDay()-1)/7 + 1
+			seasonName := fmt.Sprintf("第 %d 周挑战", weekNum)
+
+			rewards := []map[string]interface{}{
+				{"rank": 1, "title": "冠军", "gold": 2000, "exp": 500, "badge": "👑"},
+				{"rank": 2, "title": "亚军", "gold": 1000, "exp": 300, "badge": "🥈"},
+				{"rank": 3, "title": "季军", "gold": 500, "exp": 200, "badge": "🥉"},
+			}
+			rewardsJSON, _ := json.Marshal(rewards)
+
+			newSeason := models.Season{
+				Name:        seasonName,
+				Type:        "weekly",
+				StartDate:   nextMonday,
+				EndDate:     nextMonday.AddDate(0, 0, 7),
+				Status:      "active",
+				RewardsJSON: string(rewardsJSON),
+			}
+			models.DB.Create(&newSeason)
+			log.Printf("🏅 新赛季 '%s' 已创建", seasonName)
 		}
 	}
 }
