@@ -178,7 +178,7 @@ export default function App() {
   const [mapZoom, setMapZoom] = useState(4)
   const [mapRef, setMapRef] = useState(null)
   const [showPost, setShowPost] = useState(false)
-  const [postForm, setPostForm] = useState({ title: '', content: '', type: 'post', location_name: '' })
+  const [postForm, setPostForm] = useState({ title: '', content: '', type: 'post', location_name: '', image_url: '' })
   const [postCoords, setPostCoords] = useState(null)
   const [selectingLocation, setSelectingLocation] = useState(false)
   const [showSidebar, setShowSidebar] = useState(true)
@@ -256,6 +256,15 @@ export default function App() {
   const chatEndRef = useRef(null)
   const activeConversationRef = useRef(null) // 用于 WebSocket 回调中获取当前会话
 
+  // 通知系统状态
+  const [notifications, setNotifications] = useState([])
+  const [notifUnreadCount, setNotifUnreadCount] = useState(0)
+  const [showNotifications, setShowNotifications] = useState(false)
+
+  // 关注系统状态
+  const [followStats, setFollowStats] = useState({ followers_count: 0, following_count: 0 })
+  const [isFollowing, setIsFollowing] = useState(false)
+
   // 检测移动端
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -273,6 +282,9 @@ export default function App() {
         api('/likes/my').then(likeData => {
           setLikedPosts(new Set(likeData.liked))
         }).catch(() => {})
+        // 获取通知
+        fetchNotifications()
+        fetchNotifUnreadCount()
       }).catch(() => {
         localStorage.removeItem('tapspot_token')
         setToken(null)
@@ -496,6 +508,8 @@ export default function App() {
       setUser(data.data.user)
       setShowLogin(false)
       setLoginForm({ username: '', password: '' })
+      fetchNotifications()
+      fetchNotifUnreadCount()
     } catch (error) {
       alert(error.message)
     }
@@ -519,6 +533,8 @@ export default function App() {
       setUser(data.data.user)
       setShowLogin(false)
       setRegisterForm({ username: '', password: '', password_conf: '', nickname: '', gender: 'male', bio: '', email: '', phone: '' })
+      fetchNotifications()
+      fetchNotifUnreadCount()
     } catch (error) {
       alert(error.message || '注册失败')
     }
@@ -529,8 +545,11 @@ export default function App() {
     setToken(null)
     localStorage.removeItem('tapspot_token')
     setShowUserMenu(false)
+    setShowNotifications(false)
     setActiveTab('all')
     setLikedPosts(new Set())
+    setNotifications([])
+    setNotifUnreadCount(0)
   }
 
   // 获取评论
@@ -748,7 +767,7 @@ export default function App() {
       setTimeout(() => setNewPostId(null), 5000)
       if (mapRef) mapRef.setView([postCoords.lat, postCoords.lng], 12)
       setShowPost(false)
-      setPostForm({ title: '', content: '', type: 'post', location_name: '' })
+      setPostForm({ title: '', content: '', type: 'post', location_name: '', image_url: '' })
       setPostCoords(null)
       fetchPosts()
     } catch (error) {
@@ -880,16 +899,21 @@ export default function App() {
   // 查看用户空间（获取用户信息和帖子列表）
   const openUserSpace = async (userId, authorName) => {
     setLoadingUserSpace(true)
+    setFollowStats({ followers_count: 0, following_count: 0 })
+    setIsFollowing(false)
     try {
-      const [userData, postsData] = await Promise.all([
+      const [userData, postsData, statsData] = await Promise.all([
         api(`/users/${userId}`),
-        api(`/users/${userId}/posts`)
+        api(`/users/${userId}/posts`),
+        api(`/users/${userId}/stats`)
       ])
       const userPosts = postsData.posts || []
       setShowUserSpace({
         user: userData.data?.user || userData.user,
         posts: userPosts
       })
+      setFollowStats(statsData.stats || { followers_count: 0, following_count: 0 })
+      setIsFollowing(statsData.is_following || false)
       // 如果有帖子，自动缩放地图到这些帖子的范围
       if (userPosts.length > 0 && mapRef) {
         const bounds = userPosts.map(p => [p.latitude, p.longitude])
@@ -930,6 +954,65 @@ export default function App() {
       setUnreadCount(data.unread_count || 0)
     } catch (error) {
       console.error('获取未读消息数失败:', error)
+    }
+  }
+
+  // ============ 通知系统函数 ============
+  const fetchNotifications = async () => {
+    if (!user) return
+    try {
+      const data = await api('/notifications')
+      setNotifications(data.notifications || [])
+    } catch (e) {
+      console.error('获取通知失败:', e)
+    }
+  }
+
+  const fetchNotifUnreadCount = async () => {
+    if (!user) return
+    try {
+      const data = await api('/notifications/unread-count')
+      setNotifUnreadCount(data.count || 0)
+    } catch (e) {
+      console.error('获取未读通知数失败:', e)
+    }
+  }
+
+  const markAllNotificationsRead = async () => {
+    try {
+      await api('/notifications/read-all', { method: 'PUT' })
+      setNotifUnreadCount(0)
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+    } catch (e) {
+      console.error('标记全部已读失败:', e)
+    }
+  }
+
+  const markNotificationRead = async (id) => {
+    try {
+      await api(`/notifications/${id}/read`, { method: 'PUT' })
+      setNotifUnreadCount(c => Math.max(0, c - 1))
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
+    } catch (e) {
+      console.error('标记已读失败:', e)
+    }
+  }
+
+  // ============ 关注系统函数 ============
+  const handleFollow = async (targetUserId) => {
+    if (!user) { setShowLogin(true); return }
+    try {
+      if (isFollowing) {
+        await api(`/users/${targetUserId}/follow`, { method: 'DELETE' })
+        setIsFollowing(false)
+        setFollowStats(prev => ({ ...prev, followers_count: Math.max(0, prev.followers_count - 1) }))
+      } else {
+        await api(`/users/${targetUserId}/follow`, { method: 'POST' })
+        setIsFollowing(true)
+        setFollowStats(prev => ({ ...prev, followers_count: prev.followers_count + 1 }))
+      }
+    } catch (e) {
+      console.error('关注操作失败:', e)
     }
   }
 
@@ -1653,7 +1736,7 @@ export default function App() {
                     <button onClick={() => openPostDetail(item)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#f5f5f5', border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', color: '#666', fontSize: 12 }}>
                       <MessageCircle size={14} /> {commentCounts[item.id] || 0} 评论
                     </button>
-                    <button onClick={() => { setPostCoords({ lat: item.latitude, lng: item.longitude }); setPostForm({ title: '', content: '', type: item.type, location_name: item.location_name }); setShowPost(true) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', color: '#fff', fontSize: 12 }}>
+                    <button onClick={() => { setPostCoords({ lat: item.latitude, lng: item.longitude }); setPostForm({ title: '', content: '', type: item.type, location_name: item.location_name, image_url: '' }); setShowPost(true) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', color: '#fff', fontSize: 12 }}>
                       <Plus size={14} /> 在此打卡
                     </button>
                   </div>
@@ -1759,6 +1842,87 @@ export default function App() {
                   </span>
                 )}
               </button>
+
+              {/* 通知铃铛 */}
+              <button
+                onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) { fetchNotifications(); fetchNotifUnreadCount() } }}
+                style={{
+                  width: 44, height: 44,
+                  background: '#1a1a2e',
+                  border: '1px solid #2d2d44',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+                }}
+              >
+                <span style={{ fontSize: 18 }}>🔔</span>
+                {notifUnreadCount > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -4,
+                    background: '#e94560',
+                    color: '#fff',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    padding: '2px 6px',
+                    borderRadius: 10,
+                    minWidth: 18,
+                    height: 18,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    {notifUnreadCount > 99 ? '99+' : notifUnreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* 通知面板 */}
+              {showNotifications && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: 8,
+                  width: 320,
+                  background: '#1a1a2e',
+                  border: '1px solid #2d2d44',
+                  borderRadius: 16,
+                  zIndex: 1003,
+                  maxHeight: 400,
+                  overflowY: 'auto',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+                }}>
+                  <div style={{ padding: '12px 16px', borderBottom: '1px solid #2d2d44', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 700, color: '#f1f5f9' }}>通知</span>
+                    {notifUnreadCount > 0 && (
+                      <button onClick={markAllNotificationsRead} style={{ background: 'none', border: 'none', color: '#a855f7', cursor: 'pointer', fontSize: 12 }}>
+                        全部已读
+                      </button>
+                    )}
+                  </div>
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: 30, textAlign: 'center', color: '#666' }}>暂无通知</div>
+                  ) : notifications.map(n => (
+                    <div key={n.id} style={{
+                      padding: '10px 16px',
+                      borderBottom: '1px solid #2d2d44',
+                      background: n.read ? 'transparent' : 'rgba(168,85,247,0.05)',
+                      cursor: 'pointer'
+                    }} onClick={() => { if (!n.read) markNotificationRead(n.id) }}>
+                      <div style={{ fontSize: 12, color: '#94a3b8' }}>
+                        {n.type === 'like' ? '❤️ 赞了你的帖子' : n.type === 'comment' ? '💬 评论了你的帖子' : n.type === 'follow' ? '👤 关注了你' : '🔔 系统通知'}
+                      </div>
+                      <div style={{ fontSize: 13, color: '#f1f5f9', marginTop: 2 }}>{n.data?.post_title || n.message || ''}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <button onClick={() => setShowUserMenu(!showUserMenu)} style={{ padding: '8px 14px', background: 'linear-gradient(135deg, #a855f7, #ec4899)', border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#fff', fontWeight: 600, boxShadow: '0 4px 15px rgba(168,85,247,0.4)' }}>
                 <User size={16} />
@@ -1932,6 +2096,7 @@ export default function App() {
               <input placeholder="标题 *" value={postForm.title} onChange={e => setPostForm({ ...postForm, title: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} />
               <textarea placeholder="分享你的发现... *" value={postForm.content} onChange={e => setPostForm({ ...postForm, content: e.target.value })} rows={4} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, resize: 'none', boxSizing: 'border-box' }} />
               <input placeholder="地点名称（如：北京故宫）" value={postForm.location_name} onChange={e => setPostForm({ ...postForm, location_name: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} />
+              <input placeholder="图片链接（可选）" value={postForm.image_url} onChange={e => setPostForm({ ...postForm, image_url: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} />
               
               {/* 位置选择区域 */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
@@ -2042,6 +2207,11 @@ export default function App() {
                 <button onClick={() => setShowPostDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={20} /></button>
               </div>
               <div style={{ fontSize: 14, color: '#333', lineHeight: 1.6, marginBottom: 12 }}>{showPostDetail.content}</div>
+              {showPostDetail.image_url && (
+                <div style={{ marginBottom: 12, borderRadius: 10, overflow: 'hidden', maxHeight: 300 }}>
+                  <img src={showPostDetail.image_url} alt="帖子图片" style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover', maxHeight: 300 }} onError={e => { e.target.style.display = 'none' }} />
+                </div>
+              )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: '#888' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={14} /> {showPostDetail.location_name || '未知地点'}</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -2475,28 +2645,55 @@ export default function App() {
                       <div style={{ fontWeight: 700, fontSize: 22 }}>{showUserSpace.user.likesCount}</div>
                       <div style={{ fontSize: 12, color: '#aaa' }}>获赞</div>
                     </div>
-                    {/* 发消息按钮 */}
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontWeight: 700, fontSize: 22 }}>{followStats.followers_count}</div>
+                      <div style={{ fontSize: 12, color: '#aaa' }}>粉丝</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontWeight: 700, fontSize: 22 }}>{followStats.following_count}</div>
+                      <div style={{ fontSize: 12, color: '#aaa' }}>关注</div>
+                    </div>
+                    {/* 操作按钮 */}
                     {user && user.id !== showUserSpace.user.id && (
-                      <button
-                        onClick={() => openChat(showUserSpace.user.id)}
-                        style={{
-                          marginLeft: 'auto',
-                          padding: '10px 20px',
-                          background: COLORS.accent,
-                          border: 'none',
-                          borderRadius: 20,
-                          cursor: 'pointer',
-                          color: '#fff',
-                          fontWeight: 600,
-                          fontSize: 14,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 6
-                        }}
-                      >
-                        <Mail size={16} />
-                        发消息
-                      </button>
+                      <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                        <button
+                          onClick={() => handleFollow(showUserSpace.user.id)}
+                          style={{
+                            padding: '8px 16px',
+                            background: isFollowing ? '#f5f5f5' : `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`,
+                            border: isFollowing ? '1px solid #ddd' : 'none',
+                            borderRadius: 20,
+                            cursor: 'pointer',
+                            color: isFollowing ? '#666' : '#fff',
+                            fontWeight: 600,
+                            fontSize: 13,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4
+                          }}
+                        >
+                          {isFollowing ? '✓ 已关注' : '+ 关注'}
+                        </button>
+                        <button
+                          onClick={() => openChat(showUserSpace.user.id)}
+                          style={{
+                            padding: '8px 16px',
+                            background: '#1a1a2e',
+                            border: '1px solid #2d2d44',
+                            borderRadius: 20,
+                            cursor: 'pointer',
+                            color: '#fff',
+                            fontWeight: 600,
+                            fontSize: 13,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6
+                          }}
+                        >
+                          <Mail size={14} />
+                          消息
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>

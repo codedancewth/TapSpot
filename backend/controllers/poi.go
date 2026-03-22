@@ -1,18 +1,18 @@
 package controllers
 
 import (
+	"embed"
+	"encoding/json"
+	"io"
 	"math"
-	"math/rand"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
+//go:embed poi_data.json
+var poiFS embed.FS
 
 // POI 兴趣点
 type POI struct {
@@ -20,21 +20,56 @@ type POI struct {
 	Name      string  `json:"name"`
 	Type      string  `json:"type"`
 	TypeName  string  `json:"typeName"`
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
+	Latitude  float64 `json:"lat"`
+	Longitude float64 `json:"lng"`
 	Address   string  `json:"address"`
-	Distance  int     `json:"distance"`
+	City      string  `json:"city"`
+	District  string  `json:"district"`
 }
 
-// GetPOIs POI搜索API（模拟）
+// 缓存加载的 POI 数据
+var cachedPois []POI = nil
+
+// LoadPOIData 加载 POI 数据
+func LoadPOIData() ([]POI, error) {
+	if cachedPois != nil {
+		return cachedPois, nil
+	}
+	data, err := poiFS.ReadFile("poi_data.json")
+	if err != nil {
+		return nil, err
+	}
+	var wrapper struct {
+		POIs []POI `json:"pois"`
+	}
+	if err := json.Unmarshal(data, &wrapper); err != nil {
+		return nil, err
+	}
+	cachedPois = wrapper.POIs
+	return cachedPois, nil
+}
+
+// GetAllPOIs 获取所有 POI
+func GetAllPOIs(c *gin.Context) {
+	pois, err := LoadPOIData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载POI数据失败"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"pois": pois})
+}
+
+// GetPOIs POI搜索API（基于真实数据）
 func GetPOIs(c *gin.Context) {
 	location := c.Query("location") // "lng,lat"
-	radius := 3000
+	radius := 50000 // 50km
 	if r := c.Query("radius"); r != "" {
 		if parsed, err := strconv.Atoi(r); err == nil {
 			radius = parsed
 		}
 	}
+	poiType := c.Query("type") // scenic, food, hotel, shopping, entertainment, swim
+	city := c.Query("city")
 
 	if location == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "缺少 location 参数"})
@@ -44,132 +79,115 @@ func GetPOIs(c *gin.Context) {
 	lngStr, latStr := splitLocation(location)
 	lng, lat := parseFloat64Pair(lngStr, latStr)
 
-	// POI类型
-	poiTypes := []struct {
-		typeName string
-		names    []string
-	}{
-		{"restaurant", []string{"肯德基", "麦当劳", "星巴克", "瑞幸咖啡", "海底捞", "呷哺呷哺", "必胜客", "真功夫"}},
-		{"hotel", []string{"如家酒店", "汉庭酒店", "7天酒店", "锦江之星", "全季酒店", "亚朵酒店"}},
-		{"shopping", []string{"万达广场", "华润万家", "永辉超市", "盒马鲜生", "名创优品", "屈臣氏"}},
-		{"scenic", []string{"人民公园", "中心广场", "历史博物馆", "科技馆", "海洋世界", "动物园"}},
-		{"entertainment", []string{"万达影城", "KTV", "网吧", "健身房", "游泳馆", "游乐场"}},
+	pois, err := LoadPOIData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载POI数据失败"})
+		return
 	}
 
-	// 生成20-40个随机POI
-	count := rand.Intn(20) + 20
-	pois := make([]POI, count)
+	type poiWithDist struct {
+		POI      POI
+		Distance float64
+	}
+	var results []poiWithDist
 
-	for i := 0; i < count; i++ {
-		poiType := poiTypes[rand.Intn(len(poiTypes))]
-		name := poiType.names[rand.Intn(len(poiType.names))]
-
-		// 随机偏移
-		offsetLat := (rand.Float64() - 0.5) * (float64(radius) / 111000)
-		offsetLng := (rand.Float64() - 0.5) * (float64(radius) / 111000 / math.Cos(lat*math.Pi/180))
-
-		pois[i] = POI{
-			ID:        "poi_" + time.Now().Format("20060102150405") + "_" + strconv.Itoa(i),
-			Name:      name + "(" + strconv.Itoa(rand.Intn(100)+1) + "号店)",
-			Type:      poiType.typeName,
-			TypeName:  getTypeName(poiType.typeName),
-			Latitude:  lat + offsetLat,
-			Longitude: lng + offsetLng,
-			Address:   "某某路" + strconv.Itoa(rand.Intn(999)+1) + "号",
-			Distance:  rand.Intn(radius),
+	for _, poi := range pois {
+		if poiType != "" && poi.Type != poiType {
+			continue
+		}
+		if city != "" && poi.City != city {
+			continue
+		}
+		dx := (poi.Longitude - lng) * math.Cos(lat*math.Pi/180) * 111000
+		dy := (poi.Latitude - lat) * 111000
+		dist := math.Sqrt(dx*dx + dy*dy)
+		if dist <= float64(radius) {
+			results = append(results, poiWithDist{POI: poi, Distance: dist})
 		}
 	}
 
-	// 按距离排序
-	for i := 0; i < len(pois); i++ {
-		for j := i + 1; j < len(pois); j++ {
-			if pois[i].Distance > pois[j].Distance {
-				pois[i], pois[j] = pois[j], pois[i]
+	for i := 0; i < len(results); i++ {
+		for j := i + 1; j < len(results); j++ {
+			if results[i].Distance > results[j].Distance {
+				results[i], results[j] = results[j], results[i]
 			}
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{"pois": pois})
+	max := 50
+	if len(results) < max {
+		max = len(results)
+	}
+	poisOut := make([]POI, max)
+	for i := 0; i < max; i++ {
+		poisOut[i] = results[i].POI
+	}
+
+	c.JSON(http.StatusOK, gin.H{"pois": poisOut, "count": len(poisOut)})
 }
 
 // ReverseGeocode 逆地理编码API
 func ReverseGeocode(c *gin.Context) {
-	location := c.Query("location") // "lng,lat"
-
+	location := c.Query("location")
 	if location == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "缺少 location 参数"})
 		return
 	}
-
 	lngStr, latStr := splitLocation(location)
 	lng, lat := parseFloat64Pair(lngStr, latStr)
 
-	// 城市范围
-	cities := []struct {
-		name     string
-		latRange [2]float64
-		lngRange [2]float64
-	}{
-		{"北京", [2]float64{39.5, 41}, [2]float64{115.5, 117.5}},
-		{"上海", [2]float64{30.5, 31.5}, [2]float64{121, 122}},
-		{"广州", [2]float64{22.5, 23.5}, [2]float64{113, 113.8}},
-		{"深圳", [2]float64{22.4, 22.9}, [2]float64{113.8, 114.5}},
-		{"杭州", [2]float64{30, 30.5}, [2]float64{120, 120.5}},
-		{"成都", [2]float64{30.5, 31}, [2]float64{103.8, 104.2}},
-		{"武汉", [2]float64{30.3, 30.8}, [2]float64{114, 114.5}},
-		{"西安", [2]float64{34.2, 34.4}, [2]float64{108.8, 109.1}},
-		{"南京", [2]float64{31.9, 32.2}, [2]float64{118.6, 119}},
-		{"重庆", [2]float64{29.4, 29.8}, [2]float64{106.3, 106.7}},
+	pois, err := LoadPOIData()
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "1", "info": "OK",
+			"regeocode": gin.H{"formatted_address": "中国"},
+		})
+		return
 	}
 
-	cityName := "未知城市"
-	for _, city := range cities {
-		if lat >= city.latRange[0] && lat <= city.latRange[1] &&
-			lng >= city.lngRange[0] && lng <= city.lngRange[1] {
-			cityName = city.name
-			break
+	minDist := 999999.0
+	nearest := ""
+	for _, poi := range pois {
+		dx := (poi.Longitude - lng) * math.Cos(lat*math.Pi/180) * 111000
+		dy := (poi.Latitude - lat) * 111000
+		dist := math.Sqrt(dx*dx + dy*dy)
+		if dist < minDist {
+			minDist = dist
+			nearest = poi.City + poi.District + poi.Address
 		}
 	}
-
-	streets := []string{"中山路", "人民路", "解放路", "建设路", "和平路", "光明路", "幸福路", "文化路"}
-	street := streets[rand.Intn(len(streets))]
-	number := rand.Intn(999) + 1
-	address := cityName + "市某区" + street + strconv.Itoa(number) + "号"
-
+	if nearest == "" {
+		nearest = "未知地点"
+	}
 	c.JSON(http.StatusOK, gin.H{
-		"status": "1",
-		"info":   "OK",
-		"regeocode": gin.H{
-			"formatted_address": address,
-			"addressComponent": gin.H{
-				"city":     cityName,
-				"district": "某区",
-				"street":   street,
-				"number":   strconv.Itoa(number) + "号",
-			},
-		},
+		"status": "1", "info": "OK",
+		"regeocode": gin.H{"formatted_address": nearest},
 	})
 }
 
 // HealthCheck 健康检查
 func HealthCheck(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"status": "ok",
-		"time":   time.Now().Format("2006-01-02T15:04:05Z07:00"),
-	})
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
-// 辅助函数
-func getTypeName(t string) string {
-	names := map[string]string{
-		"restaurant":    "餐饮",
-		"hotel":         "酒店",
-		"shopping":      "购物",
-		"scenic":        "景点",
-		"entertainment": "娱乐",
+// GetPOICount 获取 POI 总数
+func GetPOICount(c *gin.Context) {
+	pois, err := LoadPOIData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载POI数据失败"})
+		return
 	}
-	if n, ok := names[t]; ok {
-		return n
+	c.JSON(http.StatusOK, gin.H{"count": len(pois)})
+}
+
+// ServePoiFile 读取 poi_data.json 文件内容
+func ServePoiFile(c *gin.Context) {
+	f, err := poiFS.Open("poi_data.json")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "文件不存在"})
+		return
 	}
-	return t
+	defer f.Close()
+	data, _ := io.ReadAll(f)
+	c.Data(http.StatusOK, "application/json; charset=utf-8", data)
 }

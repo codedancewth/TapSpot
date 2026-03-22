@@ -1,0 +1,1315 @@
+{
+  "pois": [
+    {
+      "name": "故宫博物院",
+      "type": "scenic",
+      "lat": 39.9163,
+      "lng": 116.3972,
+      "address": "东城区景山前街4号",
+      "district": "东城区",
+      "id": "poi_00001",
+      "city": "北京"
+    },
+    {
+      "name": "天安门广场",
+      "type": "scenic",
+      "lat": 39.9075,
+      "lng": 116.3912,
+      "address": "东城区西长安街",
+      "district": "东城区",
+      "id": "poi_00002",
+      "city": "北京"
+    },
+    {
+      "name": "八达岭长城",
+      "type": "scenic",
+      "lat": 40.3592,
+      "lng": 116.0203,
+      "address": "延庆区八达岭镇",
+      "district": "延庆区",
+      "id": "poi_00003",
+      "city": "北京"
+    },
+    {
+      "name": "颐和园",
+      "type": "scenic",
+      "lat": 39.9993,
+      "lng": 116.4661,
+      "address": "海淀区新建宫门路19号",
+      "district": "海淀区",
+      "id": "poi_00004",
+      "city": "北京"
+    },
+    {
+      "name": "天坛公园",
+      "type": "scenic",
+      "lat": 39.8829,
+      "lng": 116.4106,
+      "address": "东城区天坛内东里7号",
+      "district": "东城区",
+      "id": "poi_00005",
+      "city": "北京"
+    },
+    {
+      "name": "北海公园",
+      "type": "scenic",
+      "lat": 39.9289,
+      "lng": 116.3905,
+      "address": "西城区文津街1号",
+      "district": "西城区",
+      "id": "poi_00006",
+      "city": "北京"
+    },
+    {
+      "name": "南锣鼓巷",
+      "type": "scenic",
+      "lat": 39.9339,
+      "lng": 116.4032,
+      "address": "东城区南锣鼓巷",
+      "district": "东城区",
+      "id": "poi_00007",
+      "city": "北京"
+    },
+    {
+      "name": "三里屯太古里",
+      "type": "shopping",
+      "lat": 39.9354,
+      "lng": 116.452,
+      "address": "朝阳区三里屯路19号",
+      "district": "朝阳区",
+      "id": "poi_00008",
+      "city": "北京"
+    },
+    {
+      "name": "王府井步行街",
+      "type": "shopping",
+      "lat": 39.9148,
+      "lng": 116.41,
+      "address": "东城区王府井大街",
+      "district": "东城区",
+      "id": "poi_00009",
+      "city": "北京"
+    },
+    {
+      "name": "国家体育场(鸟巢)",
+      "type": "scenic",
+      "lat": 39.9905,
+      "lng": 116.3975,
+      "address": "朝阳区国家体育场南路1号",
+      "district": "朝阳区",
+      "id": "poi_00010",
+      "city": "北京"
+    },
+    {
+      "name": "水立方",
+      "type": "swim",
+      "lat": 39.9923,
+      "lng": 116.3936,
+      "address": "朝阳区天辰东路11号",
+      "district": "朝阳区",
+      "id": "poi_00011",
+      "city": "北京"
+    },
+    {
+      "name": "后海酒吧街",
+      "type": "entertainment",
+      "lat": 39.9373,
+      "lng": 116.3978,
+      "address": "西城区后海",
+      "district": "西城区",
+      "id": "poi_00012",
+      "city": "北京"
+    },
+    {
+      "name": "全聚德烤鸭",
+      "type": "food",
+      "lat": 39.9042,
+      "lng": 116.4074,
+      "address": "东城区前门大街30号",
+      "district": "东城区",
+      "id": "poi_00013",
+      "city": "北京"
+    },
+    {
+      "name": "北京华尔道夫酒店",
+      "type": "hotel",
+      "lat": 39.9128,
+      "lng": 116.418,
+      "address": "东城区王府井金宝街8号",
+      "district": "东城区",
+      "id": "poi_00014",
+      "city": "北京"
+    },
+    {
+      "name": "外滩",
+      "type": "scenic",
+      "lat": 31.2397,
+      "lng": 121.49,
+      "address": "黄浦区中山东一路",
+      "district": "黄浦区",
+      "id": "poi_00015",
+      "city": "上海"
+    },
+    {
+      "name": "东方明珠塔",
+      "type": "scenic",
+      "lat": 31.2397,
+      "lng": 121.4995,
+      "address": "浦东新区世纪大道1号",
+      "district": "浦东新区",
+      "id": "poi_00016",
+      "city": "上海"
+    },
+    {
+      "name": "豫园",
+      "type": "scenic",
+      "lat": 31.2279,
+      "lng": 121.4899,
+      "address": "黄浦区豫园老街279号",
+      "district": "黄浦区",
+      "id": "poi_00017",
+      "city": "上海"
+    },
+    {
+      "name": "南京路步行街",
+      "type": "shopping",
+      "lat": 31.2352,
+      "lng": 121.4741,
+      "address": "黄浦区南京东路",
+      "district": "黄浦区",
+      "id": "poi_00018",
+      "city": "上海"
+    },
+    {
+      "name": "迪士尼乐园",
+      "type": "entertainment",
+      "lat": 31.143,
+      "lng": 121.658,
+      "address": "浦东新区川沙新镇",
+      "district": "浦东新区",
+      "id": "poi_00019",
+      "city": "上海"
+    },
+    {
+      "name": "新天地",
+      "type": "shopping",
+      "lat": 31.2215,
+      "lng": 121.4765,
+      "address": "黄浦区太仓路181号",
+      "district": "黄浦区",
+      "id": "poi_00020",
+      "city": "上海"
+    },
+    {
+      "name": "静安寺",
+      "type": "scenic",
+      "lat": 31.2295,
+      "lng": 121.4542,
+      "address": "静安区南京西路1686号",
+      "district": "静安区",
+      "id": "poi_00021",
+      "city": "上海"
+    },
+    {
+      "name": "城隍庙",
+      "type": "food",
+      "lat": 31.2276,
+      "lng": 121.4904,
+      "address": "黄浦区方浜中路249号",
+      "district": "黄浦区",
+      "id": "poi_00022",
+      "city": "上海"
+    },
+    {
+      "name": "上海半岛酒店",
+      "type": "hotel",
+      "lat": 31.2332,
+      "lng": 121.4821,
+      "address": "黄浦区广东路20号",
+      "district": "黄浦区",
+      "id": "poi_00023",
+      "city": "上海"
+    },
+    {
+      "name": "上海外滩W酒店",
+      "type": "hotel",
+      "lat": 31.2408,
+      "lng": 121.495,
+      "address": "浦东新区浦明路88号",
+      "district": "浦东新区",
+      "id": "poi_00024",
+      "city": "上海"
+    },
+    {
+      "name": "广州塔",
+      "type": "scenic",
+      "lat": 23.1064,
+      "lng": 113.319,
+      "address": "海珠区阅江中路222号",
+      "district": "海珠区",
+      "id": "poi_00025",
+      "city": "广州"
+    },
+    {
+      "name": "珠江夜游",
+      "type": "swim",
+      "lat": 23.1137,
+      "lng": 113.3255,
+      "address": "越秀区沿江东路",
+      "district": "越秀区",
+      "id": "poi_00026",
+      "city": "广州"
+    },
+    {
+      "name": "白云山",
+      "type": "scenic",
+      "lat": 23.1863,
+      "lng": 113.265,
+      "address": "白云区广园中路801号",
+      "district": "白云区",
+      "id": "poi_00027",
+      "city": "广州"
+    },
+    {
+      "name": "长隆野生动物世界",
+      "type": "scenic",
+      "lat": 22.9752,
+      "lng": 113.3482,
+      "address": "番禺区大石镇",
+      "district": "番禺区",
+      "id": "poi_00028",
+      "city": "广州"
+    },
+    {
+      "name": "沙面",
+      "type": "scenic",
+      "lat": 23.1235,
+      "lng": 113.2443,
+      "address": "荔湾区沙面南街",
+      "district": "荔湾区",
+      "id": "poi_00029",
+      "city": "广州"
+    },
+    {
+      "name": "上下九步行街",
+      "type": "shopping",
+      "lat": 23.1197,
+      "lng": 113.2491,
+      "address": "荔湾区下九路",
+      "district": "荔湾区",
+      "id": "poi_00030",
+      "city": "广州"
+    },
+    {
+      "name": "太古汇",
+      "type": "shopping",
+      "lat": 23.1346,
+      "lng": 113.3666,
+      "address": "天河区天河路383号",
+      "district": "天河区",
+      "id": "poi_00031",
+      "city": "广州"
+    },
+    {
+      "name": "陶陶居",
+      "type": "food",
+      "lat": 23.1206,
+      "lng": 113.2581,
+      "address": "荔湾区第十甫路22号",
+      "district": "荔湾区",
+      "id": "poi_00032",
+      "city": "广州"
+    },
+    {
+      "name": "广州四季酒店",
+      "type": "hotel",
+      "lat": 23.118,
+      "lng": 113.3188,
+      "address": "天河区珠江西路5号",
+      "district": "天河区",
+      "id": "poi_00033",
+      "city": "广州"
+    },
+    {
+      "name": "世界之窗",
+      "type": "scenic",
+      "lat": 22.5408,
+      "lng": 113.973,
+      "address": "南山区深南大道9037号",
+      "district": "南山区",
+      "id": "poi_00034",
+      "city": "深圳"
+    },
+    {
+      "name": "欢乐谷",
+      "type": "entertainment",
+      "lat": 22.542,
+      "lng": 113.9805,
+      "address": "南山区侨城西街18号",
+      "district": "南山区",
+      "id": "poi_00035",
+      "city": "深圳"
+    },
+    {
+      "name": "东部华侨城",
+      "type": "scenic",
+      "lat": 22.6196,
+      "lng": 114.2387,
+      "address": "盐田区大梅沙",
+      "district": "盐田区",
+      "id": "poi_00036",
+      "city": "深圳"
+    },
+    {
+      "name": "深圳湾公园",
+      "type": "scenic",
+      "lat": 22.4972,
+      "lng": 113.951,
+      "address": "南山区深圳湾畔",
+      "district": "南山区",
+      "id": "poi_00037",
+      "city": "深圳"
+    },
+    {
+      "name": "大梅沙海滨公园",
+      "type": "swim",
+      "lat": 22.593,
+      "lng": 114.279,
+      "address": "盐田区大梅沙盐梅路",
+      "district": "盐田区",
+      "id": "poi_00038",
+      "city": "深圳"
+    },
+    {
+      "name": "东门步行街",
+      "type": "shopping",
+      "lat": 22.5556,
+      "lng": 114.1314,
+      "address": "罗湖区东门老街",
+      "district": "罗湖区",
+      "id": "poi_00039",
+      "city": "深圳"
+    },
+    {
+      "name": "Coco Park",
+      "type": "shopping",
+      "lat": 22.5412,
+      "lng": 114.0555,
+      "address": "福田区福华路",
+      "district": "福田区",
+      "id": "poi_00040",
+      "city": "深圳"
+    },
+    {
+      "name": "深圳香格里拉大酒店",
+      "type": "hotel",
+      "lat": 22.543,
+      "lng": 114.061,
+      "address": "罗湖区建设路1002号",
+      "district": "罗湖区",
+      "id": "poi_00041",
+      "city": "深圳"
+    },
+    {
+      "name": "大熊猫基地",
+      "type": "scenic",
+      "lat": 30.7329,
+      "lng": 104.1451,
+      "address": "成华区外北熊猫大道1375号",
+      "district": "成华区",
+      "id": "poi_00042",
+      "city": "成都"
+    },
+    {
+      "name": "宽窄巷子",
+      "type": "scenic",
+      "lat": 30.6634,
+      "lng": 104.0537,
+      "address": "青羊区长顺街附近",
+      "district": "青羊区",
+      "id": "poi_00043",
+      "city": "成都"
+    },
+    {
+      "name": "锦里古街",
+      "type": "scenic",
+      "lat": 30.6572,
+      "lng": 104.058,
+      "address": "武侯区武侯祠大街231号",
+      "district": "武侯区",
+      "id": "poi_00044",
+      "city": "成都"
+    },
+    {
+      "name": "春熙路",
+      "type": "shopping",
+      "lat": 30.6572,
+      "lng": 104.0795,
+      "address": "锦江区春熙路",
+      "district": "锦江区",
+      "id": "poi_00045",
+      "city": "成都"
+    },
+    {
+      "name": "太古里",
+      "type": "shopping",
+      "lat": 30.6598,
+      "lng": 104.0915,
+      "address": "锦江区大慈寺路",
+      "district": "锦江区",
+      "id": "poi_00046",
+      "city": "成都"
+    },
+    {
+      "name": "九眼桥酒吧街",
+      "type": "entertainment",
+      "lat": 30.6394,
+      "lng": 104.0735,
+      "address": "锦江区九眼桥",
+      "district": "锦江区",
+      "id": "poi_00047",
+      "city": "成都"
+    },
+    {
+      "name": "小龙坎火锅",
+      "type": "food",
+      "lat": 30.6637,
+      "lng": 104.0655,
+      "address": "锦江区东大街99号",
+      "district": "锦江区",
+      "id": "poi_00048",
+      "city": "成都"
+    },
+    {
+      "name": "都江堰景区",
+      "type": "scenic",
+      "lat": 30.9988,
+      "lng": 103.6133,
+      "address": "都江堰市公园路90号",
+      "district": "都江堰市",
+      "id": "poi_00049",
+      "city": "成都"
+    },
+    {
+      "name": "青城山",
+      "type": "scenic",
+      "lat": 30.8853,
+      "lng": 103.5292,
+      "address": "都江堰市青城山镇",
+      "district": "都江堰市",
+      "id": "poi_00050",
+      "city": "成都"
+    },
+    {
+      "name": "成都香格里拉大酒店",
+      "type": "hotel",
+      "lat": 30.6548,
+      "lng": 104.063,
+      "address": "锦江区滨江东路9号",
+      "district": "锦江区",
+      "id": "poi_00051",
+      "city": "成都"
+    },
+    {
+      "name": "西湖",
+      "type": "scenic",
+      "lat": 30.2441,
+      "lng": 120.1488,
+      "address": "西湖区西湖",
+      "district": "西湖区",
+      "id": "poi_00052",
+      "city": "杭州"
+    },
+    {
+      "name": "断桥残雪",
+      "type": "scenic",
+      "lat": 30.258,
+      "lng": 120.152,
+      "address": "西湖区北山街",
+      "district": "西湖区",
+      "id": "poi_00053",
+      "city": "杭州"
+    },
+    {
+      "name": "雷峰塔",
+      "type": "scenic",
+      "lat": 30.2312,
+      "lng": 120.1485,
+      "address": "西湖区南山路15号",
+      "district": "西湖区",
+      "id": "poi_00054",
+      "city": "杭州"
+    },
+    {
+      "name": "灵隐寺",
+      "type": "scenic",
+      "lat": 30.2371,
+      "lng": 120.1031,
+      "address": "西湖区灵隐路法云弄1号",
+      "district": "西湖区",
+      "id": "poi_00055",
+      "city": "杭州"
+    },
+    {
+      "name": "宋城",
+      "type": "entertainment",
+      "lat": 30.1917,
+      "lng": 120.1425,
+      "address": "西湖区之江路148号",
+      "district": "西湖区",
+      "id": "poi_00056",
+      "city": "杭州"
+    },
+    {
+      "name": "河坊街",
+      "type": "scenic",
+      "lat": 30.2506,
+      "lng": 120.147,
+      "address": "上城区河坊街",
+      "district": "上城区",
+      "id": "poi_00057",
+      "city": "杭州"
+    },
+    {
+      "name": "西溪湿地公园",
+      "type": "scenic",
+      "lat": 30.1656,
+      "lng": 120.0647,
+      "address": "西湖区天目山路518号",
+      "district": "西湖区",
+      "id": "poi_00058",
+      "city": "杭州"
+    },
+    {
+      "name": "千岛湖",
+      "type": "swim",
+      "lat": 29.9833,
+      "lng": 119.0167,
+      "address": "淳安县千岛湖镇",
+      "district": "淳安县",
+      "id": "poi_00059",
+      "city": "杭州"
+    },
+    {
+      "name": "杭州西子湖四季酒店",
+      "type": "hotel",
+      "lat": 30.2365,
+      "lng": 120.1355,
+      "address": "西湖区灵隐路5号",
+      "district": "西湖区",
+      "id": "poi_00060",
+      "city": "杭州"
+    },
+    {
+      "name": "洪崖洞",
+      "type": "scenic",
+      "lat": 29.5647,
+      "lng": 106.5784,
+      "address": "渝中区嘉滨路88号",
+      "district": "渝中区",
+      "id": "poi_00061",
+      "city": "重庆"
+    },
+    {
+      "name": "解放碑",
+      "type": "shopping",
+      "lat": 29.5589,
+      "lng": 106.5782,
+      "address": "渝中区解放碑",
+      "district": "渝中区",
+      "id": "poi_00062",
+      "city": "重庆"
+    },
+    {
+      "name": "长江索道",
+      "type": "scenic",
+      "lat": 29.5538,
+      "lng": 106.5872,
+      "address": "渝中区新华路151号",
+      "district": "渝中区",
+      "id": "poi_00063",
+      "city": "重庆"
+    },
+    {
+      "name": "磁器口古镇",
+      "type": "scenic",
+      "lat": 29.5795,
+      "lng": 106.4498,
+      "address": "沙坪坝区磁器口街道",
+      "district": "沙坪坝区",
+      "id": "poi_00064",
+      "city": "重庆"
+    },
+    {
+      "name": "武隆天生三桥",
+      "type": "scenic",
+      "lat": 29.4105,
+      "lng": 107.8945,
+      "address": "武隆区仙女山镇",
+      "district": "武隆区",
+      "id": "poi_00065",
+      "city": "重庆"
+    },
+    {
+      "name": "观音桥步行街",
+      "type": "shopping",
+      "lat": 29.5762,
+      "lng": 106.4672,
+      "address": "江北区观音桥",
+      "district": "江北区",
+      "id": "poi_00066",
+      "city": "重庆"
+    },
+    {
+      "name": "重庆火锅",
+      "type": "food",
+      "lat": 29.558,
+      "lng": 106.58,
+      "address": "渝中区八一路",
+      "district": "渝中区",
+      "id": "poi_00067",
+      "city": "重庆"
+    },
+    {
+      "name": "重庆威斯汀酒店",
+      "type": "hotel",
+      "lat": 29.558,
+      "lng": 106.583,
+      "address": "渝中区新华路222号",
+      "district": "渝中区",
+      "id": "poi_00068",
+      "city": "重庆"
+    },
+    {
+      "name": "黄鹤楼",
+      "type": "scenic",
+      "lat": 30.5494,
+      "lng": 114.3072,
+      "address": "武昌区蛇山西山坡特1号",
+      "district": "武昌区",
+      "id": "poi_00069",
+      "city": "武汉"
+    },
+    {
+      "name": "东湖风景区",
+      "type": "scenic",
+      "lat": 30.5545,
+      "lng": 114.3908,
+      "address": "武昌区东湖路特1号",
+      "district": "武昌区",
+      "id": "poi_00070",
+      "city": "武汉"
+    },
+    {
+      "name": "户部巷",
+      "type": "food",
+      "lat": 30.543,
+      "lng": 114.2755,
+      "address": "武昌区户部巷",
+      "district": "武昌区",
+      "id": "poi_00071",
+      "city": "武汉"
+    },
+    {
+      "name": "楚河汉街",
+      "type": "shopping",
+      "lat": 30.566,
+      "lng": 114.311,
+      "address": "武昌区中北路",
+      "district": "武昌区",
+      "id": "poi_00072",
+      "city": "武汉"
+    },
+    {
+      "name": "武汉香格里拉大酒店",
+      "type": "hotel",
+      "lat": 30.5865,
+      "lng": 114.3015,
+      "address": "江岸区汉口滨江路",
+      "district": "江岸区",
+      "id": "poi_00073",
+      "city": "武汉"
+    },
+    {
+      "name": "秦始皇兵马俑",
+      "type": "scenic",
+      "lat": 34.3848,
+      "lng": 109.2734,
+      "address": "临潼区秦始皇帝陵博物院",
+      "district": "临潼区",
+      "id": "poi_00074",
+      "city": "西安"
+    },
+    {
+      "name": "大雁塔",
+      "type": "scenic",
+      "lat": 34.219,
+      "lng": 108.9633,
+      "address": "雁塔区慈恩路1号",
+      "district": "雁塔区",
+      "id": "poi_00075",
+      "city": "西安"
+    },
+    {
+      "name": "大唐芙蓉园",
+      "type": "scenic",
+      "lat": 34.2055,
+      "lng": 108.9742,
+      "address": "雁塔区芙蓉西路99号",
+      "district": "雁塔区",
+      "id": "poi_00076",
+      "city": "西安"
+    },
+    {
+      "name": "西安城墙",
+      "type": "scenic",
+      "lat": 34.2658,
+      "lng": 108.9432,
+      "address": "碑林区城墙",
+      "district": "碑林区",
+      "id": "poi_00077",
+      "city": "西安"
+    },
+    {
+      "name": "回民街",
+      "type": "food",
+      "lat": 34.2619,
+      "lng": 108.9436,
+      "address": "莲湖区北院门街道",
+      "district": "莲湖区",
+      "id": "poi_00078",
+      "city": "西安"
+    },
+    {
+      "name": "大唐不夜城",
+      "type": "scenic",
+      "lat": 34.2062,
+      "lng": 108.9482,
+      "address": "雁塔区慈恩路",
+      "district": "雁塔区",
+      "id": "poi_00079",
+      "city": "西安"
+    },
+    {
+      "name": "钟楼",
+      "type": "scenic",
+      "lat": 34.2625,
+      "lng": 108.9431,
+      "address": "碑林区东大街和南大街交汇处",
+      "district": "碑林区",
+      "id": "poi_00080",
+      "city": "西安"
+    },
+    {
+      "name": "西安香格里拉大酒店",
+      "type": "hotel",
+      "lat": 34.258,
+      "lng": 108.953,
+      "address": "莲湖区大庆路88号",
+      "district": "莲湖区",
+      "id": "poi_00081",
+      "city": "西安"
+    },
+    {
+      "name": "中山陵",
+      "type": "scenic",
+      "lat": 31.8788,
+      "lng": 118.8579,
+      "address": "玄武区中山陵",
+      "district": "玄武区",
+      "id": "poi_00082",
+      "city": "南京"
+    },
+    {
+      "name": "夫子庙",
+      "type": "scenic",
+      "lat": 32.0175,
+      "lng": 118.7845,
+      "address": "秦淮区贡院街152号",
+      "district": "秦淮区",
+      "id": "poi_00083",
+      "city": "南京"
+    },
+    {
+      "name": "明孝陵",
+      "type": "scenic",
+      "lat": 31.8917,
+      "lng": 118.8556,
+      "address": "玄武区中山陵风景区内",
+      "district": "玄武区",
+      "id": "poi_00084",
+      "city": "南京"
+    },
+    {
+      "name": "南京总统府",
+      "type": "scenic",
+      "lat": 32.0289,
+      "lng": 118.7834,
+      "address": "玄武区长江路292号",
+      "district": "玄武区",
+      "id": "poi_00085",
+      "city": "南京"
+    },
+    {
+      "name": "新街口",
+      "type": "shopping",
+      "lat": 32.04,
+      "lng": 118.783,
+      "address": "玄武区中山路",
+      "district": "玄武区",
+      "id": "poi_00086",
+      "city": "南京"
+    },
+    {
+      "name": "南京香格里拉大酒店",
+      "type": "hotel",
+      "lat": 32.028,
+      "lng": 118.788,
+      "address": "玄武区中央路329号",
+      "district": "玄武区",
+      "id": "poi_00087",
+      "city": "南京"
+    },
+    {
+      "name": "拙政园",
+      "type": "scenic",
+      "lat": 31.3231,
+      "lng": 120.622,
+      "address": "姑苏区东北街178号",
+      "district": "姑苏区",
+      "id": "poi_00088",
+      "city": "苏州"
+    },
+    {
+      "name": "平江路",
+      "type": "scenic",
+      "lat": 31.3187,
+      "lng": 120.6358,
+      "address": "姑苏区平江路",
+      "district": "姑苏区",
+      "id": "poi_00089",
+      "city": "苏州"
+    },
+    {
+      "name": "苏州博物馆",
+      "type": "scenic",
+      "lat": 31.3221,
+      "lng": 120.6269,
+      "address": "姑苏区东北街204号",
+      "district": "姑苏区",
+      "id": "poi_00090",
+      "city": "苏州"
+    },
+    {
+      "name": "周庄古镇",
+      "type": "scenic",
+      "lat": 31.1163,
+      "lng": 120.8477,
+      "address": "昆山市周庄镇",
+      "district": "昆山市",
+      "id": "poi_00091",
+      "city": "苏州"
+    },
+    {
+      "name": "同里古镇",
+      "type": "scenic",
+      "lat": 31.0896,
+      "lng": 120.7414,
+      "address": "吴江区同里镇",
+      "district": "吴江区",
+      "id": "poi_00092",
+      "city": "苏州"
+    },
+    {
+      "name": "苏州香格里拉大酒店",
+      "type": "hotel",
+      "lat": 31.3245,
+      "lng": 120.631,
+      "address": "姑苏区塔倪路9号",
+      "district": "姑苏区",
+      "id": "poi_00093",
+      "city": "苏州"
+    },
+    {
+      "name": "栈桥",
+      "type": "scenic",
+      "lat": 36.068,
+      "lng": 120.3025,
+      "address": "市南区太平路14号",
+      "district": "市南区",
+      "id": "poi_00094",
+      "city": "青岛"
+    },
+    {
+      "name": "八大关风景区",
+      "type": "scenic",
+      "lat": 36.048,
+      "lng": 120.3058,
+      "address": "市南区武胜关路",
+      "district": "市南区",
+      "id": "poi_00095",
+      "city": "青岛"
+    },
+    {
+      "name": "崂山",
+      "type": "scenic",
+      "lat": 36.103,
+      "lng": 120.486,
+      "address": "崂山区崂山路",
+      "district": "崂山区",
+      "id": "poi_00096",
+      "city": "青岛"
+    },
+    {
+      "name": "金沙滩",
+      "type": "swim",
+      "lat": 36.0583,
+      "lng": 120.3156,
+      "address": "黄岛区金沙滩路",
+      "district": "黄岛区",
+      "id": "poi_00097",
+      "city": "青岛"
+    },
+    {
+      "name": "青岛啤酒街",
+      "type": "food",
+      "lat": 36.068,
+      "lng": 120.372,
+      "address": "市北区登州路",
+      "district": "市北区",
+      "id": "poi_00098",
+      "city": "青岛"
+    },
+    {
+      "name": "五四广场",
+      "type": "scenic",
+      "lat": 36.065,
+      "lng": 120.3825,
+      "address": "市南区东海西路",
+      "district": "市南区",
+      "id": "poi_00099",
+      "city": "青岛"
+    },
+    {
+      "name": "鼓浪屿",
+      "type": "scenic",
+      "lat": 24.4449,
+      "lng": 118.0678,
+      "address": "思明区鼓浪屿",
+      "district": "思明区",
+      "id": "poi_00100",
+      "city": "厦门"
+    },
+    {
+      "name": "厦门大学",
+      "type": "scenic",
+      "lat": 24.4345,
+      "lng": 118.0926,
+      "address": "思明区思明南路422号",
+      "district": "思明区",
+      "id": "poi_00101",
+      "city": "厦门"
+    },
+    {
+      "name": "曾厝垵",
+      "type": "scenic",
+      "lat": 24.4493,
+      "lng": 118.0593,
+      "address": "思明区曾厝垵",
+      "district": "思明区",
+      "id": "poi_00102",
+      "city": "厦门"
+    },
+    {
+      "name": "环岛路",
+      "type": "scenic",
+      "lat": 24.46,
+      "lng": 118.1,
+      "address": "思明区环岛路",
+      "district": "思明区",
+      "id": "poi_00103",
+      "city": "厦门"
+    },
+    {
+      "name": "中山路步行街",
+      "type": "shopping",
+      "lat": 24.4545,
+      "lng": 118.0768,
+      "address": "思明区中山路",
+      "district": "思明区",
+      "id": "poi_00104",
+      "city": "厦门"
+    },
+    {
+      "name": "岳麓山",
+      "type": "scenic",
+      "lat": 28.1822,
+      "lng": 112.9389,
+      "address": "岳麓区岳麓山",
+      "district": "岳麓区",
+      "id": "poi_00105",
+      "city": "长沙"
+    },
+    {
+      "name": "橘子洲头",
+      "type": "scenic",
+      "lat": 28.1866,
+      "lng": 112.9395,
+      "address": "岳麓区橘子洲头",
+      "district": "岳麓区",
+      "id": "poi_00106",
+      "city": "长沙"
+    },
+    {
+      "name": "坡子街",
+      "type": "food",
+      "lat": 28.1932,
+      "lng": 112.9738,
+      "address": "天心区坡子街",
+      "district": "天心区",
+      "id": "poi_00107",
+      "city": "长沙"
+    },
+    {
+      "name": "太平街",
+      "type": "scenic",
+      "lat": 28.1968,
+      "lng": 112.975,
+      "address": "天心区太平街",
+      "district": "天心区",
+      "id": "poi_00108",
+      "city": "长沙"
+    },
+    {
+      "name": "五一广场",
+      "type": "shopping",
+      "lat": 28.2283,
+      "lng": 112.9388,
+      "address": "芙蓉区五一大道",
+      "district": "芙蓉区",
+      "id": "poi_00109",
+      "city": "长沙"
+    },
+    {
+      "name": "石林景区",
+      "type": "scenic",
+      "lat": 24.8075,
+      "lng": 103.3243,
+      "address": "石林彝族自治县石林风景区",
+      "district": "石林县",
+      "id": "poi_00110",
+      "city": "昆明"
+    },
+    {
+      "name": "滇池",
+      "type": "swim",
+      "lat": 24.8607,
+      "lng": 102.8333,
+      "address": "西山区滇池",
+      "district": "西山区",
+      "id": "poi_00111",
+      "city": "昆明"
+    },
+    {
+      "name": "翠湖",
+      "type": "scenic",
+      "lat": 25.043,
+      "lng": 102.796,
+      "address": "五华区翠湖公园",
+      "district": "五华区",
+      "id": "poi_00112",
+      "city": "昆明"
+    },
+    {
+      "name": "大理古城",
+      "type": "scenic",
+      "lat": 25.6069,
+      "lng": 100.2676,
+      "address": "大理市大理古城",
+      "district": "大理市",
+      "id": "poi_00113",
+      "city": "昆明"
+    },
+    {
+      "name": "洱海",
+      "type": "swim",
+      "lat": 25.8499,
+      "lng": 100.1417,
+      "address": "大理市洱海",
+      "district": "大理市",
+      "id": "poi_00114",
+      "city": "昆明"
+    },
+    {
+      "name": "丽江古城",
+      "type": "scenic",
+      "lat": 26.8724,
+      "lng": 100.2318,
+      "address": "古城区丽江古城",
+      "district": "古城区",
+      "id": "poi_00115",
+      "city": "昆明"
+    },
+    {
+      "name": "冰雪大世界",
+      "type": "entertainment",
+      "lat": 45.803,
+      "lng": 126.536,
+      "address": "松北区太阳岛风景区",
+      "district": "松北区",
+      "id": "poi_00116",
+      "city": "哈尔滨"
+    },
+    {
+      "name": "中央大街",
+      "type": "scenic",
+      "lat": 45.8035,
+      "lng": 126.617,
+      "address": "道里区中央大街",
+      "district": "道里区",
+      "id": "poi_00117",
+      "city": "哈尔滨"
+    },
+    {
+      "name": "圣索菲亚教堂",
+      "type": "scenic",
+      "lat": 45.8039,
+      "lng": 126.622,
+      "address": "道里区透笼街88号",
+      "district": "道里区",
+      "id": "poi_00118",
+      "city": "哈尔滨"
+    },
+    {
+      "name": "松花江",
+      "type": "swim",
+      "lat": 45.78,
+      "lng": 126.55,
+      "address": "道里区松花江畔",
+      "district": "道里区",
+      "id": "poi_00119",
+      "city": "哈尔滨"
+    },
+    {
+      "name": "天涯海角",
+      "type": "scenic",
+      "lat": 18.2927,
+      "lng": 109.354,
+      "address": "天涯区天涯海角游览区",
+      "district": "天涯区",
+      "id": "poi_00120",
+      "city": "三亚"
+    },
+    {
+      "name": "亚龙湾",
+      "type": "swim",
+      "lat": 18.1709,
+      "lng": 109.6518,
+      "address": "吉阳区亚龙湾",
+      "district": "吉阳区",
+      "id": "poi_00121",
+      "city": "三亚"
+    },
+    {
+      "name": "蜈支洲岛",
+      "type": "swim",
+      "lat": 18.3053,
+      "lng": 109.7642,
+      "address": "海棠区蜈支洲岛",
+      "district": "海棠区",
+      "id": "poi_00122",
+      "city": "三亚"
+    },
+    {
+      "name": "南山文化旅游区",
+      "type": "scenic",
+      "lat": 18.3493,
+      "lng": 109.4878,
+      "address": "崖州区南山文化旅游区",
+      "district": "崖州区",
+      "id": "poi_00123",
+      "city": "三亚"
+    },
+    {
+      "name": "大东海",
+      "type": "swim",
+      "lat": 18.2008,
+      "lng": 109.5235,
+      "address": "吉阳区大东海旅游区",
+      "district": "吉阳区",
+      "id": "poi_00124",
+      "city": "三亚"
+    },
+    {
+      "name": "天津古文化街",
+      "type": "scenic",
+      "lat": 39.1387,
+      "lng": 117.189,
+      "address": "南开区古文化街",
+      "district": "南开区",
+      "id": "poi_00125",
+      "city": "天津"
+    },
+    {
+      "name": "意大利风情街",
+      "type": "scenic",
+      "lat": 39.1485,
+      "lng": 117.194,
+      "address": "河北区意式风情街",
+      "district": "河北区",
+      "id": "poi_00126",
+      "city": "天津"
+    },
+    {
+      "name": "天津之眼",
+      "type": "scenic",
+      "lat": 39.1568,
+      "lng": 117.1828,
+      "address": "河北区永乐桥",
+      "district": "河北区",
+      "id": "poi_00127",
+      "city": "天津"
+    },
+    {
+      "name": "五大道",
+      "type": "scenic",
+      "lat": 39.1215,
+      "lng": 117.187,
+      "address": "和平区五大道",
+      "district": "和平区",
+      "id": "poi_00128",
+      "city": "天津"
+    },
+    {
+      "name": "津湾广场",
+      "type": "scenic",
+      "lat": 39.1355,
+      "lng": 117.2018,
+      "address": "和平区解放北路",
+      "district": "和平区",
+      "id": "poi_00129",
+      "city": "天津"
+    }
+  ],
+  "total": 129,
+  "cities": [
+    "北京",
+    "上海",
+    "广州",
+    "深圳",
+    "成都",
+    "杭州",
+    "重庆",
+    "武汉",
+    "西安",
+    "南京",
+    "苏州",
+    "青岛",
+    "厦门",
+    "长沙",
+    "昆明",
+    "哈尔滨",
+    "三亚",
+    "天津"
+  ]
+}

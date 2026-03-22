@@ -80,6 +80,9 @@ func SetupRoutes(r *gin.Engine) {
 
 		// 地理服务
 		api.GET("/pois", controllers.GetPOIs)
+		api.GET("/pois/all", controllers.GetAllPOIs)
+		api.GET("/pois/count", controllers.GetPOICount)
+		api.GET("/pois/data", controllers.ServePoiFile)
 		api.GET("/geocode/reverse", controllers.ReverseGeocode)
 
 		// WebSocket
