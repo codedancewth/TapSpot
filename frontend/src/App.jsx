@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { Heart, X, Plus, ZoomIn, ZoomOut, Compass, User, LogOut, MapPin, Clock, ChevronRight, Search, Loader2, MessageCircle, Send, Mail } from 'lucide-react'
-import './styles/modern.css'
+import './styles/gaming.css'
 import { MessageCenter } from './components/Chat/MessageCenter.jsx'
 import AIAssistant from './components/AIAssistant.jsx'
 import TextSelectionAI from './components/TextSelectionAI.jsx'
@@ -709,6 +709,14 @@ export default function App() {
     return date.toLocaleDateString()
   }
 
+  // 获取等级进度百分比
+  const getLevelProgress = () => {
+    if (!playerProfile) return 0
+    const { xp = 0, xpToNextLevel = 100 } = playerProfile
+    const xpInCurrentLevel = xp % xpToNextLevel
+    return Math.min(100, (xpInCurrentLevel / xpToNextLevel) * 100)
+  }
+
   const myPostsCount = user ? posts.filter(p => p.authorId === user.id).length : 0
 
   // 打开个人资料编辑弹窗
@@ -1096,38 +1104,65 @@ export default function App() {
             {/* 头部 */}
             <div style={{
               padding: '20px 20px 16px',
-              borderBottom: `1px solid ${COLORS.border}`,
-              background: `linear-gradient(135deg, ${COLORS.secondary} 0%, ${COLORS.primary} 100%)`,
+              borderBottom: '1px solid #2d2d44',
+              background: 'linear-gradient(180deg, #12121a 0%, #0a0a0f 100%)',
             }}>
+              {/* Logo + 标题 */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{
-                    width: 40, height: 40,
-                    background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`,
-                    borderRadius: 12,
+                    width: 44, height: 44,
+                    background: 'linear-gradient(135deg, #a855f7, #ec4899)',
+                    borderRadius: 14,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 20,
-                    boxShadow: `0 4px 15px ${COLORS.accent}40`,
+                    fontSize: 22,
+                    boxShadow: '0 0 20px rgba(168,85,247,0.5)',
                   }}>📍</div>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 20, color: COLORS.text }}>TapSpot</div>
-                    <div style={{ fontSize: 11, color: '#888' }}>发现精彩地点</div>
+                    <div style={{ fontWeight: 800, fontSize: 22, color: '#f1f5f9', letterSpacing: 1, fontFamily: 'Orbitron, sans-serif' }}>TapSpot</div>
+                    <div style={{ fontSize: 11, color: '#64748b' }}>冒险 · 打卡 · 探索</div>
                   </div>
                 </div>
                 {isMobile && (
                   <button onClick={() => setShowSidebar(false)} style={{
-                    background: COLORS.border, border: 'none', borderRadius: 8,
-                    width: 32, height: 32, cursor: 'pointer', color: COLORS.text,
+                    background: '#2d2d44', border: 'none', borderRadius: 8,
+                    width: 32, height: 32, cursor: 'pointer', color: '#f1f5f9',
                   }}><X size={16} /></button>
                 )}
+              </div>
+              
+              {/* 玩家状态条 */}
+              <div style={{
+                padding: '10px 12px',
+                background: 'rgba(168,85,247,0.08)',
+                border: '1px solid rgba(168,85,247,0.2)',
+                borderRadius: 12,
+                marginBottom: 16
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{
+                      width: 32, height: 32,
+                      background: 'linear-gradient(135deg, #a855f7, #ec4899)',
+                      borderRadius: '50%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 14
+                    }}>👤</div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13, color: '#f1f5f9' }}>{user?.nickname || user?.username || '未登录'}</div>
+                      <div style={{ fontSize: 11, color: '#f59e0b' }}>LV.{playerProfile?.level || '?'} · {playerProfile?.title || '新手'}</div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 14 }}>💰<span style={{ color: '#f59e0b', fontWeight: 700 }}>{playerProfile?.gold?.toLocaleString() || 0}</span></div>
+                </div>
               </div>
 
               {/* Tab */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                 {[
-                  { key: 'all', label: '全部', count: posts.length },
-                  { key: 'mine', label: '我的', count: myPostsCount },
-                  { key: 'liked', label: '喜欢', count: likedPosts.size },
+                  { key: 'all', label: '🏠 全部', count: posts.length },
+                  { key: 'mine', label: '📝 我的', count: myPostsCount },
+                  { key: 'liked', label: '❤️ 喜欢', count: likedPosts.size },
                 ].map(tab => (
                   <button
                     key={tab.key}
@@ -1137,17 +1172,18 @@ export default function App() {
                     }}
                     style={{
                       flex: 1, padding: '10px 8px',
-                      background: activeTab === tab.key ? COLORS.accent : COLORS.cardBgDark,
-                      border: 'none', borderRadius: 10, cursor: 'pointer',
-                      color: activeTab === tab.key ? '#fff' : '#888',
-                      fontWeight: 600, fontSize: 13, transition: 'all 0.2s',
+                      background: activeTab === tab.key ? '#a855f7' : '#1a1a2e',
+                      border: activeTab === tab.key ? '1px solid #a855f7' : '1px solid #2d2d44',
+                      borderRadius: 10, cursor: 'pointer',
+                      color: activeTab === tab.key ? '#fff' : '#94a3b8',
+                      fontWeight: 600, fontSize: 12, transition: 'all 0.2s',
                     }}
                   >
                     {tab.label}
                     <span style={{
                       marginLeft: 4, padding: '2px 6px',
-                      background: activeTab === tab.key ? 'rgba(255,255,255,0.2)' : COLORS.border,
-                      borderRadius: 6, fontSize: 11,
+                      background: activeTab === tab.key ? 'rgba(255,255,255,0.2)' : '#2d2d44',
+                      borderRadius: 6, fontSize: 10,
                     }}>{tab.count}</span>
                   </button>
                 ))}
@@ -1156,7 +1192,7 @@ export default function App() {
               {/* 类型筛选 */}
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {[
-                  { key: 'all', label: '全部' },
+                  { key: 'all', label: '✨ 全部' },
                   { key: 'post', label: '📍 日常' },
                   { key: 'food', label: '🍽️ 美食' },
                   { key: 'hotel', label: '🏨 住宿' },
@@ -1171,11 +1207,11 @@ export default function App() {
                     onClick={() => setFilterType(type.key)}
                     style={{
                       padding: '6px 10px',
-                      background: filterType === type.key ? COLORS.secondary : 'transparent',
-                      border: filterType === type.key ? `1px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
+                      background: filterType === type.key ? '#3b82f6' : 'transparent',
+                      border: filterType === type.key ? '1px solid #3b82f6' : '1px solid #2d2d44',
                       borderRadius: 16, cursor: 'pointer',
-                      color: filterType === type.key ? COLORS.accent : '#888',
-                      fontSize: 12, transition: 'all 0.2s',
+                      color: filterType === type.key ? '#fff' : '#94a3b8',
+                      fontSize: 11, transition: 'all 0.2s',
                     }}
                   >{type.label}</button>
                 ))}
@@ -1364,13 +1400,20 @@ export default function App() {
                         if (isMobile) setShowSidebar(false)
                       }}
                       style={{
-                        background: post.id === newPostId ? `${COLORS.accent}20` : COLORS.cardBgDark,
-                        borderRadius: 12, padding: 14, marginBottom: 10, cursor: 'pointer',
-                        border: post.id === newPostId ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
-                        transition: 'all 0.2s',
+                        background: post.id === newPostId 
+                          ? 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(236,72,153,0.1))' 
+                          : '#1a1a2e',
+                        borderRadius: 16, padding: 14, marginBottom: 10, cursor: 'pointer',
+                        border: post.id === newPostId 
+                          ? '1px solid #a855f7' 
+                          : '1px solid #2d2d44',
+                        boxShadow: post.id === newPostId 
+                          ? '0 0 20px rgba(168,85,247,0.3)' 
+                          : 'none',
+                        transition: 'all 0.25s ease',
                       }}
-                      onMouseEnter={(e) => { if (post.id !== newPostId) e.currentTarget.style.borderColor = COLORS.accent }}
-                      onMouseLeave={(e) => { if (post.id !== newPostId) e.currentTarget.style.borderColor = COLORS.border }}
+                      onMouseEnter={(e) => { if (post.id !== newPostId) { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 0 15px rgba(168,85,247,0.3)'; e.currentTarget.style.transform = 'translateY(-2px)' } }}
+                      onMouseLeave={(e) => { if (post.id !== newPostId) { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)' } }}
                     >
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                         <div style={{
@@ -1383,35 +1426,34 @@ export default function App() {
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                            {post.id === newPostId && <span style={{ background: COLORS.accent, color: '#fff', padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>NEW</span>}
-                            <span style={{ fontWeight: 600, fontSize: 14, color: COLORS.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.title}</span>
+                            {post.id === newPostId && <span style={{ background: 'linear-gradient(135deg, #a855f7, #ec4899)', color: '#fff', padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>NEW</span>}
+                            <span style={{ fontWeight: 600, fontSize: 14, color: '#f1f5f9', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.title}</span>
                           </div>
-                          <div style={{ fontSize: 12, color: '#888', marginBottom: 6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.content}</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: '#666' }}>
+                          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.content}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: '#64748b' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><MapPin size={11} /> {post.location_name || '未知地点'}</span>
                             <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Clock size={11} /> {formatTime(post.createdAt)}</span>
                           </div>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: `1px solid ${COLORS.border}` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: '1px solid #2d2d44' }}>
                         <div 
                           onClick={(e) => { e.stopPropagation(); openUserSpace(post.authorId, post.author) }}
                           style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
                         >
-                          <div style={{ width: 20, height: 20, background: COLORS.secondary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>👤</div>
-                          <span style={{ fontSize: 12, color: '#888' }}>{post.author}</span>
+                          <div style={{ width: 20, height: 20, background: 'linear-gradient(135deg, #a855f7, #ec4899)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>👤</div>
+                          <span style={{ fontSize: 12, color: '#94a3b8' }}>{post.author}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <button onClick={(e) => { e.stopPropagation(); handleLike(post.id) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color: likedPosts.has(post.id) ? COLORS.accent : '#666', fontSize: 12 }}>
-                            <Heart size={14} fill={likedPosts.has(post.id) ? COLORS.accent : 'none'} /> {post.likes}
+                          <button onClick={(e) => { e.stopPropagation(); handleLike(post.id) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: likedPosts.has(post.id) ? 'rgba(236,72,153,0.15)' : 'rgba(45,45,68,0.5)', border: '1px solid ' + (likedPosts.has(post.id) ? '#ec4899' : '#2d2d44'), borderRadius: 8, padding: '4px 10px', cursor: 'pointer', color: likedPosts.has(post.id) ? '#ec4899' : '#94a3b8', fontSize: 12 }}>
+                            <Heart size={14} fill={likedPosts.has(post.id) ? '#ec4899' : 'none'} /> {post.likes}
                           </button>
-                          <button onClick={(e) => { e.stopPropagation(); openPostDetail(post) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: 12 }}>
+                          <button onClick={(e) => { e.stopPropagation(); openPostDetail(post) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 8, padding: '4px 10px', cursor: 'pointer', color: '#3b82f6', fontSize: 12 }}>
                             <MessageCircle size={14} /> 评论
                           </button>
                           {user && post.authorId === user.id && (
-                            <button onClick={(e) => { e.stopPropagation(); handleDeletePost(post.id) }} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: 11 }}>🗑️</button>
+                            <button onClick={(e) => { e.stopPropagation(); handleDeletePost(post.id) }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 11 }}>🗑️</button>
                           )}
-                          <ChevronRight size={16} color="#444" />
                         </div>
                       </div>
                     </div>
@@ -1540,10 +1582,38 @@ export default function App() {
 
         {/* 工具栏 */}
         <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 1000, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={() => setShowSidebar(!showSidebar)} style={{ width: 44, height: 44, background: COLORS.cardBg, border: 'none', borderRadius: 12, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.textDark} strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="15" y2="12" /><line x1="3" y1="18" x2="18" y2="18" /></svg>
+          <button onClick={() => setShowSidebar(!showSidebar)} style={{ width: 44, height: 44, background: '#1a1a2e', border: '1px solid #2d2d44', borderRadius: 12, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f1f5f9" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="15" y2="12" /><line x1="3" y1="18" x2="18" y2="18" /></svg>
           </button>
+          
+          {/* 游戏化 HUD */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'linear-gradient(135deg, #12121a 0%, #1a1a2e 100%)', border: '1px solid #2d2d44', borderRadius: 16, boxShadow: '0 0 20px rgba(168,85,247,0.15)' }}>
+            {/* 经验条 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 80 }}>
+              <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600 }}>LV.{playerProfile?.level || 1}</div>
+              <div style={{ height: 4, background: '#2d2d44', borderRadius: 2, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${getLevelProgress()}%`, background: 'linear-gradient(90deg, #a855f7, #ec4899)', borderRadius: 2, transition: 'width 0.5s ease' }} />
+              </div>
+            </div>
+            
+            {/* 金币 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 20 }}>
+              <span style={{ fontSize: 14 }}>💰</span>
+              <span style={{ fontWeight: 700, fontSize: 13, color: '#f59e0b' }}>{playerProfile?.gold?.toLocaleString() || 0}</span>
+            </div>
+            
+            {/* 连续天数 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)', borderRadius: 20 }}>
+              <span style={{ fontSize: 14 }}>🔥</span>
+              <span style={{ fontWeight: 700, fontSize: 13, color: '#f97316' }}>{playerProfile?.streak || 0}</span>
+            </div>
+            
+            {/* 游戏中心按钮 */}
+            <button onClick={() => openGamePanel('achievements')} style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #a855f7, #7c3aed)', border: 'none', borderRadius: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(168,85,247,0.4)', fontSize: 16 }}>🏆</button>
+          </div>
+          
           <div style={{ flex: 1 }} />
+          
           {user ? (
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10 }}>
               {/* 消息图标 */}
@@ -1551,24 +1621,24 @@ export default function App() {
                 onClick={openChatList}
                 style={{ 
                   width: 44, height: 44, 
-                  background: COLORS.cardBg, 
-                  border: 'none', 
+                  background: '#1a1a2e', 
+                  border: '1px solid #2d2d44', 
                   borderRadius: 12, 
                   cursor: 'pointer', 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
                   position: 'relative',
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
                 }}
               >
-                <Mail size={20} color={COLORS.textDark} />
+                <Mail size={20} color="#f1f5f9" />
                 {unreadCount > 0 && (
                   <span style={{
                     position: 'absolute',
                     top: -4,
                     right: -4,
-                    background: COLORS.accent,
+                    background: '#ec4899',
                     color: '#fff',
                     fontSize: 11,
                     fontWeight: 600,
@@ -1582,39 +1652,38 @@ export default function App() {
                 )}
               </button>
 
-              <button onClick={() => setShowUserMenu(!showUserMenu)} style={{ padding: '8px 14px', background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#fff', fontWeight: 600, boxShadow: `0 4px 15px ${COLORS.accent}40` }}>
+              <button onClick={() => setShowUserMenu(!showUserMenu)} style={{ padding: '8px 14px', background: 'linear-gradient(135deg, #a855f7, #ec4899)', border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#fff', fontWeight: 600, boxShadow: '0 4px 15px rgba(168,85,247,0.4)' }}>
                 <User size={16} />
                 <span style={{ maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.nickname}</span>
               </button>
               {showUserMenu && (
-                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 8, background: COLORS.cardBg, borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', minWidth: 160, overflow: 'hidden', zIndex: 1002 }}>
-                  <div style={{ padding: 12, borderBottom: `1px solid ${COLORS.border}`, fontSize: 12, color: '#666' }}>@{user.username}</div>
-                  <button onClick={openUserProfile} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.textDark, fontSize: 13 }}><User size={16} /> 编辑资料</button>
-                  <button onClick={openChatList} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.textDark, fontSize: 13 }}><Mail size={16} /> 消息 {unreadCount > 0 && <span style={{ background: COLORS.accent, color: '#fff', padding: '2px 6px', borderRadius: 10, fontSize: 10 }}>{unreadCount}</span>}</button>
-                  <button onClick={handleLogout} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.accent, fontSize: 13 }}><LogOut size={16} /> 退出登录</button>
+                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 8, background: '#1a1a2e', border: '1px solid #2d2d44', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.4)', minWidth: 160, overflow: 'hidden', zIndex: 1002 }}>
+                  <div style={{ padding: 12, borderBottom: '1px solid #2d2d44', fontSize: 12, color: '#94a3b8' }}>@{user.username}</div>
+                  <button onClick={openUserProfile} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#f1f5f9', fontSize: 13 }}><User size={16} /> 编辑资料</button>
+                  <button onClick={openChatList} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#f1f5f9', fontSize: 13 }}><Mail size={16} /> 消息 {unreadCount > 0 && <span style={{ background: '#ec4899', color: '#fff', padding: '2px 6px', borderRadius: 10, fontSize: 10 }}>{unreadCount}</span>}</button>
+                  <button onClick={handleLogout} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#ec4899', fontSize: 13 }}><LogOut size={16} /> 退出登录</button>
                 </div>
               )}
             </div>
           ) : (
-            <button onClick={() => setShowLogin(true)} style={{ padding: '10px 18px', background: COLORS.cardBg, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.textDark, fontWeight: 600, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}><User size={16} /> 登录</button>
+            <button onClick={() => setShowLogin(true)} style={{ padding: '10px 18px', background: '#1a1a2e', border: '1px solid #2d2d44', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#f1f5f9', fontWeight: 600, boxShadow: '0 2px 10px rgba(0,0,0,0.2)' }}><User size={16} /> 登录</button>
           )}
-          <button onClick={() => { if (!user) { setShowLogin(true); return }; setShowPost(true) }} style={{ padding: '10px 18px', background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#fff', fontWeight: 600, boxShadow: `0 4px 15px ${COLORS.accent}40` }}><Plus size={18} /> 打卡</button>
-          <button onClick={() => openGamePanel('achievements')} style={{ padding: '10px 14px', background: '#1a1a2e', border: '1px solid #2d2d44', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#f59e0b', fontWeight: 600, boxShadow: '0 2px 10px rgba(0,0,0,0.2)' }}>🏆 游戏中心</button>
+          <button onClick={() => { if (!user) { setShowLogin(true); return }; setShowPost(true) }} style={{ padding: '10px 18px', background: 'linear-gradient(135deg, #a855f7, #ec4899)', border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#fff', fontWeight: 600, boxShadow: '0 4px 15px rgba(168,85,247,0.4)' }}><Plus size={18} /> 打卡</button>
         </div>
 
         {/* 缩放控制 - 移到右侧中间靠上位置 */}
         <div style={{ position: 'absolute', top: '50%', right: 16, transform: 'translateY(-50%)', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <button onClick={() => mapRef?.setZoom(mapZoom + 1)} style={{ width: 40, height: 40, background: COLORS.cardBg, border: 'none', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ZoomIn size={18} color={COLORS.textDark} /></button>
-          <button onClick={() => mapRef?.setZoom(mapZoom - 1)} style={{ width: 40, height: 40, background: COLORS.cardBg, border: 'none', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ZoomOut size={18} color={COLORS.textDark} /></button>
-          <button onClick={() => mapRef?.setView([35.8617, 104.1954], 4)} style={{ width: 40, height: 40, background: COLORS.cardBg, border: 'none', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Compass size={18} color={COLORS.textDark} /></button>
+          <button onClick={() => mapRef?.setZoom(mapZoom + 1)} style={{ width: 40, height: 40, background: '#1a1a2e', border: '1px solid #2d2d44', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ZoomIn size={18} color="#f1f5f9" /></button>
+          <button onClick={() => mapRef?.setZoom(mapZoom - 1)} style={{ width: 40, height: 40, background: '#1a1a2e', border: '1px solid #2d2d44', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ZoomOut size={18} color="#f1f5f9" /></button>
+          <button onClick={() => mapRef?.setView([35.8617, 104.1954], 4)} style={{ width: 40, height: 40, background: '#1a1a2e', border: '1px solid #2d2d44', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Compass size={18} color="#f1f5f9" /></button>
         </div>
 
         {/* 底部提示 */}
         {/* 底部提示/经纬度显示 */}
-        <div style={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: COLORS.cardBg, padding: '10px 20px', borderRadius: 20, boxShadow: '0 2px 10px rgba(0,0,0,0.1)', fontSize: 13, color: '#666', zIndex: 1000, display: 'flex', alignItems: 'center', gap: 8, minWidth: 200, justifyContent: 'center' }}>
+        <div style={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: '#1a1a2e', padding: '10px 20px', borderRadius: 20, boxShadow: '0 0 20px rgba(168,85,247,0.2)', fontSize: 13, color: '#94a3b8', zIndex: 1000, display: 'flex', alignItems: 'center', gap: 8, minWidth: 200, justifyContent: 'center', border: '1px solid #2d2d44' }}>
           {mouseCoords ? (
             <>
-              <span style={{ color: COLORS.accent }}>📍</span>
+              <span style={{ color: '#a855f7' }}>📍</span>
               <span style={{ fontFamily: 'monospace', fontSize: 12 }}>
                 {mouseCoords.lat.toFixed(4)}, {mouseCoords.lng.toFixed(4)}
               </span>
