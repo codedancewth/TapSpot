@@ -180,7 +180,7 @@ func (s *GamificationService) UpdateCheckinStreak(userID uint) (*models.CheckinS
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	
 	// 如果今天已经打卡过，不重复计算
-	if !streak.LastCheckin.IsZero() && streak.LastCheckin.After(today) {
+	if streak.LastCheckin != nil && !streak.LastCheckin.IsZero() && streak.LastCheckin.After(today) {
 		return streak, nil
 	}
 	

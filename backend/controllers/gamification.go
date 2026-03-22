@@ -358,26 +358,45 @@ func (gc *GamificationController) DailyCheckin(c *gin.Context) {
 		return
 	}
 	
-	// 奖励金币（连续天数越多奖励越多）
-	reward := int64(10 + streak.CurrentStreak*2)
-	wallet, err := gc.gamificationService.AddGoldCoins(uid, reward, "每日签到")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+	// 检查是否已经打卡（LastCheckin 在今天零点之后说明今天已打卡）
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	already := streak.LastCheckin != nil && !streak.LastCheckin.IsZero() && streak.LastCheckin.After(today)
+	
+	// 奖励金币（连续天数越多奖励越多，但今天已打卡则不重复奖励）
+	var reward, totalGold int64
+	var wallet *models.PlayerWallet
+	
+	if !already {
+		reward = int64(10 + streak.CurrentStreak*2)
+		wallet, err = gc.gamificationService.AddGoldCoins(uid, reward, "每日签到")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		totalGold = wallet.GoldCoins
+		
+		// 奖励经验
+		gc.gamificationService.AddExperience(uid, 20, "每日签到")
+		
+		// 检查成就
+		gc.gamificationService.CheckAndAwardAchievements(uid)
+	} else {
+		wallet, _ = gc.gamificationService.GetOrCreateWallet(uid)
+		totalGold = wallet.GoldCoins
 	}
 	
-	// 奖励经验
-	gc.gamificationService.AddExperience(uid, 20, "每日签到")
-	
-	// 检查成就
-	awarded, _ := gc.gamificationService.CheckAndAwardAchievements(uid)
+	message := "签到成功"
+	if already {
+		message = "今日已签到"
+	}
 	
 	c.JSON(http.StatusOK, gin.H{
-		"message":        "签到成功",
-		"current_streak": streak.CurrentStreak,
-		"longest_streak": streak.LongestStreak,
-		"gold_reward":    reward,
-		"total_gold":     wallet.GoldCoins,
-		"new_achievements": awarded,
+		"message":    message,
+		"already":   already,
+		"streak":    streak.CurrentStreak,
+		"longest":   streak.LongestStreak,
+		"reward":    reward,
+		"total_gold": totalGold,
 	})
 }
