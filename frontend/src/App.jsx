@@ -328,6 +328,69 @@ export default function App() {
     sport: { icon: '⚽', label: '运动', color: '#f59e0b', animation: 'sport' },
   }
 
+  // 通过地图瓦片颜色快速检测水域（毫秒级，无需网络）
+  const detectWaterFromTile = (lat, lng, zoom) => {
+    try {
+      // 高德地图瓦片 URL
+      const z = Math.floor(zoom)
+      const x = Math.floor((lng + 180) / 360 * Math.pow(2, z))
+      const n = Math.PI - (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))
+      const y = Math.floor((n * Math.pow(2, z)) / (2 * Math.PI))
+      const tileUrl = `https://webrd0${(x % 4) + 1}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x=${x}&y=${y}&z=${z}`
+      
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.src = tileUrl
+      
+      // 同步检测：创建 canvas 等待图片加载后检测中心颜色
+      const canvas = document.createElement('canvas')
+      canvas.width = 256
+      canvas.height = 256
+      const ctx = canvas.getContext('2d')
+      
+      // 用 Promise + timeout 实现快速检测
+      return new Promise((resolve) => {
+        const timeout = setTimeout(() => { resolve(null) }, 800) // 800ms 超时
+        img.onload = () => {
+          clearTimeout(timeout)
+          try {
+            ctx.drawImage(img, 0, 0)
+            // 采样中心 16x16 区域的颜色
+            const centerData = ctx.getImageData(112, 112, 32, 32).data
+            let waterPixels = 0
+            let totalPixels = 0
+            for (let i = 0; i < centerData.length; i += 4) {
+              const r = centerData[i], g = centerData[i+1], b = centerData[i+2]
+              totalPixels++
+              // 高德地图水域颜色：蓝色系 (R低, G低, B高)
+              if (b > 150 && b > r * 1.5 && b > g * 1.5) {
+                waterPixels++
+              }
+            }
+            const waterRatio = waterPixels / totalPixels
+            resolve(waterRatio > 0.3 ? 'swim' : null)
+          } catch {
+            resolve(null)
+          }
+        }
+        img.onerror = () => { clearTimeout(timeout); resolve(null) }
+      })
+    } catch {
+      return Promise.resolve(null)
+    }
+  }
+
+  // 检测活动类型（先用瓦片快速判断水域，再降级到地址解析）
+  const detectActivity = async (lat, lng, zoom) => {
+    // 第一步：毫秒级瓦片颜色检测（同步判断水域）
+    const waterResult = await detectWaterFromTile(lat, lng, zoom)
+    if (waterResult === 'swim') return 'swim'
+    
+    // 第二步：快速逆地理编码获取地址关键词
+    const address = await reverseGeocode(lat, lng)
+    return detectActivityType(address)
+  }
+
   // 获取帖子
   const fetchPosts = async () => {
     try {
@@ -375,19 +438,19 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [searchQuery])
 
-  // 鼠标位置活动类型检测（防抖）
+  // 鼠标位置活动类型检测（先瓦片快速判断水域，再地址解析）
   useEffect(() => {
     if (!mouseCoords) {
       setCursorActivity(null)
       return
     }
     const timer = setTimeout(async () => {
-      const address = await reverseGeocode(mouseCoords.lat, mouseCoords.lng)
-      const activity = detectActivityType(address)
+      const zoom = mapRef ? mapRef.getZoom() : mapZoom
+      const activity = await detectActivity(mouseCoords.lat, mouseCoords.lng, zoom)
       setCursorActivity(activity)
-    }, 300)
+    }, 150)
     return () => clearTimeout(timer)
-  }, [mouseCoords])
+  }, [mouseCoords, mapZoom])
 
   // 用户搜索
   useEffect(() => {
