@@ -131,17 +131,24 @@ const getTypeConfig = (type) => {
   return configs[type] || configs.post
 }
 
-function MapEvents({ onClick, onReady, onZoom, onMouseMove }) {
+function MapEvents({ onClick, onReady, onZoom, onMouseMove, onMouseScreenMove }) {
   const map = useMap()
   useEffect(() => { if (onReady) onReady(map) }, [map, onReady])
   useMapEvents({
     click: (e) => { 
-      // 传递原始事件，用于判断点击目标
       if (onClick) onClick(e.latlng, e.originalEvent) 
     },
     zoomend: () => { if (onZoom) onZoom(map.getZoom()) },
-    mousemove: (e) => { if (onMouseMove) onMouseMove(e.latlng) },
-    mouseout: () => { if (onMouseMove) onMouseMove(null) }
+    mousemove: (e) => { 
+      if (onMouseMove) onMouseMove(e.latlng)
+      if (onMouseScreenMove && e.originalEvent) {
+        onMouseScreenMove({ x: e.originalEvent.clientX, y: e.originalEvent.clientY })
+      }
+    },
+    mouseout: () => { 
+      if (onMouseMove) onMouseMove(null)
+      if (onMouseScreenMove) onMouseScreenMove(null)
+    }
   })
   return null
 }
@@ -199,6 +206,8 @@ export default function App() {
   const [filterType, setFilterType] = useState('all')
   const [submitting, setSubmitting] = useState(false)
   const [mouseCoords, setMouseCoords] = useState(null) // 鼠标经纬度
+  const [cursorScreenPos, setCursorScreenPos] = useState(null) // 鼠标屏幕坐标 {x, y}
+  const [cursorActivity, setCursorActivity] = useState(null) // 当前地点活动类型 'swim'|'walk'|'shop'|'scenic'|'food'|'hotel'
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null) // 删除确认弹框 { id, type: 'post'|'comment' }
   const [deleting, setDeleting] = useState(false) // 删除中状态
   const [showUserProfile, setShowUserProfile] = useState(false) // 编辑个人资料弹窗
@@ -287,6 +296,38 @@ export default function App() {
     }
   }
 
+  // 根据地址关键词判断活动类型
+  const detectActivityType = (address) => {
+    if (!address) return null
+    const waterKeywords = ['河', '湖', '海', '江', '泳', '池', '泉', '溪', '滩', '湾', '洋', 'Water', 'River', 'Lake', 'Sea']
+    const shopKeywords = ['街', '店', '商场', '超市', '市场', ' Mall', 'Shop', 'Store', '市集', '广场']
+    const foodKeywords = ['餐', '饭', '食', '酒', '咖', '茶', '吧', 'Food', 'Restaurant', 'Cafe', 'Bar', '火锅', '小吃']
+    const hotelKeywords = ['酒店', '宾馆', '民宿', '客栈', '饭店', 'Hotel', 'Inn', 'Motel', 'Resort']
+    const scenicKeywords = ['山', '景', '公园', '寺', '观', '塔', '馆', '院', '峰', '谷', '森', '林', '草原', 'Scenic', 'Park', 'Mountain', 'Temple']
+    const sportKeywords = ['运动', '场', '馆', '健身', '体育', 'Stadium', 'Gym', 'Sport']
+    const walkKeywords = ['路', '道', '街', '巷', '步']
+    
+    if (waterKeywords.some(k => address.includes(k))) return 'swim'
+    if (shopKeywords.some(k => address.includes(k))) return 'shop'
+    if (foodKeywords.some(k => address.includes(k))) return 'food'
+    if (hotelKeywords.some(k => address.includes(k))) return 'hotel'
+    if (scenicKeywords.some(k => address.includes(k))) return 'scenic'
+    if (sportKeywords.some(k => address.includes(k))) return 'sport'
+    if (walkKeywords.some(k => address.includes(k))) return 'walk'
+    return 'walk'
+  }
+
+  // 活动类型对应的角色配置
+  const activityCharacters = {
+    swim: { icon: '🏊', label: '游泳', color: '#06b6d4', animation: 'swim' },
+    walk: { icon: '🚶', label: '走路', color: '#a855f7', animation: 'walk' },
+    shop: { icon: '🛍️', label: '购物', color: '#ec4899', animation: 'shop' },
+    food: { icon: '🍜', label: '觅食', color: '#f97316', animation: 'food' },
+    hotel: { icon: '🏨', label: '住宿', color: '#8b5cf6', animation: 'hotel' },
+    scenic: { icon: '🏞️', label: '观光', color: '#10b981', animation: 'scenic' },
+    sport: { icon: '⚽', label: '运动', color: '#f59e0b', animation: 'sport' },
+  }
+
   // 获取帖子
   const fetchPosts = async () => {
     try {
@@ -333,6 +374,20 @@ export default function App() {
     }, 300)
     return () => clearTimeout(timer)
   }, [searchQuery])
+
+  // 鼠标位置活动类型检测（防抖）
+  useEffect(() => {
+    if (!mouseCoords) {
+      setCursorActivity(null)
+      return
+    }
+    const timer = setTimeout(async () => {
+      const address = await reverseGeocode(mouseCoords.lat, mouseCoords.lng)
+      const activity = detectActivityType(address)
+      setCursorActivity(activity)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [mouseCoords])
 
   // 用户搜索
   useEffect(() => {
@@ -1510,7 +1565,7 @@ export default function App() {
             }
 
             setShowPost(true)
-          }} onReady={setMapRef} onZoom={setMapZoom} onMouseMove={setMouseCoords} />
+          }} onReady={setMapRef} onZoom={setMapZoom} onMouseMove={setMouseCoords} onMouseScreenMove={setCursorScreenPos} />
           {allPostsForMap.map(item => (
             <Marker 
               key={`post-${item.id}`} 
@@ -1692,6 +1747,50 @@ export default function App() {
             '📍 点击地图添加新地点'
           )}
         </div>
+
+        {/* 地图光标跟随角色 */}
+        {cursorScreenPos && cursorActivity && (
+          <div
+            style={{
+              position: 'fixed',
+              left: Math.min(cursorScreenPos.x + 16, window.innerWidth - 70),
+              top: Math.min(cursorScreenPos.y - 50, window.innerHeight - 80),
+              zIndex: 9999,
+              pointerEvents: 'none',
+              transition: 'left 0.08s ease, top 0.08s ease',
+            }}
+          >
+            {/* 角色 */}
+            <div style={{
+              width: 48, height: 48,
+              background: `linear-gradient(135deg, ${activityCharacters[cursorActivity]?.color}33, ${activityCharacters[cursorActivity]?.color}11)`,
+              border: `2px solid ${activityCharacters[cursorActivity]?.color}66`,
+              borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 26,
+              boxShadow: `0 0 20px ${activityCharacters[cursorActivity]?.color}55, 0 4px 15px rgba(0,0,0,0.4)`,
+              animation: 'float 1.2s ease-in-out infinite',
+            }}>
+              {activityCharacters[cursorActivity]?.icon}
+            </div>
+            {/* 标签 */}
+            <div style={{
+              marginTop: 4,
+              textAlign: 'center',
+              fontSize: 11,
+              fontWeight: 700,
+              color: activityCharacters[cursorActivity]?.color,
+              background: '#0a0a0fdd',
+              padding: '2px 8px',
+              borderRadius: 8,
+              border: `1px solid ${activityCharacters[cursorActivity]?.color}44`,
+              whiteSpace: 'nowrap',
+              textShadow: `0 0 10px ${activityCharacters[cursorActivity]?.color}`,
+            }}>
+              {activityCharacters[cursorActivity]?.label}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 登录弹窗 */}
