@@ -100,7 +100,12 @@ func (gc *GamificationController) GetLeaderboard(c *gin.Context) {
 	}
 	
 	var data []map[string]interface{}
-	json.Unmarshal(leaderboard.Data, &data)
+	if leaderboard.Data != nil {
+		json.Unmarshal(leaderboard.Data, &data)
+	}
+	if data == nil {
+		data = []map[string]interface{}{}
+	}
 	
 	c.JSON(http.StatusOK, gin.H{
 		"type":    leaderboardType,
@@ -111,7 +116,7 @@ func (gc *GamificationController) GetLeaderboard(c *gin.Context) {
 
 // generateLeaderboard 实时生成排行榜
 func (gc *GamificationController) generateLeaderboard(leaderboardType string, period string, limit int) []map[string]interface{} {
-	var entries []map[string]interface{}
+	entries := []map[string]interface{}{}
 	
 	switch leaderboardType {
 	case "level":

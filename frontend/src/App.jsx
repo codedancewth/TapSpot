@@ -280,7 +280,9 @@ export default function App() {
   const fetchLeaderboard = async (type = 'level') => {
     try {
       const data = await api(`/leaderboard?type=${type}`)
-      const lbData = data.entries || data.leaderboard || data.data || data
+      const raw = data.entries || data.leaderboard || data.data || data
+      // 确保是数组
+      const lbData = Array.isArray(raw) ? raw : (Array.isArray(raw?.entries) ? raw.entries : [])
       setLeaderboard(prev => ({ ...prev, [type]: lbData }))
     } catch (error) {
       console.error('获取排行榜失败:', error)
