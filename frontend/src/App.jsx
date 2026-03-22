@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { Heart, X, Plus, ZoomIn, ZoomOut, Compass, User, LogOut, MapPin, Clock, ChevronRight, Search, Loader2, MessageCircle, Send, Mail, Bell } from 'lucide-react'
-import './styles/modern.css'
+import './styles/gaming.css'
 import { MessageCenter } from './components/Chat/MessageCenter.jsx'
 import AIAssistant from './components/AIAssistant.jsx'
 import TextSelectionAI from './components/TextSelectionAI.jsx'
@@ -18,18 +18,24 @@ L.Icon.Default.mergeOptions({
 // API 配置
 const API_BASE = '/api'
 
-// 配色方案
+// 游戏化配色方案
 const COLORS = {
   primary: '#1a1a2e',
   secondary: '#16213e',
-  accent: '#e94560',
-  gold: '#f4a261',
-  text: '#eaeaea',
-  textDark: '#1a1a2e',
+  accent: '#ec4899',
+  gold: '#f59e0b',
+  text: '#f1f5f9',
+  textDark: '#f1f5f9',
   cardBg: '#ffffff',
-  cardBgDark: '#0f0f23',
+  cardBgDark: '#0a0a0f',
   border: '#2d2d44',
   success: '#10b981',
+  // 霓虹游戏色系
+  neonPurple: '#a855f7',
+  neonPink: '#ec4899',
+  neonBlue: '#3b82f6',
+  neonOrange: '#f97316',
+  glow: 'rgba(168, 85, 247, 0.4)',
 }
 
 const createIcon = (type, isNew = false, isMyPost = false, zoom = 10) => {
@@ -274,7 +280,7 @@ export default function App() {
   const fetchLeaderboard = async (type = 'level') => {
     try {
       const data = await api(`/leaderboard?type=${type}`)
-      const lbData = data.leaderboard || data.data || data
+      const lbData = data.entries || data.leaderboard || data.data || data
       setLeaderboard(prev => ({ ...prev, [type]: lbData }))
     } catch (error) {
       console.error('获取排行榜失败:', error)
@@ -1364,42 +1370,52 @@ export default function App() {
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', background: COLORS.cardBgDark }}>
       
-      {/* 侧边栏 */}
+      {/* 侧边栏 - 游戏风格 */}
       <div style={{
         position: 'absolute',
         top: 0,
         left: 0,
         bottom: 0,
         width: isMobile ? (showSidebar ? '100%' : 0) : (showSidebar ? 360 : 0),
-        background: COLORS.primary,
+        background: 'linear-gradient(180deg, #12121a 0%, #0a0a0f 100%)',
         zIndex: 1001,
         transition: 'width 0.3s ease',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '4px 0 20px rgba(0,0,0,0.3)',
+        boxShadow: '4px 0 30px rgba(168, 85, 247, 0.15)',
+        borderRight: '1px solid #2d2d44',
       }}>
         {showSidebar && (
           <>
-            {/* 头部 */}
+            {/* 头部 - 游戏风格 Logo */}
             <div style={{
               padding: '20px 20px 16px',
-              borderBottom: `1px solid ${COLORS.border}`,
-              background: `linear-gradient(135deg, ${COLORS.secondary} 0%, ${COLORS.primary} 100%)`,
+              borderBottom: '1px solid #2d2d44',
+              background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)',
+              position: 'relative',
             }}>
+              {/* 网格纹理效果 */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(90deg, rgba(168,85,247,0.03) 1px, transparent 1px), linear-gradient(rgba(168,85,247,0.03) 1px, transparent 1px)',
+                backgroundSize: '20px 20px',
+                pointerEvents: 'none',
+              }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', zIndex: 1 }}>
                   <div style={{
-                    width: 40, height: 40,
-                    background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`,
-                    borderRadius: 12,
+                    width: 44, height: 44,
+                    background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
+                    borderRadius: 14,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 20,
-                    boxShadow: `0 4px 15px ${COLORS.accent}40`,
+                    fontSize: 22,
+                    boxShadow: '0 4px 20px rgba(168, 85, 247, 0.5), 0 0 30px rgba(168, 85, 247, 0.3)',
+                    animation: 'gaming-glow-pulse 3s ease-in-out infinite',
                   }}>📍</div>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 20, color: COLORS.text }}>TapSpot</div>
-                    <div style={{ fontSize: 11, color: '#888' }}>发现精彩地点</div>
+                    <div style={{ fontWeight: 800, fontSize: 22, color: '#f1f5f9', textShadow: '0 0 20px rgba(168, 85, 247, 0.5)' }}>TapSpot</div>
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>🎮 发现精彩地点</div>
                   </div>
                 </div>
                 {isMobile && (
@@ -1410,72 +1426,76 @@ export default function App() {
                 )}
               </div>
 
-              {/* 游戏化导航按钮 */}
+              {/* 游戏化导航按钮 - 霓虹风格 */}
               <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
                 <button
                   onClick={() => openGamePanel('quests')}
                   style={{
                     flex: 1, padding: '8px 6px',
-                    background: gamePanelTab === 'quests' ? COLORS.accent + '20' : COLORS.cardBgDark,
-                    border: gamePanelTab === 'quests' ? `1px solid ${COLORS.accent}` : '1px solid ' + COLORS.border,
+                    background: gamePanelTab === 'quests' ? 'linear-gradient(135deg, rgba(168,85,247,0.3) 0%, rgba(168,85,247,0.1) 100%)' : 'rgba(0,0,0,0.3)',
+                    border: gamePanelTab === 'quests' ? '1px solid #a855f7' : '1px solid #2d2d44',
                     borderRadius: 10, cursor: 'pointer',
-                    color: gamePanelTab === 'quests' ? COLORS.accent : '#888',
-                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2
+                    color: gamePanelTab === 'quests' ? '#a855f7' : '#94a3b8',
+                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                    boxShadow: gamePanelTab === 'quests' ? '0 0 15px rgba(168,85,247,0.4)' : 'none',
                   }}
                 >
                   <span style={{ fontSize: 16 }}>🎯</span>
-                  <span style={{ fontWeight: 600 }}>任务</span>
+                  <span style={{ fontWeight: 700 }}>任务</span>
                 </button>
                 <button
                   onClick={() => openGamePanel('achievements')}
                   style={{
                     flex: 1, padding: '8px 6px',
-                    background: gamePanelTab === 'achievements' ? COLORS.accent + '20' : COLORS.cardBgDark,
-                    border: gamePanelTab === 'achievements' ? `1px solid ${COLORS.accent}` : '1px solid ' + COLORS.border,
+                    background: gamePanelTab === 'achievements' ? 'linear-gradient(135deg, rgba(245,158,11,0.3) 0%, rgba(245,158,11,0.1) 100%)' : 'rgba(0,0,0,0.3)',
+                    border: gamePanelTab === 'achievements' ? '1px solid #f59e0b' : '1px solid #2d2d44',
                     borderRadius: 10, cursor: 'pointer',
-                    color: gamePanelTab === 'achievements' ? COLORS.accent : '#888',
-                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2
+                    color: gamePanelTab === 'achievements' ? '#f59e0b' : '#94a3b8',
+                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                    boxShadow: gamePanelTab === 'achievements' ? '0 0 15px rgba(245,158,11,0.4)' : 'none',
                   }}
                 >
                   <span style={{ fontSize: 16 }}>🏆</span>
-                  <span style={{ fontWeight: 600 }}>成就</span>
+                  <span style={{ fontWeight: 700 }}>成就</span>
                 </button>
                 <button
                   onClick={() => openGamePanel('leaderboard')}
                   style={{
                     flex: 1, padding: '8px 6px',
-                    background: gamePanelTab === 'leaderboard' ? COLORS.accent + '20' : COLORS.cardBgDark,
-                    border: gamePanelTab === 'leaderboard' ? `1px solid ${COLORS.accent}` : '1px solid ' + COLORS.border,
+                    background: gamePanelTab === 'leaderboard' ? 'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(59,130,246,0.1) 100%)' : 'rgba(0,0,0,0.3)',
+                    border: gamePanelTab === 'leaderboard' ? '1px solid #3b82f6' : '1px solid #2d2d44',
                     borderRadius: 10, cursor: 'pointer',
-                    color: gamePanelTab === 'leaderboard' ? COLORS.accent : '#888',
-                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2
+                    color: gamePanelTab === 'leaderboard' ? '#3b82f6' : '#94a3b8',
+                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                    boxShadow: gamePanelTab === 'leaderboard' ? '0 0 15px rgba(59,130,246,0.4)' : 'none',
                   }}
                 >
                   <span style={{ fontSize: 16 }}>📊</span>
-                  <span style={{ fontWeight: 600 }}>排行</span>
+                  <span style={{ fontWeight: 700 }}>排行</span>
                 </button>
                 <button
                   onClick={() => openGamePanel('profile')}
                   style={{
                     flex: 1, padding: '8px 6px',
-                    background: gamePanelTab === 'profile' ? COLORS.accent + '20' : COLORS.cardBgDark,
-                    border: gamePanelTab === 'profile' ? `1px solid ${COLORS.accent}` : '1px solid ' + COLORS.border,
+                    background: gamePanelTab === 'profile' ? 'linear-gradient(135deg, rgba(236,72,153,0.3) 0%, rgba(236,72,153,0.1) 100%)' : 'rgba(0,0,0,0.3)',
+                    border: gamePanelTab === 'profile' ? '1px solid #ec4899' : '1px solid #2d2d44',
                     borderRadius: 10, cursor: 'pointer',
-                    color: gamePanelTab === 'profile' ? COLORS.accent : '#888',
-                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2
+                    color: gamePanelTab === 'profile' ? '#ec4899' : '#94a3b8',
+                    fontSize: 11, transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                    boxShadow: gamePanelTab === 'profile' ? '0 0 15px rgba(236,72,153,0.4)' : 'none',
                   }}
                 >
                   <span style={{ fontSize: 16 }}>💰</span>
-                  <span style={{ fontWeight: 600 }}>签到</span>
+                  <span style={{ fontWeight: 700 }}>签到</span>
                 </button>
               </div>
 
-              {/* Tab */}
+              {/* Tab - 游戏风格 */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                 {[
-                  { key: 'all', label: '全部', count: posts.length },
-                  { key: 'mine', label: '我的', count: myPostsCount },
-                  { key: 'liked', label: '喜欢', count: likedPosts.size },
+                  { key: 'all', label: '🌐 全部', count: posts.length },
+                  { key: 'mine', label: '👤 我的', count: myPostsCount },
+                  { key: 'liked', label: '❤️ 喜欢', count: likedPosts.size },
                 ].map(tab => (
                   <button
                     key={tab.key}
@@ -1485,26 +1505,30 @@ export default function App() {
                     }}
                     style={{
                       flex: 1, padding: '10px 8px',
-                      background: activeTab === tab.key ? COLORS.accent : COLORS.cardBgDark,
-                      border: 'none', borderRadius: 10, cursor: 'pointer',
-                      color: activeTab === tab.key ? '#fff' : '#888',
-                      fontWeight: 600, fontSize: 13, transition: 'all 0.2s',
+                      background: activeTab === tab.key 
+                        ? 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)' 
+                        : 'rgba(0,0,0,0.3)',
+                      border: activeTab === tab.key ? 'none' : '1px solid #2d2d44',
+                      borderRadius: 10, cursor: 'pointer',
+                      color: activeTab === tab.key ? '#fff' : '#94a3b8',
+                      fontWeight: 700, fontSize: 12, transition: 'all 0.2s',
+                      boxShadow: activeTab === tab.key ? '0 4px 15px rgba(236,72,153,0.4)' : 'none',
                     }}
                   >
                     {tab.label}
                     <span style={{
                       marginLeft: 4, padding: '2px 6px',
-                      background: activeTab === tab.key ? 'rgba(255,255,255,0.2)' : COLORS.border,
+                      background: activeTab === tab.key ? 'rgba(255,255,255,0.25)' : '#2d2d44',
                       borderRadius: 6, fontSize: 11,
                     }}>{tab.count}</span>
                   </button>
                 ))}
               </div>
 
-              {/* 类型筛选 */}
+              {/* 类型筛选 - 游戏风格霓虹按钮 */}
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {[
-                  { key: 'all', label: '全部' },
+                  { key: 'all', label: '✨ 全部' },
                   { key: 'post', label: '📍 日常' },
                   { key: 'food', label: '🍽️ 美食' },
                   { key: 'hotel', label: '🏨 住宿' },
@@ -1518,30 +1542,37 @@ export default function App() {
                     key={type.key}
                     onClick={() => setFilterType(type.key)}
                     style={{
-                      padding: '6px 10px',
-                      background: filterType === type.key ? COLORS.secondary : 'transparent',
-                      border: filterType === type.key ? `1px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
+                      padding: '6px 12px',
+                      background: filterType === type.key 
+                        ? 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)' 
+                        : 'rgba(0,0,0,0.3)',
+                      border: filterType === type.key ? 'none' : '1px solid #2d2d44',
                       borderRadius: 16, cursor: 'pointer',
-                      color: filterType === type.key ? COLORS.accent : '#888',
-                      fontSize: 12, transition: 'all 0.2s',
+                      color: filterType === type.key ? '#fff' : '#94a3b8',
+                      fontSize: 11, transition: 'all 0.2s',
+                      fontWeight: filterType === type.key ? 700 : 500,
+                      boxShadow: filterType === type.key ? '0 2px 10px rgba(168,85,247,0.4)' : 'none',
                     }}
                   >{type.label}</button>
                 ))}
               </div>
             </div>
 
-            {/* 搜索 */}
-            <div style={{ padding: '12px 20px', borderBottom: `1px solid ${COLORS.border}` }}>
+            {/* 搜索 - 游戏风格 */}
+            <div style={{ padding: '12px 20px', borderBottom: '1px solid #2d2d44' }}>
               {/* 搜索类型切换 */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                 <button
                   onClick={() => { setSearchType('posts'); setSelectedUser(null); }}
                   style={{
-                    flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 500,
-                    background: searchType === 'posts' ? COLORS.accent : 'transparent',
-                    color: searchType === 'posts' ? '#fff' : '#888',
-                    border: `1px solid ${searchType === 'posts' ? COLORS.accent : COLORS.border}`,
+                    flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700,
+                    background: searchType === 'posts' 
+                      ? 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)' 
+                      : 'rgba(0,0,0,0.3)',
+                    color: searchType === 'posts' ? '#fff' : '#94a3b8',
+                    border: searchType === 'posts' ? 'none' : '1px solid #2d2d44',
                     cursor: 'pointer', transition: 'all 0.2s',
+                    boxShadow: searchType === 'posts' ? '0 2px 10px rgba(236,72,153,0.4)' : 'none',
                   }}
                 >
                   📝 帖子
@@ -1549,27 +1580,39 @@ export default function App() {
                 <button
                   onClick={() => { setSearchType('users'); setSelectedUser(null); }}
                   style={{
-                    flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 500,
-                    background: searchType === 'users' ? COLORS.accent : 'transparent',
-                    color: searchType === 'users' ? '#fff' : '#888',
-                    border: `1px solid ${searchType === 'users' ? COLORS.accent : COLORS.border}`,
+                    flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700,
+                    background: searchType === 'users' 
+                      ? 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)' 
+                      : 'rgba(0,0,0,0.3)',
+                    color: searchType === 'users' ? '#fff' : '#94a3b8',
+                    border: searchType === 'users' ? 'none' : '1px solid #2d2d44',
                     cursor: 'pointer', transition: 'all 0.2s',
+                    boxShadow: searchType === 'users' ? '0 2px 10px rgba(236,72,153,0.4)' : 'none',
                   }}
                 >
                   👤 用户
                 </button>
               </div>
-              {/* 搜索输入框 */}
+              {/* 搜索输入框 - 发光效果 */}
               <div style={{ position: 'relative' }}>
-                <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#666' }} />
+                <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
                 <input
-                  placeholder={searchType === 'posts' ? "搜索帖子、地点..." : "搜索用户..."}
+                  placeholder={searchType === 'posts' ? "🔍 搜索帖子、地点..." : "🔍 搜索用户..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   style={{
                     width: '100%', padding: '10px 12px 10px 36px',
-                    background: COLORS.cardBgDark, border: `1px solid ${COLORS.border}`,
-                    borderRadius: 10, color: COLORS.text, fontSize: 14,
+                    background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44',
+                    borderRadius: 10, color: '#f1f5f9', fontSize: 14,
+                    transition: 'all 0.2s',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#a855f7';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#2d2d44';
+                    e.target.style.boxShadow = 'none';
                   }}
                 />
               </div>
@@ -1705,20 +1748,35 @@ export default function App() {
                       key={post.id}
                       onClick={(e) => {
                         e.stopPropagation()
-                        // 直接导航到帖子位置，不受任何状态影响
                         if (mapRef) {
                           mapRef.setView([post.latitude, post.longitude], 13, { animate: false })
                         }
                         if (isMobile) setShowSidebar(false)
                       }}
                       style={{
-                        background: post.id === newPostId ? `${COLORS.accent}20` : COLORS.cardBgDark,
+                        background: post.id === newPostId 
+                          ? 'linear-gradient(135deg, rgba(236,72,153,0.15) 0%, #1a1a2e 100%)' 
+                          : '#1a1a2e',
                         borderRadius: 12, padding: 14, marginBottom: 10, cursor: 'pointer',
-                        border: post.id === newPostId ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
-                        transition: 'all 0.2s',
+                        border: post.id === newPostId ? '2px solid #ec4899' : '1px solid #2d2d44',
+                        transition: 'all 0.3s ease',
+                        position: 'relative',
+                        overflow: 'hidden',
                       }}
-                      onMouseEnter={(e) => { if (post.id !== newPostId) e.currentTarget.style.borderColor = COLORS.accent }}
-                      onMouseLeave={(e) => { if (post.id !== newPostId) e.currentTarget.style.borderColor = COLORS.border }}
+                      onMouseEnter={(e) => { 
+                        if (post.id !== newPostId) {
+                          e.currentTarget.style.borderColor = '#a855f7';
+                          e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3), 0 0 30px rgba(168,85,247,0.1)';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                        }
+                      }}
+                      onMouseLeave={(e) => { 
+                        if (post.id !== newPostId) {
+                          e.currentTarget.style.borderColor = '#2d2d44';
+                          e.currentTarget.style.boxShadow = 'none';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }
+                      }}
                     >
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                         <div style={{
@@ -1889,39 +1947,58 @@ export default function App() {
           onAnalyzeText={handleAnalyzeText}
         />
 
-        {/* 工具栏 */}
-        <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 1000, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={() => setShowSidebar(!showSidebar)} style={{ width: 44, height: 44, background: COLORS.cardBg, border: 'none', borderRadius: 12, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.textDark} strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="15" y2="12" /><line x1="3" y1="18" x2="18" y2="18" /></svg>
+        {/* 工具栏 - 游戏 HUD 风格 */}
+        <div style={{ 
+          position: 'absolute', top: 12, left: 12, right: 12, zIndex: 1000, 
+          display: 'flex', alignItems: 'center', gap: 10 
+        }}>
+          <button 
+            onClick={() => setShowSidebar(!showSidebar)} 
+            style={{ 
+              width: 44, height: 44, 
+              background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)', 
+              border: '1px solid #2d2d44',
+              borderRadius: 12, cursor: 'pointer', 
+              boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f1f5f9" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="15" y2="12" /><line x1="3" y1="18" x2="18" y2="18" /></svg>
           </button>
           <div style={{ flex: 1 }} />
           {user ? (
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10 }}>
-              {/* 游戏状态显示 */}
+              {/* 游戏 HUD 状态栏 */}
               <button
                 onClick={() => openGamePanel('profile')}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '8px 12px',
-                  background: COLORS.cardBg,
-                  border: 'none',
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '8px 14px',
+                  background: 'linear-gradient(135deg, rgba(26,26,46,0.95) 0%, rgba(18,18,26,0.9) 100%)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid #2d2d44',
                   borderRadius: 12,
                   cursor: 'pointer',
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                  transition: 'all 0.2s'
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)',
+                  transition: 'all 0.2s',
                 }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 25px rgba(168,85,247,0.4), inset 0 1px 0 rgba(255,255,255,0.05)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)'; }}
               >
                 <span style={{ fontSize: 16 }}>💰</span>
-                <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 14, color: COLORS.gold }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 14, color: '#f59e0b', textShadow: '0 0 10px rgba(245,158,11,0.5)' }}>
                   {playerProfile?.gold?.toLocaleString() || '?'}
                 </span>
-                <span style={{ color: '#666', fontSize: 11 }}>|</span>
-                <span style={{ fontWeight: 700, fontSize: 13, color: COLORS.accent }}>
+                <span style={{ color: '#2d2d44', fontSize: 11 }}>|</span>
+                <span style={{ fontWeight: 800, fontSize: 13, color: '#ec4899', textShadow: '0 0 10px rgba(236,72,153,0.5)' }}>
                   LV.{playerProfile?.level || '?'}
                 </span>
-                <span style={{ color: '#666', fontSize: 11 }}>|</span>
+                <span style={{ color: '#2d2d44', fontSize: 11 }}>|</span>
                 <span style={{ fontSize: 14 }}>🔥</span>
-                <span style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: 13, color: '#f97316' }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 13, color: '#f97316', textShadow: '0 0 10px rgba(249,115,22,0.5)' }}>
                   {playerProfile?.streak || 0}天
                 </span>
               </button>
@@ -1931,31 +2008,36 @@ export default function App() {
                 onClick={openNotificationPanel}
                 style={{ 
                   width: 44, height: 44, 
-                  background: COLORS.cardBg, 
-                  border: 'none', 
+                  background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)', 
+                  border: '1px solid #2d2d44', 
                   borderRadius: 12, 
                   cursor: 'pointer', 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
                   position: 'relative',
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                  transition: 'all 0.2s',
                 }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; }}
               >
-                <Bell size={20} color={COLORS.textDark} />
+                <Bell size={20} color="#f1f5f9" />
                 {unreadNotificationCount > 0 && (
                   <span style={{
                     position: 'absolute',
                     top: -4,
                     right: -4,
-                    background: COLORS.accent,
+                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
                     color: '#fff',
-                    fontSize: 11,
-                    fontWeight: 600,
+                    fontSize: 10,
+                    fontWeight: 700,
                     padding: '2px 6px',
                     borderRadius: 10,
                     minWidth: 18,
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    boxShadow: '0 2px 8px rgba(239,68,68,0.4)',
+                    animation: 'gaming-score-pop 0.3s ease',
                   }}>
                     {unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}
                   </span>
@@ -1967,61 +2049,179 @@ export default function App() {
                 onClick={openChatList}
                 style={{ 
                   width: 44, height: 44, 
-                  background: COLORS.cardBg, 
-                  border: 'none', 
+                  background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)', 
+                  border: '1px solid #2d2d44', 
                   borderRadius: 12, 
                   cursor: 'pointer', 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
                   position: 'relative',
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                  transition: 'all 0.2s',
                 }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; }}
               >
-                <Mail size={20} color={COLORS.textDark} />
+                <Mail size={20} color="#f1f5f9" />
                 {unreadCount > 0 && (
                   <span style={{
                     position: 'absolute',
                     top: -4,
                     right: -4,
-                    background: COLORS.accent,
+                    background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
                     color: '#fff',
-                    fontSize: 11,
-                    fontWeight: 600,
+                    fontSize: 10,
+                    fontWeight: 700,
                     padding: '2px 6px',
                     borderRadius: 10,
                     minWidth: 18,
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    boxShadow: '0 2px 8px rgba(236,72,153,0.4)',
+                    animation: 'gaming-score-pop 0.3s ease',
                   }}>
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
               </button>
 
-              <button onClick={() => setShowUserMenu(!showUserMenu)} style={{ padding: '8px 14px', background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#fff', fontWeight: 600, boxShadow: `0 4px 15px ${COLORS.accent}40` }}>
-                <User size={16} />
+              {/* 用户头像带等级光环 */}
+              <button 
+                onClick={() => setShowUserMenu(!showUserMenu)} 
+                style={{ 
+                  padding: '8px 14px', 
+                  background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)', 
+                  border: 'none', 
+                  borderRadius: 12, 
+                  cursor: 'pointer', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 8, 
+                  color: '#fff', 
+                  fontWeight: 700, 
+                  boxShadow: '0 4px 20px rgba(236,72,153,0.5), 0 0 30px rgba(168,85,247,0.3)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <div style={{
+                  width: 28, height: 28,
+                  background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
+                  borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 14,
+                  boxShadow: '0 0 10px rgba(168,85,247,0.5)',
+                }}>
+                  <User size={14} />
+                </div>
                 <span style={{ maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.nickname}</span>
               </button>
               {showUserMenu && (
-                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 8, background: COLORS.cardBg, borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', minWidth: 160, overflow: 'hidden', zIndex: 1002 }}>
-                  <div style={{ padding: 12, borderBottom: `1px solid ${COLORS.border}`, fontSize: 12, color: '#666' }}>@{user.username}</div>
-                  <button onClick={openUserProfile} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.textDark, fontSize: 13 }}><User size={16} /> 编辑资料</button>
-                  <button onClick={openChatList} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.textDark, fontSize: 13 }}><Mail size={16} /> 消息 {unreadCount > 0 && <span style={{ background: COLORS.accent, color: '#fff', padding: '2px 6px', borderRadius: 10, fontSize: 10 }}>{unreadCount}</span>}</button>
-                  <button onClick={handleLogout} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.accent, fontSize: 13 }}><LogOut size={16} /> 退出登录</button>
+                <div style={{ 
+                  position: 'absolute', top: '100%', right: 0, marginTop: 8, 
+                  background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)',
+                  border: '1px solid #2d2d44',
+                  borderRadius: 12, 
+                  boxShadow: '0 8px 30px rgba(0,0,0,0.4), 0 0 20px rgba(168,85,247,0.2)', 
+                  minWidth: 180, overflow: 'hidden', zIndex: 1002 
+                }}>
+                  <div style={{ padding: 12, borderBottom: '1px solid #2d2d44', fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>@{user.username} · LV.{playerProfile?.level || 1}</div>
+                  <button onClick={openUserProfile} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#f1f5f9', fontSize: 13, fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(168,85,247,0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'none'}><User size={16} /> 编辑资料</button>
+                  <button onClick={openChatList} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#f1f5f9', fontSize: 13, fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(168,85,247,0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'none'}><Mail size={16} /> 消息 {unreadCount > 0 && <span style={{ background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', color: '#fff', padding: '2px 6px', borderRadius: 10, fontSize: 10, fontWeight: 700 }}>{unreadCount}</span>}</button>
+                  <button onClick={handleLogout} style={{ width: '100%', padding: 12, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#ef4444', fontSize: 13, fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'none'}><LogOut size={16} /> 退出登录</button>
                 </div>
               )}
             </div>
           ) : (
-            <button onClick={() => setShowLogin(true)} style={{ padding: '10px 18px', background: COLORS.cardBg, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.textDark, fontWeight: 600, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}><User size={16} /> 登录</button>
+            <button 
+              onClick={() => setShowLogin(true)} 
+              style={{ 
+                padding: '10px 18px', 
+                background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)', 
+                border: '1px solid #2d2d44',
+                borderRadius: 12, 
+                cursor: 'pointer', 
+                display: 'flex', alignItems: 'center', gap: 8, 
+                color: '#f1f5f9', fontWeight: 700, 
+                boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; }}
+            >
+              <User size={16} /> 登录
+            </button>
           )}
-          <button onClick={() => { if (!user) { setShowLogin(true); return }; setShowPost(true) }} style={{ padding: '10px 18px', background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#fff', fontWeight: 600, boxShadow: `0 4px 15px ${COLORS.accent}40` }}><Plus size={18} /> 打卡</button>
+          <button 
+            onClick={() => { if (!user) { setShowLogin(true); return }; setShowPost(true) }} 
+            style={{ 
+              padding: '10px 18px', 
+              background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)', 
+              border: 'none', 
+              borderRadius: 12, 
+              cursor: 'pointer', 
+              display: 'flex', alignItems: 'center', gap: 8, 
+              color: '#fff', fontWeight: 700, 
+              boxShadow: '0 4px 20px rgba(236,72,153,0.5), 0 0 30px rgba(168,85,247,0.3)',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 25px rgba(236,72,153,0.6), 0 0 40px rgba(168,85,247,0.4)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(236,72,153,0.5), 0 0 30px rgba(168,85,247,0.3)'; }}
+          >
+            <Plus size={18} /> 打卡
+          </button>
         </div>
 
-        {/* 缩放控制 - 移到右侧中间靠上位置 */}
+        {/* 缩放控制 - 游戏风格 */}
         <div style={{ position: 'absolute', top: '50%', right: 16, transform: 'translateY(-50%)', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <button onClick={() => mapRef?.setZoom(mapZoom + 1)} style={{ width: 40, height: 40, background: COLORS.cardBg, border: 'none', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ZoomIn size={18} color={COLORS.textDark} /></button>
-          <button onClick={() => mapRef?.setZoom(mapZoom - 1)} style={{ width: 40, height: 40, background: COLORS.cardBg, border: 'none', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ZoomOut size={18} color={COLORS.textDark} /></button>
-          <button onClick={() => mapRef?.setView([35.8617, 104.1954], 4)} style={{ width: 40, height: 40, background: COLORS.cardBg, border: 'none', borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Compass size={18} color={COLORS.textDark} /></button>
+          <button 
+            onClick={() => mapRef?.setZoom(mapZoom + 1)} 
+            style={{ 
+              width: 44, height: 44, 
+              background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)', 
+              border: '1px solid #2d2d44',
+              borderRadius: 12, cursor: 'pointer', 
+              boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; }}
+          >
+            <ZoomIn size={20} color="#f1f5f9" />
+          </button>
+          <button 
+            onClick={() => mapRef?.setZoom(mapZoom - 1)} 
+            style={{ 
+              width: 44, height: 44, 
+              background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)', 
+              border: '1px solid #2d2d44',
+              borderRadius: 12, cursor: 'pointer', 
+              boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; }}
+          >
+            <ZoomOut size={20} color="#f1f5f9" />
+          </button>
+          <button 
+            onClick={() => mapRef?.setView([35.8617, 104.1954], 4)} 
+            style={{ 
+              width: 44, height: 44, 
+              background: 'linear-gradient(135deg, #1a1a2e 0%, #12121a 100%)', 
+              border: '1px solid #2d2d44',
+              borderRadius: 12, cursor: 'pointer', 
+              boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.3)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2d2d44'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; }}
+          >
+            <Compass size={20} color="#f1f5f9" />
+          </button>
         </div>
 
         {/* 底部提示 */}
@@ -2040,41 +2240,72 @@ export default function App() {
         </div>
       </div>
 
-      {/* 登录弹窗 */}
+      {/* 登录弹窗 - 游戏风格 */}
       {showLogin && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowLogin(false)}>
-          <div style={{ background: COLORS.cardBg, borderRadius: 16, width: '100%', maxWidth: 340, overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: 20, borderBottom: `1px solid ${COLORS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <b style={{ fontSize: 18, color: COLORS.textDark }}>{isRegister ? '注册账号' : '登录'}</b>
-              <button onClick={() => setShowLogin(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowLogin(false)}>
+          <div style={{ 
+            background: 'linear-gradient(135deg, #12121a 0%, #0a0a0f 100%)', 
+            borderRadius: 20, width: '100%', maxWidth: 360, 
+            overflow: 'hidden', 
+            boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(168,85,247,0.3)',
+            border: '1px solid #2d2d44',
+            animation: 'gaming-breathe 0.3s ease',
+          }} onClick={e => e.stopPropagation()}>
+            {/* 顶部装饰条 */}
+            <div style={{ height: 4, background: 'linear-gradient(90deg, #a855f7, #ec4899, #f59e0b, #ec4899, #a855f7)', backgroundSize: '200% 100%', animation: 'gaming-shimmer 3s linear infinite' }} />
+            
+            <div style={{ padding: 20, borderBottom: '1px solid #2d2d44', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 4px 15px rgba(168,85,247,0.4)' }}>🎮</div>
+                <b style={{ fontSize: 20, color: '#f1f5f9', fontWeight: 800, textShadow: '0 0 20px rgba(168,85,247,0.5)' }}>{isRegister ? '注册账号' : '登录'}</b>
+              </div>
+              <button onClick={() => setShowLogin(false)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid #2d2d44', borderRadius: 8, cursor: 'pointer', padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={18} color="#94a3b8" /></button>
             </div>
+            
             <div style={{ padding: 20, maxHeight: '70vh', overflowY: 'auto' }}>
               {isRegister ? (
                 <>
-                  <input type="text" placeholder="用户名 *" value={registerForm.username} onChange={e => setRegisterForm({ ...registerForm, username: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
-                  <input type="password" placeholder="密码 *" value={registerForm.password} onChange={e => setRegisterForm({ ...registerForm, password: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
-                  <input type="password" placeholder="确认密码 *" value={registerForm.password_conf} onChange={e => setRegisterForm({ ...registerForm, password_conf: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
-                  <input type="text" placeholder="昵称 *" value={registerForm.nickname} onChange={e => setRegisterForm({ ...registerForm, nickname: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
-                  <select value={registerForm.gender} onChange={e => setRegisterForm({ ...registerForm, gender: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', background: 'white' }}>
+                  <input type="text" placeholder="🎮 用户名 *" value={registerForm.username} onChange={e => setRegisterForm({ ...registerForm, username: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} autoComplete="off" onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
+                  <input type="password" placeholder="🔑 密码 *" value={registerForm.password} onChange={e => setRegisterForm({ ...registerForm, password: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} autoComplete="off" onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
+                  <input type="password" placeholder="🔑 确认密码 *" value={registerForm.password_conf} onChange={e => setRegisterForm({ ...registerForm, password_conf: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} autoComplete="off" onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
+                  <input type="text" placeholder="✨ 昵称 *" value={registerForm.nickname} onChange={e => setRegisterForm({ ...registerForm, nickname: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} autoComplete="off" onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
+                  <select value={registerForm.gender} onChange={e => setRegisterForm({ ...registerForm, gender: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9' }}>
                     <option value="male">♂️ 男</option>
                     <option value="female">♀️ 女</option>
                     <option value="other">🔹 其他</option>
                   </select>
-                  <textarea placeholder="个人简介（选填）" value={registerForm.bio} onChange={e => setRegisterForm({ ...registerForm, bio: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', minHeight: 80, resize: 'vertical' }} />
-                  <input type="email" placeholder="邮箱（选填）" value={registerForm.email} onChange={e => setRegisterForm({ ...registerForm, email: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
-                  <input type="tel" placeholder="手机号（选填）" value={registerForm.phone} onChange={e => setRegisterForm({ ...registerForm, phone: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
+                  <textarea placeholder="📝 个人简介（选填）" value={registerForm.bio} onChange={e => setRegisterForm({ ...registerForm, bio: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', minHeight: 80, resize: 'vertical', color: '#f1f5f9' }} />
+                  <input type="email" placeholder="📧 邮箱（选填）" value={registerForm.email} onChange={e => setRegisterForm({ ...registerForm, email: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9' }} autoComplete="off" />
+                  <input type="tel" placeholder="📱 手机号（选填）" value={registerForm.phone} onChange={e => setRegisterForm({ ...registerForm, phone: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9' }} autoComplete="off" />
                 </>
               ) : (
                 <>
-                  <input type="text" placeholder="用户名" value={loginForm.username} onChange={e => setLoginForm({ ...loginForm, username: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
-                  <input type="password" placeholder="密码" value={loginForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} autoComplete="off" />
-                  <div style={{ padding: 12, background: '#e3f2fd', borderRadius: 8, fontSize: 12, color: '#1565c0' }}>🔑 测试账号：<b>root</b> / <b>root</b></div>
+                  <input type="text" placeholder="🎮 用户名" value={loginForm.username} onChange={e => setLoginForm({ ...loginForm, username: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} autoComplete="off" onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
+                  <input type="password" placeholder="🔑 密码" value={loginForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} autoComplete="off" onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
+                  <div style={{ padding: 12, background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)', borderRadius: 10, fontSize: 12, color: '#a855f7', fontWeight: 600 }}>🔑 测试账号：<b>root</b> / <b>root</b></div>
                 </>
               )}
             </div>
-            <div style={{ padding: 20, borderTop: `1px solid ${COLORS.border}`, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button onClick={isRegister ? handleRegister : handleLogin} style={{ width: '100%', padding: 14, background: `linear-gradient(135deg, ${COLORS.accent} 0%, #ff6b9d 100%)`, color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 15 }}>{isRegister ? '注册' : '登录'}</button>
-              <button onClick={() => setIsRegister(!isRegister)} style={{ width: '100%', padding: 10, background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: 13 }}>{isRegister ? '已有账号？去登录' : '没有账号？去注册'}</button>
+            <div style={{ padding: 20, borderTop: '1px solid #2d2d44', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button 
+                onClick={isRegister ? handleRegister : handleLogin} 
+                style={{ 
+                  width: '100%', padding: 14, 
+                  background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)', 
+                  color: 'white', border: 'none', borderRadius: 12, 
+                  cursor: 'pointer', fontWeight: 700, fontSize: 16,
+                  boxShadow: '0 4px 20px rgba(236,72,153,0.5), 0 0 30px rgba(168,85,247,0.3)',
+                  position: 'relative', overflow: 'hidden',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 25px rgba(236,72,153,0.6), 0 0 40px rgba(168,85,247,0.4)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(236,72,153,0.5), 0 0 30px rgba(168,85,247,0.3)'; }}
+              >
+                {isRegister ? '🚀 注册账号' : '🎮 开始游戏'}
+              </button>
+              <button onClick={() => setIsRegister(!isRegister)} style={{ width: '100%', padding: 10, background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 13, fontWeight: 600, transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#a855f7'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>
+                {isRegister ? '已有账号？去登录 →' : '没有账号？去注册 →'}
+              </button>
             </div>
           </div>
         </div>
@@ -2174,13 +2405,23 @@ export default function App() {
         </div>
       )}
 
-      {/* 打卡弹窗 */}
+      {/* 打卡弹窗 - 游戏风格 */}
       {showPost && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => { setShowPost(false); setPostCoords(null) }}>
-          <div style={{ background: COLORS.cardBg, borderRadius: 16, width: '100%', maxWidth: 400, maxHeight: '90vh', overflow: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: 20, borderBottom: `1px solid ${COLORS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <b style={{ fontSize: 18, color: COLORS.textDark }}>发布帖子</b>
-              <button onClick={() => { setShowPost(false); setPostCoords(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => { setShowPost(false); setPostCoords(null) }}>
+          <div style={{ 
+            background: 'linear-gradient(135deg, #12121a 0%, #0a0a0f 100%)', 
+            borderRadius: 20, width: '100%', maxWidth: 420, maxHeight: '90vh', 
+            overflow: 'auto', 
+            boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(168,85,247,0.3)',
+            border: '1px solid #2d2d44',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ height: 4, background: 'linear-gradient(90deg, #ec4899, #a855f7, #3b82f6, #10b981)', backgroundSize: '200% 100%', animation: 'gaming-shimmer 3s linear infinite' }} />
+            <div style={{ padding: 20, borderBottom: '1px solid #2d2d44', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 4px 15px rgba(236,72,153,0.4)' }}>📍</div>
+                <b style={{ fontSize: 20, color: '#f1f5f9', fontWeight: 800 }}>发布打卡</b>
+              </div>
+              <button onClick={() => { setShowPost(false); setPostCoords(null) }} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid #2d2d44', borderRadius: 8, cursor: 'pointer', padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={18} color="#94a3b8" /></button>
             </div>
             <div style={{ padding: 20 }}>
               <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -2198,27 +2439,29 @@ export default function App() {
                     key={item.type} 
                     onClick={() => setPostForm({ ...postForm, type: item.type })} 
                     style={{ 
-                      padding: '10px 16px', 
-                      background: postForm.type === item.type ? item.color : '#f5f5f5', 
-                      border: postForm.type === item.type ? 'none' : '1px solid #e0e0e0', 
+                      padding: '10px 14px', 
+                      background: postForm.type === item.type 
+                        ? `linear-gradient(135deg, ${item.color} 0%, ${item.color}99 100%)` 
+                        : 'rgba(0,0,0,0.3)', 
+                      border: postForm.type === item.type ? 'none' : '1px solid #2d2d44', 
                       borderRadius: 10, 
-                      color: postForm.type === item.type ? 'white' : '#666', 
+                      color: postForm.type === item.type ? 'white' : '#94a3b8', 
                       cursor: 'pointer', 
-                      fontWeight: 500, 
-                      fontSize: 13,
+                      fontWeight: 700, 
+                      fontSize: 12,
                       display: 'flex',
                       alignItems: 'center',
                       gap: 6,
-                      transition: 'all 0.2s'
+                      transition: 'all 0.2s',
+                      boxShadow: postForm.type === item.type ? `0 4px 15px ${item.color}40` : 'none',
                     }}
                   >
-                    {item.icon}
                     {item.label}
                   </button>
                 ))}
               </div>
-              <input placeholder="标题 *" value={postForm.title} onChange={e => setPostForm({ ...postForm, title: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} />
-              <textarea placeholder="分享你的发现... *" value={postForm.content} onChange={e => setPostForm({ ...postForm, content: e.target.value })} rows={4} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, resize: 'none', boxSizing: 'border-box' }} />
+              <input placeholder="📝 标题 *" value={postForm.title} onChange={e => setPostForm({ ...postForm, title: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
+              <textarea placeholder="✨ 分享你的发现... *" value={postForm.content} onChange={e => setPostForm({ ...postForm, content: e.target.value })} rows={4} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, resize: 'none', boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
               
               {/* 图片上传 */}
               <div style={{ marginBottom: 12 }}>
@@ -2275,7 +2518,7 @@ export default function App() {
                 )}
               </div>
               
-              <input placeholder="地点名称（如：北京故宫）" value={postForm.location_name} onChange={e => setPostForm({ ...postForm, location_name: e.target.value })} style={{ width: '100%', padding: 14, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box' }} />
+              <input placeholder="📍 地点名称（如：北京故宫）" value={postForm.location_name} onChange={e => setPostForm({ ...postForm, location_name: e.target.value })} style={{ width: '100%', padding: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid #2d2d44', borderRadius: 10, marginBottom: 12, fontSize: 15, boxSizing: 'border-box', color: '#f1f5f9', transition: 'all 0.2s' }} onFocus={e => { e.target.style.borderColor = '#a855f7'; e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.2), 0 0 20px rgba(168,85,247,0.3)'; }} onBlur={e => { e.target.style.borderColor = '#2d2d44'; e.target.style.boxShadow = 'none'; }} />
               
               {/* 位置选择区域 */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
