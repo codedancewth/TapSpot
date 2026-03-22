@@ -380,13 +380,8 @@ export default function App() {
     }
   }
 
-  // 检测活动类型（先用瓦片快速判断水域，再降级到地址解析）
-  const detectActivity = async (lat, lng, zoom) => {
-    // 第一步：毫秒级瓦片颜色检测（同步判断水域）
-    const waterResult = await detectWaterFromTile(lat, lng, zoom)
-    if (waterResult === 'swim') return 'swim'
-    
-    // 第二步：快速逆地理编码获取地址关键词
+  // 检测活动类型（基于地址关键词，简单快速）
+  const detectActivity = async (lat, lng) => {
     const address = await reverseGeocode(lat, lng)
     return detectActivityType(address)
   }
@@ -417,10 +412,6 @@ export default function App() {
     }
   }
 
-  useEffect(() => {
-    fetchPosts()
-  }, [filterType, activeTab, user])
-
   // 获取评论数
   useEffect(() => {
     if (posts.length > 0) {
@@ -438,19 +429,18 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [searchQuery])
 
-  // 鼠标位置活动类型检测（先瓦片快速判断水域，再地址解析）
+  // 鼠标位置活动类型检测
   useEffect(() => {
     if (!mouseCoords) {
       setCursorActivity(null)
       return
     }
     const timer = setTimeout(async () => {
-      const zoom = mapRef ? mapRef.getZoom() : mapZoom
-      const activity = await detectActivity(mouseCoords.lat, mouseCoords.lng, zoom)
+      const activity = await detectActivity(mouseCoords.lat, mouseCoords.lng)
       setCursorActivity(activity)
-    }, 150)
+    }, 300)
     return () => clearTimeout(timer)
-  }, [mouseCoords, mapZoom])
+  }, [mouseCoords])
 
   // 用户搜索
   useEffect(() => {
