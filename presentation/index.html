@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TapSpot - 智能社交打卡平台介绍</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --bg-sub: #f8f9fa;
+            --text: #1a1a2e;
+            --text-s: #555577;
+            --text-l: #888899;
+            --acc: #e74c3c;
+            --acc-lt: #fde8e8;
+            --g: #27ae60;
+            --g-lt: #e6f7f1;
+            --r: #e02424;
+            --r-lt: #fde8e8;
+            --p: #8b5cf6;
+            --p-lt: #f3f0ff;
+            --o: #ea580c;
+            --o-lt: #fff7ed;
+            --c: #0891b2;
+            --c-lt: #ecfeff;
+            --border: #e5e7eb;
+            --shadow: 0 2px 12px rgba(0,0,0,0.06);
+            --T: clamp(2rem,5.5vw,4.2rem);
+            --H: clamp(1.3rem,3.2vw,2.4rem);
+            --h3: clamp(0.95rem,1.8vw,1.35rem);
+            --body: clamp(0.78rem,1.3vw,1rem);
+            --sm: clamp(0.68rem,0.95vw,0.83rem);
+            --pad: clamp(1.8rem,4.5vw,4.5rem);
+            --gap: clamp(0.9rem,1.8vw,1.8rem);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html,body { height: 100%; overflow-x: hidden; }
+        html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+        body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+        .slide { width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; scroll-snap-align: start; display: flex; flex-direction: column; position: relative; }
+        .slide::before { content: ''; position: absolute; top: 0; left: 0; width: clamp(50px,7vw,90px); height: 4px; background: linear-gradient(90deg,var(--acc),var(--p)); z-index: 1; }
+        .title-slide::before, .end-slide::before { display: none; }
+        .slide-content { flex: 1; display: flex; flex-direction: column; justify-content: center; max-height: 100%; overflow-y: auto; padding: var(--pad); }
+        .container { max-width: min(94vw,1300px); width: 100%; margin: 0 auto; }
+
+        h1 { font-family: 'Noto Serif SC',Georgia,serif; font-size: var(--T); line-height: 1.2; color: var(--text); margin: 0 0 var(--gap) 0; font-weight: 700; letter-spacing: -0.02em; }
+        h2 { font-family: 'Noto Serif SC',Georgia,serif; font-size: var(--H); color: var(--text); margin: 0 0 var(--gap) 0; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
+        h3 { font-family: 'Noto Sans SC',sans-serif; font-size: var(--h3); color: var(--text); margin: 0 0 0.4rem 0; font-weight: 600; }
+        p,li { font-size: var(--body); color: var(--text-s); line-height: 1.7; }
+        .subtitle { font-size: clamp(0.95rem,1.8vw,1.4rem); color: var(--text-l); font-weight: 400; }
+        ul { list-style: none; }
+
+        .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: var(--gap); }
+        .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--gap); }
+        .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: clamp(0.5rem,1vw,1rem); }
+        .grid-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: clamp(0.4rem,0.9vw,0.8rem); }
+
+        .card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: clamp(0.9rem,1.8vw,1.5rem); box-shadow: var(--shadow); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+        .cb { border-top: 3px solid var(--acc); }
+        .cg { border-top: 3px solid var(--g); }
+        .cr { border-top: 3px solid var(--r); }
+        .cp { border-top: 3px solid var(--p); }
+        .co { border-top: 3px solid var(--o); }
+        .cc { border-top: 3px solid var(--c); }
+
+        .feat-item { background: var(--bg-sub); border: 1px solid var(--border); border-radius: 8px; padding: clamp(0.8rem,1.4vw,1.1rem); transition: background 0.2s ease; }
+        .feat-item:hover { background: var(--acc-lt); }
+        .feat-item .icon { font-size: clamp(1.3rem,2.2vw,2rem); margin-bottom: 0.3rem; }
+
+        .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: clamp(0.7rem,1.3vw,1rem); text-align: center; box-shadow: var(--shadow); transition: transform 0.3s ease; }
+        .stat-card:hover { transform: scale(1.03); }
+        .stat-card .val { font-family: Georgia,serif; font-size: clamp(1.6rem,3vw,2.8rem); font-weight: 700; display: block; }
+        .stat-card .lbl { font-size: var(--sm); color: var(--text-l); display: block; margin-top: 0.15rem; }
+
+        .trow { display: flex; justify-content: space-between; align-items: center; padding: clamp(0.3rem,0.6vw,0.55rem) 0; border-bottom: 1px solid var(--border); font-size: var(--body); }
+        .trow:last-child { border-bottom: none; }
+        .trow .k { color: var(--text-l); }
+        .trow .v { color: var(--text); font-weight: 600; }
+
+        .tag { display: inline-block; padding: 3px 12px; border-radius: 100px; font-size: var(--sm); font-weight: 600; transition: transform 0.2s ease; }
+        .tag:hover { transform: scale(1.05); }
+        .tb { background: var(--acc-lt); color: var(--acc); }
+        .tg { background: var(--g-lt); color: var(--g); }
+        .tr { background: var(--r-lt); color: var(--r); }
+        .tp { background: var(--p-lt); color: var(--p); }
+        .to { background: var(--o-lt); color: var(--o); }
+        .tc { background: var(--c-lt); color: var(--c); }
+        .tgray { background: var(--bg-sub); color: var(--text-s); border: 1px solid var(--border); }
+
+        .progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg,var(--acc),var(--p)); z-index: 100; transition: width 0.3s ease; }
+        .nav-dots { position: fixed; right: clamp(0.7rem,1.3vw,1.4rem); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 100; }
+        .nav-dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(0,0,0,0.15); cursor: pointer; transition: all 0.3s ease; }
+        .nav-dot.active { background: var(--acc); transform: scale(1.6); box-shadow: 0 0 10px rgba(231,76,60,0.4); }
+        .kbd-hint { position: fixed; bottom: clamp(0.4rem,0.9vw,0.9rem); right: clamp(0.7rem,1.3vw,1.4rem); font-size: var(--sm); color: var(--text-l); z-index: 100; opacity: 0.6; background: rgba(255,255,255,0.9); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); }
+        .title-slide { background: linear-gradient(135deg,var(--bg-sub) 0%,#fff5f5 100%); }
+
+        .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s cubic-bezier(0.4,0,0.2,1), transform 0.6s cubic-bezier(0.4,0,0.2,1); }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .rd1 { transition-delay: 0.1s; }
+        .rd2 { transition-delay: 0.2s; }
+        .rd3 { transition-delay: 0.3s; }
+        .rd4 { transition-delay: 0.4s; }
+        .rd5 { transition-delay: 0.5s; }
+        .rd6 { transition-delay: 0.6s; }
+
+        .snum { font-family: Georgia,serif; font-size: clamp(5rem,14vw,11rem); color: rgba(0,0,0,0.04); position: absolute; top: calc(var(--pad)*0.3); right: var(--pad); line-height: 1; z-index: 0; user-select: none; font-weight: 700; }
+        .code-block { background: #1a1a2e; color: #f8f8f2; padding: clamp(0.8rem,1.5vw,1.2rem); border-radius: 8px; font-family: 'JetBrains Mono',monospace; font-size: var(--sm); overflow-x: auto; margin-top: 0.5rem; }
+        .api-endpoint { display: flex; align-items: center; gap: 0.5rem; margin: 0.3rem 0; padding: 0.4rem 0.6rem; background: var(--bg-sub); border-radius: 6px; font-family: 'JetBrains Mono',monospace; font-size: var(--sm); }
+        .api-method { padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.75rem; }
+        .get { background: #dbeafe; color: #1d4ed8; }
+        .post { background: #dcfce7; color: #16a34a; }
+        .put { background: #fef3c7; color: #d97706; }
+        .del { background: #fee2e2; color: #dc2626; }
+
+        .svg-diagram { width: 100%; overflow-x: auto; overflow-y: visible; display: flex; justify-content: center; align-items: center; margin-top: 0.8rem; }
+        .svg-diagram svg { max-width: 100%; height: auto; }
+
+        .pk-box { background: linear-gradient(135deg,#fff5f5,#f3f0ff); border: 2px solid var(--acc); border-radius: 12px; padding: 1.2rem; text-align: center; margin: 0.5rem 0; }
+        .pk-vs { font-size: 1.5rem; font-weight: 800; color: var(--acc); margin: 0.5rem 0; }
+
+        .accent { color: var(--acc); }
+        .green { color: var(--g); }
+        .red { color: var(--r); }
+        .purple { color: var(--p); }
+        .orange { color: var(--o); }
+        .cyan { color: var(--c); }
+
+        @media (max-width: 768px) { .grid-2,.grid-3,.grid-4,.grid-5 { grid-template-columns: 1fr; } }
+        @media (max-height: 700px) { :root { --pad: clamp(1rem,2.5vw,2.2rem); --gap: clamp(0.6rem,1vw,1rem); } }
+        @media (max-height: 600px) { :root { --T: clamp(1.3rem,4vw,2.2rem); --H: clamp(1rem,2.8vw,1.8rem); } .nav-dots,.kbd-hint,.snum { display: none; } }
+        @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; } }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="progress-bar" id="progress"></div>
+    <nav class="nav-dots" id="nav-dots"></nav>
+    <div class="kbd-hint">← → 键翻页</div>
+
+    <!-- 1. Title -->
+    <section class="slide title-slide" data-slide="1">
+        <div class="slide-content">
+            <div class="container" style="text-align:center;">
+                <p style="font-size:var(--sm);color:var(--text-l);margin-bottom:0.5rem;" class="reveal">📍 基于地理围栏的智能社交打卡平台</p>
+                <h1 class="reveal rd1">TapSpot</h1>
+                <p class="subtitle reveal rd2" style="margin-top:0.5rem;">Discover · Share · Connect · Chat · AI</p>
+                <div class="reveal rd3" style="margin-top:var(--gap);display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
+                    <span class="tag tb">🗺️ 地图打卡</span>
+                    <span class="tag tp">⚔️ 内容 PK</span>
+                    <span class="tag to">💬 实时聊天</span>
+                    <span class="tag tc">🤖 AI 助手</span>
+                </div>
+                <div class="reveal rd4" style="margin-top:var(--gap);">
+                    <p style="font-size:var(--sm);color:var(--text-l);">🌐 http://43.135.148.74</p>
+                    <p style="font-size:var(--sm);color:var(--text-l);">🐙 github.com/codedancewth/TapSpot</p>
+                </div>
+                <div style="margin-top:var(--gap);display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;" class="reveal rd5">
+                    <span class="tag" style="background:#00add8;color:#fff;">Go 1.21+</span>
+                    <span class="tag" style="background:#61dafb;color:#000;">React 18</span>
+                    <span class="tag" style="background:#4479a1;color:#fff;">MySQL 8</span>
+                    <span class="tag" style="background:#8b5cf6;color:#fff;">WebSocket</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Product Overview -->
+    <section class="slide" data-slide="2">
+        <span class="snum">01</span>
+        <div class="slide-content">
+            <div class="container">
+                <h2 class="reveal">产品概述</h2>
+                <p class="subtitle reveal rd1" style="margin-bottom:var(--gap);">同一时空坐标下，分享体验、建立连接</p>
+                <div class="grid-4" style="margin-top:var(--gap);">
+                    <div class="card cb reveal rd1">
+                        <h3>🗺️ 地图打卡</h3>
+                        <p style="font-size:var(--sm);margin-top:0.4rem;">基于 Leaflet 的流畅地图体验，8 种分类图标精确定位</p>
+                    </div>
+                    <div class="card cp reveal rd2">
+                        <h3>⚔️ 内容 PK</h3>
+                        <p style="font-size:var(--sm);margin-top:0.4rem;">创新的最佳评论 PK 机制，让最有价值的声音被听见</p>
+                    </div>
+                    <div class="card co reveal rd3">
+                        <h3>💬 实时聊天</h3>
+                        <p style="font-size:var(--sm);margin-top:0.4rem;">WebSocket + HTTP 轮询双重保障，消息毫秒级触达</p>
+                    </div>
+                    <div class="card cc reveal rd4">
+                        <h3>🤖 AI 助手</h3>
+                        <p style="font-size:var(--sm);margin-top:0.4rem;">阿里云百炼 Qwen 驱动，地点分析与智能对话</p>
+                    </div>
+                </div>
+                <div class="grid-3" style="margin-top:var(--gap);">
+                    <div class="card cg reveal rd2">
+                        <h3 class="green">🎯 目标用户</h3>
+                        <p style="font-size:var(--sm);margin-top:0.4rem;">探索新地点的旅行者 · 分享生活的社交用户 · 需要推荐的本地用户</p>
+                    </div>
+                    <div class="card cg reveal rd3">
+                        <h3 class="green">💡 核心价值</h3>
+                        <p style="font-size:var(--sm);margin-top:0.4rem;">Discover 发现精彩 · Share 分享足迹 · Connect 建立联系</p>
+                    </div>
+                    <div class="card cg reveal rd4">
+                        <h3 class="green">🚀 差异化</h3>
+                        <p style="font-size:var(--sm);margin-top:0.4rem;">内容竞争机制 · 实时通讯 · AI 智能分析三位一体</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Map & Check-in -->
+    <section class="slide" data-slide="3">
+        <span class="snum">02</span>
+        <div class="slide-content">
+            <div class="container">
+                <h2 class="reveal">🗺️ 地图与打卡</h2>
+                <div class="grid-2" style="margin-top:var(--gap);">
+                    <div>
+                        <div class="feat-item reveal rd1" style="margin-bottom:0.5rem;"><strong>📍 智能地图交互</strong><br/><span style="font-size:var(--sm);color:var(--text-l);">基于 Leaflet 流畅地图，多级缩放与平滑过渡</span></div>
+                        <div class="feat-item reveal rd2" style="margin-bottom:0.5rem;"><strong>🎯 精准地理定位</strong><br/><span style="font-size:var(--sm);color:var(--text-l);">一键获取当前位置，或地图选点精确定位</span></div>
+                        <div class="feat-item reveal rd3" style="margin-bottom:0.5rem;"><strong>📌 动态标记系统</strong><br/><span style="font-size:var(--sm);color:var(--text-l);">8 种分类图标，根据缩放级别自适应大小</span></div>
+                        <div class="feat-item reveal rd4" style="margin-bottom:0.5rem;"><strong>🛡️ 地理围栏验证</strong><br/><span style="font-size:var(--sm);color:var(--text-l);">验证打卡位置真实性，确保内容可信</span></div>
+                        <div class="feat-item reveal rd5"><strong>🏷️ 逆地理编码</strong><br/><span style="font-size:var(--sm);color:var(--text-l);">自动将坐标转换为详细地址</span></div>
+                    </div>
+                    <div class="card cb reveal rd2">
+                        <h3>📋 8 大打卡分类</h3>
+                        <div style="margin-top:0.5rem;display:flex;flex-wrap:wrap;gap:0.4rem;">
+                            <span class="tag tb">日常</span>
+                            <span class="tag to">美食</span>
+                            <span class="tag tg">住宿</span>
+                            <span class="tag tp">购物</span>
+                            <span class="tag tc">景点</span>
+                            <span class="tag tgray">交通</span>
+                            <span class="tag tgray">娱乐</span>
+                            <span class="tag tgray">工作</span>
+                        </div>
+                        <div class="grid-4" style="margin-top:var(--gap);gap:0.4rem;">
+                            <div style="text-align:center;"><span style="font-size:1.5rem;">🍜</span><div style="font-size:var(--sm);">美食</div></div>
+                            <div style="text-align:center;"><span style="font-size:1.5rem;">🏨</span><div style="font-size:var(--sm);">住宿</div></div>
+                            <div style="text-align:center;"><span style="font-size:1.5rem;">🛍️</span><div style="font-size:var(--sm);">购物</div></div>
+                            <div style="text-align:center;"><span style="font-size:1.5rem;">🎢</span><div style="font-size:var(--sm);">娱乐</div></div>
+                        </div>
+                        <p style="font-size:var(--sm);margin-top:0.8rem;color:var(--text-l);">用户打卡以金色边框高亮显示，一眼识别自己的足迹</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. User System -->
+    <section class="slide" data-slide="4">
+        <span class="snum">03</span>
+        <div class="slide-content">
+            <div class="container">
+                <h2 class="reveal">👤 用户系统</h2>
+                <div class="grid-3" style="margin-top:var(--gap);">
+                    <div class="card cb reveal rd1">
+                        <h3>🔐 安全认证</h3>
+                        <div style="margin-top:0.5rem;">
+                            <div class="trow"><span class="k">JWT Token</span><span class="v">无状态认证</span></div>
+                            <div class="trow"><span class="k">密码加密</span><span class="v">Bcrypt 哈希</span></div>
+                            <div class="trow"><span class="k">请求校验</span><span class="v">全 API 验证</span></div>
+                            <div class="trow"><span class="k">数据隔离</span><span class="v">用户权限控制</span></div>
+                        </div>
+                    </div>
+                    <div class="card cp reveal rd2">
+                        <h3>👩‍💼 个人资料</h3>
+                        <div style="margin-top:0.5rem;">
+                            <div class="trow"><span class="k">昵称</span><span class="v">自定义展示名</span></div>
+                            <div class="trow"><span class="k">性别</span><span class="v">男/女/保密</span></div>
+                            <div class="trow"><span class="k">简介</span><span class="v">个人描述</span></div>
+                            <div class="trow"><span class="k">头像</span><span class="v">Avatar URL</span></div>
+                            <div class="trow"><span class="k">邮箱/手机</span><span class="v">联系方式</span></div>
+                        </div>
+                    </div>
+                    <div class="card co reveal rd3">
+                        <h3>📊 影响力数据</h3>
+                        <div style="margin-top:0.5rem;">
+                            <div class="trow"><span class="k">打卡统计</span><span class="v">总打卡次数</span></div>
+                            <div class="trow"><span class="k">获赞总数</span><span class="v">内容认可度</span></div>
+                            <div class="trow"><span class="k">用户空间</span><span class="v">他人主页</span></div>
+                            <div class="trow"><span class="k">关注列表</span><span class="v">关注/粉丝</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid-2" style="margin-top:var(--gap);">
+                    <div class="card cb reveal rd3">
+                        <h3>🔌 用户 API</h3>
+                        <div style="margin-top:0.4rem;">
+                            <div class="api-endpoint"><span class="api-method post">POST</span><span>/api/register</span></div>
+                            <div class="api-endpoint"><span class="api-method post">POST</span><span>/api/login</span></div>
+                            <div class="api-endpoint"><span class="api-method get">GET</span><span>/api/users/:id</span></div>
+                            <div class="api-endpoint"><span class="api-method get">GET</span><span>/api/users/search?q=</span></div>
+                        </div>
+                    </div>
+                    <div class="card cg reveal rd4">
+                        <h3 class="green">🔑 密码管理</h3>
+                        <p style="font-size:var(--sm);margin-top:0.4rem;">支持在线修改密码，保障账户安全。注册时记录 IP 地址，便于审计追踪。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Content System -->
+    <section class="slide" data-slide="5">
+        <span class="snum">04</span>
+        <div class="slide-content">
+            <div class="container">
+                <h2 class="reveal">📝 内容系统</h2>
+                <div class="grid-2" style="margin-top:var(--gap);">
+                    <div>
+                        <div class="feat-item reveal rd1" style="margin-bottom:0.4rem;"><strong>📋 多维度分类</strong><span style="font-size:var(--sm);color:var(--text-l);"> — 日常·美食·住宿·购物·景点·交通·娱乐·工作</span></div>
+                        <div class="feat-item reveal rd2" style="margin-bottom:0.4rem;"><strong>📖 图文表达</strong><span style="font-size:var(--sm);color:var(--text-l);"> — 标题 + 内容 + 位置的三维信息</span></div>
+                        <div class="feat-item reveal rd3" style="margin-bottom:0.4rem;"><strong>✏️ 内容管理</strong><span style="font-size:var(--sm);color:var(--text-l);"> — 支持编辑与删除，完全由你掌控</span></div>
+                        <div class="feat-item reveal rd4" style="margin-bottom:0.4rem;"><strong>🔍 智能筛选</strong><span style="font-size:var(--sm);color:var(--text-l);"> — 按类型筛选、标签页切换（全部/我的/喜欢）</span></div>
+                        <div class="feat-item reveal rd5"><strong>📄 分页加载</strong><span style="font-size:var(--sm);color:var(--text-l);"> — 大数据列表采用分页，避免性能问题</span></div>
+                    </div>
+                    <div>
+                        <div class="card cb reveal rd2" style="margin-bottom:var(--gap);">
+                            <h3>📋 帖子结构</h3>
+                            <div style="margin-top:0.4rem;">
+                                <div class="trow"><span class="k">title</span><span class="v">帖子标题</span></div>
+                                <div class="trow"><span class="k">content</span><span class="v">正文内容</span></div>
+                                <div class="trow"><span class="k">type</span><span class="v">分类标签</span></div>
+                                <div class="trow"><span class="k">location_name</span><span class="v">地点名称</span></div>
+                                <div class="trow"><span class="k">latitude/longitude</span><span class="v">坐标位置</span></div>
+                            </div>
+                        </div>
+                        <div class="card cp reveal rd3">
+                            <h3>🔌 帖子 API</h3>
+                            <div style="margin-top:0.4rem;">
+                                <div class="api-endpoint"><span class="api-method get">GET</span><span>/api/posts</span></div>
+                                <div class="api-endpoint"><span class="api-method post">POST</span><span>/api/posts</span></div>
+                                <div class="api-endpoint"><span class="api-method del">DEL</span><span>/api/posts/:id</span></div>
+                                <div class="api-endpoint"><span class="api-method post">POST</span><span>/api/posts/:id/like</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. Best Comment PK -->
+    <section class="slide" data-slide="6">
+        <span class="snum">05</span>
+        <div class="slide-content">
+            <div class="container">
+                <h2 class="reveal">⚔️ 最佳评论 PK 系统</h2>
+                <p class="subtitle reveal rd1" style="margin-bottom:var(--gap);">创新的内容竞争机制，让最有价值的声音被听见</p>
+                <div class="pk-box reveal rd2">
+                    <div class="grid-3" style="gap:1rem;align-items:center;">
+                        <div style="text-align:center;">
+                            <div style="font-size:2rem;">📍</div>
+                            <div style="font-size:var(--sm);font-weight:600;">帖子点赞数</div>
+                            <div class="green" style="font-size:1.5rem;font-weight:700;">156</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div class="pk-vs">⚔️</div>
+                            <div style="font-size:var(--sm);color:var(--text-l);">点赞数更高者获胜</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:2rem;">💬</div>
+                            <div style="font-size:var(--sm);font-weight:600;">最高赞评论</div>
+                            <div class="purple" style="font-size:1.5rem;font-weight:700;">203</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid-2" style="margin-top:var(--gap);">
+                    <div class="card cb reveal rd3">
+                        <h3>🏆 PK 规则</h3>
+                        <div style="margin-top:0.5rem;">
+                            <div class="trow"><span class="k">1. 帖子发布</span><span class="v">用户发表帖子</span></div>
+                            <div class="trow"><span class="k">2. 评论互动</span><span class="v">用户发表评论</span></div>
+                            <div class="trow"><span class="k">3. 分别点赞</span><span class="v">帖子和评论各自累赞</span></div>
+                            <div class="trow"><span class="k">4. PK 比较</span><span class="v">评论点赞数 vs 帖子点赞数</span></div>
+                            <div class="trow"><span class="k">5. 实时更新</span><span class="v">随点赞数变化实时更新</span></div>
+                        </div>
+                    </div>
+                    <div class="card cp reveal rd4">
+                        <h3>🎯 创新价值</h3>
+                        <p style="font-size:var(--sm);margin-top:0.4rem;">传统平台中，神评论往往被埋没在海量内容里。TapSpot 的 PK 机制让优质评论能够与帖子本身同台竞技，确保最有价值的声音不会被错过。</p>
+                        <div style="margin-top:0.8rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+                            <span class="tag tp">公平竞争</span>
+                            <span class="tag tb">实时更新</span>
+                            <span class="tag to">激励创作</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card cg reveal rd5" style="margin-top:var(--gap);">
+                    <h3 class="green">🔌 PK 结果 API</h3>
+                    <div class="api-endpoint" style="margin-top:0.4rem;"><span class="api-method get">GET</span><span>/api/posts/:id/best-comment</span></div>
+                    <p style="font-size:var(--sm);margin-top:0.3rem;color:var(--text-l);">返回当前 PK 结果：帖子点赞数、最高赞评论信息、PK 胜者</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. Real-time Chat -->
+    <section class="slide" data-slide="7">
+        <span class="snum">06</span>
+        <div class="slide-content">
+            <div class="container">
+                <h2 class="reveal">💬 实时消息系统</h2>
+                <p class="subtitle reveal rd1" style="margin-bottom:var(--gap);">WebSocket + HTTP 轮询双重保障，消息毫秒级触达</p>
+                <div class="grid-2" style="margin-top:var(--gap);">
+                    <div>
+                        <div class="svg-diagram reveal rd2">
+                            <svg viewBox="0 0 420 320" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <marker id="ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#e74c3c"/></marker>
+                                    <filter id="sh" x="-5%" y="-5%" width="110%" height="110%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/></filter>
+                                </defs>
+                                <!-- Client A -->
+                                <rect x="20" y="40" width="80" height="40" rx="6" fill="#fde8e8" stroke="#e74c3c" stroke-width="2" filter="url(#sh)"/>
+                                <text x="60" y="65" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="11" fill="#1a1a2e" font-weight="600">👤 用户 A</text>
+                                <line x1="60" y1="80" x2="60" y2="240" stroke="#e74c3c" stroke-width="2" stroke-dasharray="5,5"/>
+                                <!-- Client B -->
+                                <rect x="320" y="40" width="80" height="40" rx="6" fill="#f3f0ff" stroke="#8b5cf6" stroke-width="2" filter="url(#sh)"/>
+                                <text x="360" y="65" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="11" fill="#1a1a2e" font-weight="600">👤 用户 B</text>
+                                <line x1="360" y1="80" x2="360" y2="240" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="5,5"/>
+                                <!-- WebSocket Hub -->
+                                <rect x="140" y="120" width="140" height="60" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="2" filter="url(#sh)"/>
+                                <text x="210" y="145" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="11" fill="#ea580c" font-weight="700">WebSocket Hub</text>
+                                <text x="210" y="165" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#555">用户连接管理</text>
+                                <!-- Messages -->
+                                <line x1="60" y1="110" x2="140" y2="140" stroke="#e74c3c" stroke-width="2" marker-end="url(#ah)"/>
+                                <line x1="280" y1="140" x2="360" y2="110" stroke="#8b5cf6" stroke-width="2" marker-end="url(#ah)"/>
+                                <line x1="60" y1="180" x2="140" y2="160" stroke="#e74c3c" stroke-width="2" marker-end="url(#ah)"/>
+                                <line x1="280" y1="160" x2="360" y2="180" stroke="#8b5cf6" stroke-width="2" marker-end="url(#ah)"/>
+                                <!-- MySQL -->
+                                <rect x="150" y="230" width="120" height="50" rx="6" fill="#e6f7f1" stroke="#27ae60" stroke-width="2" filter="url(#sh)"/>
+                                <text x="210" y="253" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="11" fill="#27ae60" font-weight="700">MySQL</text>
+                                <text x="210" y="270" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#555">消息持久化</text>
+                                <line x1="210" y1="180" x2="210" y2="230" stroke="#27ae60" stroke-width="2" stroke-dasharray="5,5"/>
+                                <!-- Legend -->
+                                <text x="20" y="310" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#888">实时消息推送 · 历史消息存储 · 未读数追踪</text>
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="feat-item reveal rd1" style="margin-bottom:0.4rem;"><strong>⚡ WebSocket 通信</strong><br/><span style="font-size:var(--sm);color:var(--text-l);">全双工通信，消息毫秒级触达</span></div>
+                        <div class="feat-item reveal rd2" style="margin-bottom:0.4rem;"><strong>🔄 会话管理</strong><br/><span style="font-size:var(--sm);color:var(--text-l);">自动创建/管理会话，查看历史消息</span></div>
+                        <div class="feat-item reveal rd3" style="margin-bottom:0.4rem;"><strong>🛡️ 双重保障</strong><br/><span style="font-size:var(--sm);color:var(--text-l);">WebSocket + HTTP 轮询（2秒/次）</span></div>
+                        <div class="feat-item reveal rd4" style="margin-bottom:0.4rem;"><strong>🔔 未读提醒</strong><br/><span style="font-size:var(--sm);color:var(--text-l);">实时显示未读数量</span></div>
+                        <div class="feat-item reveal rd5"><strong>🔗 帖子关联</strong><br/><span style="font-size:var(--sm);color:var(--text-l);">消息可关联帖子，方便讨论</span></div>
+                    </div>
+                </div>
+                <div class="grid-3" style="margin-top:var(--gap);">
+                    <div class="card cb reveal rd3"><h3>🔌 消息 API</h3><div style="margin-top:0.4rem;"><div class="api-endpoint"><span class="api-method get">GET</span><span>/api/conversations</span></div><div class="api-endpoint"><span class="api-method post">POST</span><span>/api/messages</span></div><div class="api-endpoint"><span class="api-method get">GET</span><span>/api/messages/unread</span></div></div></div>
+                    <div class="card cg reveal rd4"><h3 class="green">🔌 WebSocket</h3><div style="margin-top:0.4rem;"><div class="code-block">ws://host/api/ws?token=JWT</div><p style="font-size:var(--sm);margin-top:0.3rem;color:var(--text-l);">连接后发送 JSON 格式消息</p></div></div>
+                    <div class="card cp reveal rd5"><h3>💾 消息持久化</h3><p style="font-size:var(--sm);margin-top:0.4rem;">所有消息存储 MySQL，支持历史记录查询与漫游</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. AI Assistant -->
+    <section class="slide" data-slide="8">
+        <span class="snum">07</span>
+        <div class="slide-content">
+            <div class="container">
+                <h2 class="reveal">🤖 AI 智能助手</h2>
+                <p class="subtitle reveal rd1" style="margin-bottom:var(--gap);">阿里云百炼 Qwen 驱动，地点分析与智能对话</p>
+                <div class="grid-2" style="margin-top:var(--gap);">
+                    <div class="card cc reveal rd1">
+                        <h3 class="cyan">📍 地点智能分析</h3>
+                        <p style="font-size:var(--sm);margin-top:0.4rem;">基于阿里云百炼 Qwen-Turbo 模型，自动分析地点特色和游玩建议</p>
+                        <div class="api-endpoint" style="margin-top:0.5rem;"><span class="api-method post">POST</span><span>/api/ai/analyze</span></div>
+                        <div style="margin-top:0.4rem;padding:0.5rem;background:#ecfeff;border-radius:6px;">
+                            <p style="font-size:var(--sm);color:var(--text-s);"><strong>输入：</strong>坐标 (lat, lng) + 地点名</p>
+                            <p style="font-size:var(--sm);color:var(--text-s);"><strong>输出：</strong>地点特色描述 + 游玩建议 + 推荐指数</p>
+                        </div>
+                    </div>
+                    <div class="card cp reveal rd2">
+                        <h3>💬 阿尼亚聊天</h3>
+                        <p style="font-size:var(--sm);margin-top:0.4rem;">与《间谍过家家》阿尼亚角色互动，支持专业问题解答</p>
+                        <div class="api-endpoint" style="margin-top:0.5rem;"><span class="api-method post">POST</span><span>/api/chat</span></div>
+                        <div style="margin-top:0.4rem;padding:0.5rem;background:#f3f0ff;border-radius:6px;">
+                            <p style="font-size:var(--sm);color:var(--text-s);"><strong>角色：</strong>阿尼亚 (Anya)</p>
+                            <p style="font-size:var(--sm);color:var(--text-s);"><strong>能力：</strong>闲聊 · 问答 · 翻译 · 编程辅助</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid-3" style="margin-top:var(--gap);">
+                    <div class="feat-item reveal rd2" style="text-align:center;"><div style="font-size:1.5rem;">🗺️</div><div style="font-size:var(--sm);font-weight:600;">地点分析</div><div style="font-size:0.65rem;color:var(--text-l);">坐标+名称 → AI 解读</div></div>
+                    <div class="feat-item reveal rd3" style="text-align:center;"><div style="font-size:1.5rem;">📝</div><div style="font-size:var(--sm);font-weight:600;">文字解析</div><div style="font-size:0.65rem;color:var(--text-l);">选中文字 → AI 分析</div></div>
+                    <div class="feat-item reveal rd4" style="text-align:center;"><div style="font-size:1.5rem;">🎯</div><div style="font-size:var(--sm);font-weight:600;">智能推荐</div><div style="font-size:0.65rem;color:var(--text-l);">位置+偏好 → 热门推荐</div></div>
+                </div>
+                <div class="card cg reveal rd5" style="margin-top:var(--gap);">
+                    <h3 class="green">🔧 AI 服务架构</h3>
+                    <div class="code-block" style="margin-top:0.4rem;">POST /api/ai/analyze → Backend → 阿里云百炼 API → Qwen-Turbo → 地点描述+建议</div>
+                    <p style="font-size:var(--sm);margin-top:0.3rem;color:var(--text-l);">未配置 API Key 时，AI 功能返回模拟数据</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. Interaction System -->
+    <section class="slide" data-slide="9">
+        <span class="snum">08</span>
+        <div class="slide-content">
+            <div class="container">
+                <h2 class="reveal">❤️ 互动体系</h2>
+                <div class="grid-4" style="margin-top:var(--gap);">
+                    <div class="card cb reveal rd1"><h3>👍 帖子点赞</h3><p style="font-size:var(--sm);margin-top:0.3rem;">对优质内容表达认可，支持取消点赞</p><div class="api-endpoint" style="margin-top:0.4rem;"><span class="api-method post">POST</span><span>/api/posts/:id/like</span></div></div>
+                    <div class="card cp reveal rd2"><h3>💬 评论发表</h3><p style="font-size:var(--sm);margin-top:0.3rem;">分享观点和体验，支持@功能</p><div class="api-endpoint" style="margin-top:0.4rem;"><span class="api-method post">POST</span><span>/api/posts/:id/comments</span></div></div>
+                    <div class="card co reveal rd3"><h3>🔁 评论回复</h3><p style="font-size:var(--sm);margin-top:0.3rem;">与其他用户深度交流</p><div class="api-endpoint" style="margin-top:0.4rem;"><span class="api-method post">POST</span><span>/api/comments/:id/like</span></div></div>
+                    <div class="card cc reveal rd4"><h3>❤️ 评论点赞</h3><p style="font-size:var(--sm);margin-top:0.3rem;">让有价值的评论脱颖而出</p><div class="api-endpoint" style="margin-top:0.4rem;"><span class="api-method get">GET</span><span>/api/comments/likes/check</span></div></div>
+                </div>
+                <div class="grid-3" style="margin-top:var(--gap);">
+                    <div class="card cg reveal rd2"><h3 class="green">📊 访客统计</h3><p style="font-size:var(--sm);margin-top:0.3rem;">访问记录 · 实时访客 · 统计分析</p><div style="margin-top:0.4rem;"><div class="api-endpoint"><span class="api-method get">GET</span><span>/api/stats/visits</span></div><div class="api-endpoint"><span class="api-method get">GET</span><span>/api/stats/realtime</span></div></div></div>
+                    <div class="card cb reveal rd3"><h3>🔍 用户搜索</h3><p style="font-size:var(--sm);margin-top:0.3rem;">关键词搜索用户，快速找到感兴趣的人</p><div class="api-endpoint" style="margin-top:0.4rem;"><span class="api-method get">GET</span><span>/api/users/search?q=</span></div></div>
+                    <div class="card cp reveal rd4"><h3>📄 帖子列表</h3><p style="font-size:var(--sm);margin-top:0.3rem;">筛选 · 搜索 · 分页 · 标签页切换</p><div class="api-endpoint" style="margin-top:0.4rem;"><span class="api-method get">GET</span><span>/api/posts?type=&q=&page=</span></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 10. System Architecture -->
+    <section class="slide" data-slide="10">
+        <span class="snum">09</span>
+        <div class="slide-content">
+            <div class="container">
+                <h2 class="reveal">🏗️ 系统架构</h2>
+                <div class="svg-diagram reveal rd1" style="margin-top:0.5rem;">
+                    <svg viewBox="0 0 900 380" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <marker id="arr" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#94a3b8"/></marker>
+                            <filter id="sf" x="-5%" y="-5%" width="110%" height="110%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/></filter>
+                        </defs>
+                        <!-- Frontend Layer -->
+                        <rect x="10" y="10" width="880" height="70" rx="8" fill="#fde8e8" stroke="#e74c3c" stroke-width="1.5"/>
+                        <text x="20" y="30" font-family="Noto Sans SC,sans-serif" font-size="10" fill="#e74c3c" font-weight="700">🎓 前端层 Frontend</text>
+                        <rect x="30" y="38" width="100" height="34" rx="5" fill="#fff" stroke="#e74c3c" stroke-width="1" filter="url(#sf)"/><text x="80" y="51" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">⚛️ React 18</text><text x="80" y="63" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">UI 框架</text>
+                        <rect x="145" y="38" width="100" height="34" rx="5" fill="#fff" stroke="#e74c3c" stroke-width="1" filter="url(#sf)"/><text x="195" y="51" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">🗺️ Leaflet</text><text x="195" y="63" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">地图渲染</text>
+                        <rect x="260" y="38" width="100" height="34" rx="5" fill="#fff" stroke="#e74c3c" stroke-width="1" filter="url(#sf)"/><text x="310" y="51" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">📡 WebSocket</text><text x="310" y="63" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">实时通讯</text>
+                        <rect x="375" y="38" width="100" height="34" rx="5" fill="#fff" stroke="#e74c3c" stroke-width="1" filter="url(#sf)"/><text x="425" y="51" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">🤖 AI 组件</text><text x="425" y="63" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">智能交互</text>
+                        <rect x="490" y="38" width="100" height="34" rx="5" fill="#fff" stroke="#e74c3c" stroke-width="1" filter="url(#sf)"/><text x="540" y="51" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">💬 聊天组件</text><text x="540" y="63" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">消息中心</text>
+                        <rect x="605" y="38" width="100" height="34" rx="5" fill="#fff" stroke="#e74c3c" stroke-width="1" filter="url(#sf)"/><text x="655" y="51" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">🔗 Lucide</text><text x="655" y="63" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">图标库</text>
+                        <rect x="720" y="38" width="150" height="34" rx="5" fill="#fff" stroke="#e74c3c" stroke-width="1" filter="url(#sf)"/><text x="795" y="51" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">🌐 Nginx</text><text x="795" y="63" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">反向代理 80/443</text>
+                        <line x1="450" y1="80" x2="450" y2="110" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr)"/>
+                        <!-- Backend Layer -->
+                        <rect x="10" y="115" width="880" height="90" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+                        <text x="20" y="135" font-family="Noto Sans SC,sans-serif" font-size="10" fill="#ea580c" font-weight="700">⚙️ 后端层 Backend (Go 1.21+)</text>
+                        <rect x="30" y="143" width="100" height="52" rx="5" fill="#fff" stroke="#ea580c" stroke-width="1" filter="url(#sf)"/><text x="80" y="160" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">🛣️ Gin 路由</text><text x="80" y="174" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">:8080 HTTP</text><text x="80" y="186" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">RESTful API</text>
+                        <rect x="145" y="143" width="100" height="52" rx="5" fill="#fff" stroke="#ea580c" stroke-width="1" filter="url(#sf)"/><text x="195" y="160" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">🔐 JWT 认证</text><text x="195" y="174" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">中间件</text><text x="195" y="186" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">Bcrypt 加密</text>
+                        <rect x="260" y="143" width="100" height="52" rx="5" fill="#fff" stroke="#ea580c" stroke-width="1" filter="url(#sf)"/><text x="310" y="160" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">🔌 WebSocket</text><text x="310" y="174" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">Gorilla WS</text><text x="310" y="186" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">消息 Hub</text>
+                        <rect x="375" y="143" width="100" height="52" rx="5" fill="#fff" stroke="#ea580c" stroke-width="1" filter="url(#sf)"/><text x="425" y="160" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">🤖 AI 服务</text><text x="425" y="174" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">Qwen Turbo</text><text x="425" y="186" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">百炼 API</text>
+                        <rect x="490" y="143" width="100" height="52" rx="5" fill="#fff" stroke="#ea580c" stroke-width="1" filter="url(#sf)"/><text x="540" y="160" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">📊 统计</text><text x="540" y="174" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">访客记录</text><text x="540" y="186" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">实时在线</text>
+                        <rect x="605" y="143" width="100" height="52" rx="5" fill="#fff" stroke="#ea580c" stroke-width="1" filter="url(#sf)"/><text x="655" y="160" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">🗺️ 地理服务</text><text x="655" y="174" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">逆地理编码</text><text x="655" y="186" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">POI 搜索</text>
+                        <rect x="720" y="143" width="150" height="52" rx="5" fill="#fff" stroke="#ea580c" stroke-width="1" filter="url(#sf)"/><text x="795" y="160" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">🗄️ GORM ORM</text><text x="795" y="174" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">数据模型</text><text x="795" y="186" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">GORM 模型</text>
+                        <line x1="450" y1="205" x2="450" y2="235" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr)"/>
+                        <!-- Data Layer -->
+                        <rect x="10" y="240" width="880" height="60" rx="8" fill="#e6f7f1" stroke="#27ae60" stroke-width="1.5"/>
+                        <text x="20" y="260" font-family="Noto Sans SC,sans-serif" font-size="10" fill="#27ae60" font-weight="700">🗄️ 数据层 Data Layer</text>
+                        <rect x="60" y="268" width="140" height="26" rx="5" fill="#fff" stroke="#27ae60" stroke-width="1" filter="url(#sf)"/><text x="130" y="284" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">🗄️ MySQL 8.0</text>
+                        <rect x="220" y="268" width="140" height="26" rx="5" fill="#fff" stroke="#27ae60" stroke-width="1" filter="url(#sf)"/><text x="290" y="284" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">📦 文件存储</text>
+                        <rect x="380" y="268" width="140" height="26" rx="5" fill="#fff" stroke="#27ae60" stroke-width="1" filter="url(#sf)"/><text x="450" y="284" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">🗺️ 离线地图瓦片</text>
+                        <rect x="540" y="268" width="140" height="26" rx="5" fill="#fff" stroke="#27ae60" stroke-width="1" filter="url(#sf)"/><text x="610" y="284" text-anchor="middle" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#1a1a2e" font-weight="600">☁️ 阿里云百炼</text>
+                        <!-- Legend -->
+                        <rect x="10" y="320" width="880" height="50" rx="6" fill="#fafafa" stroke="#e4e7ef" stroke-width="1"/>
+                        <text x="25" y="340" font-family="Noto Sans SC,sans-serif" font-size="9" fill="#555">📌 技术栈：</text>
+                        <text x="25" y="358" font-family="Noto Sans SC,sans-serif" font-size="8" fill="#888">Go 1.21+ · Gin 框架 · GORM ORM · Gorilla WebSocket · JWT · Bcrypt · Leaflet 地图 · React 18 · 阿里云百炼 Qwen</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 11. Tech Stack -->
+    <section class="slide" data-slide="11">
+        <span class="snum">10</span>
+        <div class="slide-content">
+            <div class="container">
+                <h2 class="reveal">技术栈</h2>
+                <div style="margin-top:var(--gap);" class="reveal rd1">
+                    <div class="grid-5">
+                        <div class="feat-item" style="text-align:center;padding:clamp(0.6rem,1vw,0.8rem);"><div style="font-weight:700;font-size:var(--sm);">Go 1.21+</div><div style="font-size:0.65rem;color:var(--text-l);">后端语言</div></div>
+                        <div class="feat-item" style="text-align:center;padding:clamp(0.6rem,1vw,0.8rem);"><div style="font-weight:700;font-size:var(--sm);">Gin</div><div style="font-size:0.65rem;color:var(--text-l);">Web 框架</div></div>
+                        <div class="feat-item" style="text-align:center;padding:clamp(0.6rem,1vw,0.8rem);"><div style="font-weight:700;font-size:var(--sm);">GORM</div><div style="font-size:0.65rem;color:var(--text-l);">ORM 库</div></div>
+                        <div class="feat-item" style="text-align:center;padding:clamp(0.6rem,1vw,0.8rem);"><div style="font-weight:700;font-size:var(--sm);">JWT</div><div style="font-size:0.65rem;color:var(--text-l);">Token 认证</div></div>
+                        <div class="feat-item" style="text-align:center;padding:clamp(0.6rem,1vw,0.8rem);"><div style="font-weight:700;font-size:var(--sm);">Bcrypt</div><div style="font-size:0.65rem;color:var(--text-l);">密码加密</div></div>
+                        <div class="feat-item" style="text-align:center;padding:clamp(0.6rem,1vw,0.8rem);"><div style="font-weight:700;font-size:var(--sm);">Gorilla WS</div><div style="font-size:0.65rem;color:var(--text-l);">WebSocket</div></div>
+                        <div class="feat-item" style="text-align:center;padding:clamp(0.6rem,1vw,0.8rem);"><div style="font-weight:700;font-size:var(--sm);">React 18</div><div style="font-size:0.65rem;color:var(--text-l);">前端框架</div></div>
+                        <div class="feat-item" style="text-align:center;padding:clamp(0.6rem,1vw,0.8rem);"><div style="font-weight:700;font-size:var(--sm);">Leaflet</div><div style="font-size:0.65rem;color:var(--text-l);">地图渲染</div></div>
+                        <div class="feat-item" style="text-align:center;padding:clamp(0.6rem,1vw,0.8rem);"><div style="font-weight:700;font-size:var(--sm);">MySQL 8</div><div style="font-size:0.65rem;color:var(--text-l);">关系数据库</div></div>
+                        <div class="feat-item" style="text-align:center;padding:clamp(0.6rem,1vw,0.8rem);"><div style="font-weight:700;font-size:var(--sm);">Qwen</div><div style="font-size:0.65rem;color:var(--text-l);">AI 大模型</div></div>
+                    </div>
+                </div>
+                <div class="grid-3" style="margin-top:var(--gap);">
+                    <div class="card cg reveal rd2"><h3 class="green">🟢 优势</h3><p style="font-size:var(--sm);margin-top:0.4rem;">Go 高并发 · WebSocket 实时 · AI 智能驱动 · 地图体验流畅</p></div>
+                    <div class="card co reveal rd3"><h3>🟡 待完善</h3><p style="font-size:var(--sm);margin-top:0.4rem;">图片上传 · 消息推送 · 关注/粉丝系统</p></div>
+                    <div class="card cp reveal rd4"><h3>📅 规划中</h3><p style="font-size:var(--sm);margin-top:0.4rem;">微信小程序 · 多语言支持 · AI 内容审核</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 12. API Overview -->
+    <section class="slide" data-slide="12">
+        <span class="snum">11</span>
+        <div class="slide-content">
+            <div class="container">
+                <h2 class="reveal">🔌 API 概览</h2>
+                <div class="grid-4" style="margin-top:var(--gap);">
+                    <div class="card cb reveal rd1"><h3>🔐 认证</h3><div style="margin-top:0.4rem;"><div class="api-endpoint"><span class="api-method post">POST</span><span>/api/register</span></div><div class="api-endpoint"><span class="api-method post">POST</span><span>/api/login</span></div><div class="api-endpoint"><span class="api-method get">GET</span><span>/api/me</span></div></div></div>
+                    <div class="card cp reveal rd2"><h3>📝 帖子</h3><div style="margin-top:0.4rem;"><div class="api-endpoint"><span class="api-method get">GET</span><span>/api/posts</span></div><div class="api-endpoint"><span class="api-method post">POST</span><span>/api/posts</span></div><div class="api-endpoint"><span class="api-method post">POST</span><span>/api/posts/:id/like</span></div></div></div>
+                    <div class="card co reveal rd3"><h3>💬 评论</h3><div style="margin-top:0.4rem;"><div class="api-endpoint"><span class="api-method post">POST</span><span>/api/posts/:id/comments</span></div><div class="api-endpoint"><span class="api-method post">POST</span><span>/api/comments/:id/like</span></div><div class="api-endpoint"><span class="api-method get">GET</span><span>/api/posts/:id/best-comment</span></div></div></div>
+                    <div class="card cc reveal rd4"><h3>🤖 AI</h3><div style="margin-top:0.4rem;"><div class="api-endpoint"><span class="api-method post">POST</span><span>/api/ai/analyze</span></div><div class="api-endpoint"><span class="api-method post">POST</span><span>/api/chat</span></div></div></div>
+                </div>
+                <div class="grid-3" style="margin-top:var(--gap);">
+                    <div class="card cg reveal rd2"><h3 class="green">💬 消息</h3><div style="margin-top:0.4rem;"><div class="api-endpoint"><span class="api-method get">GET</span><span>/api/conversations</span></div><div class="api-endpoint"><span class="api-method post">POST</span><span>/api/messages</span></div><div class="api-endpoint"><span class="api-method get">GET</span><span>/api/messages/unread</span></div></div></div>
+                    <div class="card cb reveal rd3"><h3>📊 统计</h3><div style="margin-top:0.4rem;"><div class="api-endpoint"><span class="api-method get">GET</span><span>/api/stats/visits</span></div><div class="api-endpoint"><span class="api-method get">GET</span><span>/api/stats/realtime</span></div></div></div>
+                    <div class="card cp reveal rd4"><h3>🗺️ 地理</h3><div style="margin-top:0.4rem;"><div class="api-endpoint"><span class="api-method get">GET</span><span>/api/pois</span></div><div class="api-endpoint"><span class="api-method get">GET</span><span>/api/geocode/reverse</span></div></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 13. Deployment -->
+    <section class="slide" data-slide="13">
+        <span class="snum">12</span>
+        <div class="slide-content">
+            <div class="container">
+                <h2 class="reveal">🚀 部署状态</h2>
+                <div class="grid-4" style="margin-top:var(--gap);">
+                    <div class="stat-card reveal rd1"><span class="val green">🟢</span><span class="lbl">后端服务 (Go)</span><span class="lbl">systemd · port 8080</span></div>
+                    <div class="stat-card reveal rd2"><span class="val blue">🟢</span><span class="lbl">前端 (React)</span><span class="lbl">nginx · port 80</span></div>
+                    <div class="stat-card reveal rd3"><span class="val orange">🟡</span><span class="lbl">MySQL</span><span class="lbl">port 3306</span></div>
+                    <div class="stat-card reveal rd4"><span class="val purple">🟡</span><span class="lbl">WebSocket</span><span class="lbl">ws://:8080/api/ws</span></div>
+                </div>
+                <div class="grid-2" style="margin-top:var(--gap);">
+                    <div class="card cb reveal rd2">
+                        <h3>🌐 访问地址</h3>
+                        <div style="margin-top:0.5rem;">
+                            <div class="trow"><span class="k">主站</span><span class="v">http://43.135.148.74</span></div>
+                            <div class="trow"><span class="k">API</span><span class="v">http://43.135.148.74/api</span></div>
+                            <div class="trow"><span class="k">WebSocket</span><span class="v">ws://43.135.148.74/api/ws</span></div>
+                        </div>
+                    </div>
+                    <div class="card cg reveal rd3">
+                        <h3 class="green">📁 项目位置</h3>
+                        <div style="margin-top:0.5rem;">
+                            <div class="trow"><span class="k">代码</span><span class="v">/root/.openclaw/workspace/TapSpot</span></div>
+                            <div class="trow"><span class="k">后端</span><span class="v">/root/.openclaw/workspace/TapSpot/backend</span></div>
+                            <div class="trow"><span class="k">前端</span><span class="v">/root/.openclaw/workspace/TapSpot/frontend</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card cp reveal rd4" style="margin-top:var(--gap);">
+                    <h3>🛠️ 服务管理</h3>
+                    <div class="code-block" style="margin-top:0.4rem;">systemctl status/restart tapspot</div>
+                    <p style="font-size:var(--sm);margin-top:0.3rem;color:var(--text-l);">日志：/root/.openclaw/workspace/TapSpot/backend_run.log</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 14. Roadmap -->
+    <section class="slide" data-slide="14">
+        <span class="snum">13</span>
+        <div class="slide-content">
+            <div class="container">
+                <h2 class="reveal">📅 开发路线图</h2>
+                <div class="grid-3" style="margin-top:var(--gap);">
+                    <div class="card cg reveal rd1">
+                        <h3 class="green">✅ 已完成</h3>
+                        <div style="margin-top:0.4rem;font-size:var(--sm);color:var(--text-s);">
+                            <div>✓ 用户注册登录</div>
+                            <div>✓ 地图打卡与标记</div>
+                            <div>✓ 帖子发布管理</div>
+                            <div>✓ 评论与回复</div>
+                            <div>✓ 点赞系统</div>
+                            <div>✓ 最佳评论 PK</div>
+                            <div>✓ WebSocket 实时聊天</div>
+                            <div>✓ AI 地点分析</div>
+                            <div>✓ 阿尼亚聊天机器人</div>
+                            <div>✓ 访客统计</div>
+                            <div>✓ 用户搜索</div>
+                        </div>
+                    </div>
+                    <div class="card co reveal rd2">
+                        <h3>🚧 进行中</h3>
+                        <div style="margin-top:0.4rem;font-size:var(--sm);color:var(--text-s);">
+                            <div>→ 图片上传功能</div>
+                            <div>→ 消息推送通知</div>
+                            <div>→ AI 推荐优化</div>
+                        </div>
+                    </div>
+                    <div class="card cp reveal rd3">
+                        <h3>📅 计划中</h3>
+                        <div style="margin-top:0.4rem;font-size:var(--sm);color:var(--text-s);">
+                            <div>○ 关注/粉丝系统</div>
+                            <div>○ 地点收藏夹</div>
+                            <div>○ 热门推荐算法</div>
+                            <div>○ 微信小程序版本</div>
+                            <div>○ AI 内容审核</div>
+                            <div>○ 多语言支持</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 15. End -->
+    <section class="slide end-slide" data-slide="15">
+        <div class="slide-content">
+            <div class="container" style="text-align:center;">
+                <h1 class="reveal" style="font-size:var(--T);font-family:'Noto Serif SC',Georgia,serif;">TapSpot</h1>
+                <p class="subtitle reveal rd1" style="font-size:clamp(1rem,2vw,1.4rem);margin-top:0.5rem;">基于地理围栏的智能社交打卡平台</p>
+                <div style="margin-top:var(--gap);" class="reveal rd2">
+                    <p style="font-size:var(--sm);">🌐 http://43.135.148.74</p>
+                    <p style="font-size:var(--sm);">🐙 github.com/codedancewth/TapSpot</p>
+                </div>
+                <div style="margin-top:var(--gap);display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;" class="reveal rd3">
+                    <span class="tag tb">🗺️ 地图打卡</span>
+                    <span class="tag tp">⚔️ 内容 PK</span>
+                    <span class="tag to">💬 实时聊天</span>
+                    <span class="tag tc">🤖 AI 助手</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.totalSlides = this.slides.length;
+                this.currentSlide = 0;
+                this.progressBar = document.getElementById('progress');
+                this.navDots = document.getElementById('nav-dots');
+                this.init();
+            }
+            init() {
+                this.createNavDots();
+                this.setupIntersectionObserver();
+                this.bindEvents();
+                this.updateProgress();
+                if (this.slides[0]) {
+                    this.slides[0].querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+                }
+            }
+            createNavDots() {
+                for (let i = 0; i < this.totalSlides; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+                    dot.addEventListener('click', () => this.goToSlide(i));
+                    this.navDots.appendChild(dot);
+                }
+            }
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const slide = entry.target;
+                            const index = parseInt(slide.dataset.slide) - 1;
+                            this.currentSlide = index;
+                            this.updateProgress();
+                            this.updateNavDots();
+                            slide.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+                        }
+                    });
+                }, { threshold: 0.5 });
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+            bindEvents() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+                        e.preventDefault();
+                        this.nextSlide();
+                    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        this.prevSlide();
+                    }
+                });
+                let touchStartY = 0;
+                document.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; });
+                document.addEventListener('touchend', (e) => {
+                    const diff = touchStartY - e.changedTouches[0].clientY;
+                    if (Math.abs(diff) > 50) { diff > 0 ? this.nextSlide() : this.prevSlide(); }
+                });
+                let wheelTimeout;
+                document.addEventListener('wheel', (e) => {
+                    clearTimeout(wheelTimeout);
+                    wheelTimeout = setTimeout(() => { e.deltaY > 0 ? this.nextSlide() : this.prevSlide(); }, 50);
+                });
+            }
+            nextSlide() { if (this.currentSlide < this.totalSlides - 1) this.goToSlide(this.currentSlide + 1); }
+            prevSlide() { if (this.currentSlide > 0) this.goToSlide(this.currentSlide - 1); }
+            goToSlide(index) { this.slides[index].scrollIntoView({ behavior: 'smooth' }); }
+            updateProgress() { this.progressBar.style.width = ((this.currentSlide + 1) / this.totalSlides * 100) + '%'; }
+            updateNavDots() {
+                const dots = this.navDots.querySelectorAll('.nav-dot');
+                dots.forEach((dot, i) => { dot.classList.toggle('active', i === this.currentSlide); });
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => { new SlidePresentation(); });
+    </script>
+</body>
+</html>
