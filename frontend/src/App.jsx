@@ -160,8 +160,18 @@ const api = async (endpoint, options = {}) => {
   if (token) headers['Authorization'] = `Bearer ${token}`
   
   const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.error || '请求失败')
+  
+  // 尝试解析为 JSON，捕获非 JSON 响应
+  let data
+  try {
+    data = await res.json()
+  } catch (e) {
+    // 响应不是 JSON，获取文本查看实际内容
+    const text = await res.text().catch(() => '无法读取响应内容')
+    throw new Error(`服务器返回了非 JSON 响应 (${res.status})：${text.substring(0, 100)}`)
+  }
+  
+  if (!res.ok) throw new Error(data.error || data.message || `请求失败 (${res.status})`)
   return data
 }
 
