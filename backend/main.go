@@ -97,6 +97,13 @@ func migrateDB() {
 		&models.CheckinStreak{},
 		&models.Leaderboard{},
 
+		// 任务系统
+		&models.Task{},
+		&models.TaskCompletion{},
+		&models.UserPoints{},
+		&models.DailyTaskRecord{},
+		&models.UserLevel{},
+
 		// Phase 3: 组队打卡
 		&models.Team{},
 		&models.TeamMember{},

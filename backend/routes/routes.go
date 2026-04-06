@@ -105,6 +105,13 @@ func SetupRoutes(r *gin.Engine) {
 		// 公开路由
 		api.GET("/leaderboard", gamificationController.GetLeaderboard)
 		
+		// 任务系统公开接口
+		taskController := controllers.NewTaskController()
+		api.GET("/tasks", taskController.GetTasks)
+		api.GET("/tasks/:id", taskController.GetTask)
+		api.GET("/tasks/nearby", taskController.GetNearbyTasks)
+		api.GET("/rankings", taskController.GetRankings)
+		
 		// 需要认证的路由
 		auth.GET("/player/profile", gamificationController.GetPlayerProfile)
 		auth.GET("/player/achievements", gamificationController.GetAchievements)
@@ -145,5 +152,17 @@ func SetupRoutes(r *gin.Engine) {
 		auth.GET("/reward/status", rewardController.GetDailyRewardStatus)
 		auth.POST("/daily-reward", rewardController.ClaimDailyReward)
 		auth.POST("/weekly-reward", rewardController.ClaimWeeklyReward)
+
+		// 任务系统 API（需要认证）
+		auth.POST("/tasks", taskController.CreateTask)
+		auth.POST("/tasks/:id/complete", taskController.CompleteTask)
+		auth.GET("/tasks/:id/completions", taskController.GetTaskCompletions)
+		auth.GET("/tasks/check", taskController.CheckTaskCompleted)
+		
+		// 积分与排名（需要认证）
+		auth.GET("/rankings/my", taskController.GetMyRanking)
+		auth.GET("/user/points", taskController.GetUserPoints)
+		auth.GET("/user/tasks", taskController.GetMyTasks)
+		auth.GET("/user/daily-summary", taskController.GetDailySummary)
 	}
 }
