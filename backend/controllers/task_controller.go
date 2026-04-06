@@ -286,9 +286,10 @@ func (tc *TaskController) CreateTask(c *gin.Context) {
 	// 检查用户等级
 	level, _ := tc.taskService.GetUserLevel(userID.(uint))
 	
-	// 根据任务类型检查权限
-	if req.Type == models.TaskTypeCheckin && level.Level < 2 {
-		c.JSON(http.StatusForbidden, gin.H{"error": "等级不足，需要冒险家以上才能发布签到任务"})
+	// 根据任务类型检查权限（暂时放宽限制，允许所有类型发布）
+	// TODO: 后续根据等级开放更高级任务类型
+	if req.Type == models.TaskTypeCheckin && level.Level < 1 {
+		c.JSON(http.StatusForbidden, gin.H{"error": "等级不足，无法发布任务"})
 		return
 	}
 	

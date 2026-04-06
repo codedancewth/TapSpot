@@ -63,6 +63,9 @@ func main() {
 	// 初始化游戏化数据
 	services.InitGamificationData()
 
+	// 初始化任务系统
+	services.InitTaskSystem()
+
 	// 启动服务器
 	log.Println("🚀 TapSpot API running on http://localhost:8080")
 	log.Println("📡 WebSocket endpoint: ws://localhost:8080/api/ws")

@@ -21,13 +21,14 @@ func (s *TaskService) GetOrCreateUserPoints(userID uint) (*models.UserPoints, er
 	var points models.UserPoints
 	err := s.db.First(&points, "user_id = ?", userID).Error
 	if err == gorm.ErrRecordNotFound {
+		// 新用户初始赠送100积分
 		points = models.UserPoints{
-			UserID:          userID,
-			TotalPoints:     0,
-			AvailablePoints:  0,
-			WeeklyPoints:    0,
-			MonthlyPoints:   0,
-			TotalTasks:      0,
+			UserID:           userID,
+			TotalPoints:      100,
+			AvailablePoints:   100,
+			WeeklyPoints:      0,
+			MonthlyPoints:     0,
+			TotalTasks:        0,
 		}
 		err = s.db.Create(&points).Error
 	}

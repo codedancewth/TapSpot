@@ -108,8 +108,8 @@ func SetupRoutes(r *gin.Engine) {
 		// 任务系统公开接口
 		taskController := controllers.NewTaskController()
 		api.GET("/tasks", taskController.GetTasks)
-		api.GET("/tasks/:id", taskController.GetTask)
 		api.GET("/tasks/nearby", taskController.GetNearbyTasks)
+		api.GET("/tasks/:id", taskController.GetTask)
 		api.GET("/rankings", taskController.GetRankings)
 		
 		// 需要认证的路由
