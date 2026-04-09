@@ -229,8 +229,15 @@ export default function App() {
 
   // 游戏中心状态
   const [showGamePanel, setShowGamePanel] = useState(false)
-  const [gamePanelTab, setGamePanelTab] = useState('achievements') // 'achievements'|'quests'|'leaderboard'|'profile'|'shop'|'team'|'season'|'stats'
+  const [gamePanelTab, setGamePanelTab] = useState('achievements') // 'achievements'|'quests'|'leaderboard'|'profile'|'shop'|'team'|'season'|'stats'|'tasks'
   const [achievements, setAchievements] = useState([])
+  // 任务中心
+  const [tasks, setTasks] = useState([])
+  const [taskTab, setTaskTab] = useState('all') // 'all'|'checkin'|'photo'|'qa'|'explore'|'challenge'
+  const [tasksLoading, setTasksLoading] = useState(false)
+  const [taskPage, setTaskPage] = useState(1)
+  const [taskTotal, setTaskTotal] = useState(0)
+  const [nearbyTasks, setNearbyTasks] = useState([])
   const [playerProfile, setPlayerProfile] = useState(null)
   const [leaderboard, setLeaderboard] = useState({ level: [], checkin: [], likes: [] })
   const [leaderboardTab, setLeaderboardTab] = useState('level')
@@ -1068,6 +1075,35 @@ export default function App() {
     }
   }
 
+  // 任务中心
+  const fetchTasks = async (page = 1) => {
+    setTasksLoading(true)
+    try {
+      let params = `page=${page}&page_size=20&status=1`
+      if (taskTab !== 'all') {
+        const typeMap = { checkin: 1, photo: 2, qa: 3, explore: 4, challenge: 5 }
+        if (typeMap[taskTab]) params += `&type=${typeMap[taskTab]}`
+      }
+      const data = await api(`/tasks?${params}`)
+      setTasks(data.tasks || [])
+      setTaskTotal(data.total || 0)
+      setTaskPage(page)
+    } catch (error) {
+      console.error('获取任务列表失败:', error)
+    } finally {
+      setTasksLoading(false)
+    }
+  }
+
+  const fetchNearbyTasks = async (lat, lng) => {
+    try {
+      const data = await api(`/tasks/nearby?lat=${lat}&lng=${lng}&radius=5&limit=20`)
+      setNearbyTasks(data.tasks || [])
+    } catch (error) {
+      console.error('获取附近任务失败:', error)
+    }
+  }
+
   const fetchLeaderboard = async (type = 'level') => {
     try {
       const data = await api(`/leaderboard?type=${type}`)
@@ -1150,15 +1186,41 @@ export default function App() {
     } catch (error) { alert(error.message || '离开失败') }
   }
   const teamCheckin = async (teamId) => {
-    if (!currentLocation) { alert('需要定位权限'); return }
+    if (!userLocation) { alert('需要定位权限'); return }
     try {
       const data = await api(`/teams/${teamId}/checkin`, 'POST', {
-        latitude: currentLocation.lat,
-        longitude: currentLocation.lng
+        latitude: userLocation.lat,
+        longitude: userLocation.lng
       })
       alert(`${data.message}\n已打卡：${data.checkin_count}/${data.total_members}人\n全员打卡奖励：${data.all_checked_in ? data.reward + '金币' : '待全员完成'}`)
       fetchTeamMembers(teamId)
     } catch (error) { alert(error.message || '打卡失败') }
+  }
+
+  // 完成任务并获取积分
+  const completeTask = async (taskId, taskPoints) => {
+    try {
+      // 获取当前位置
+      const position = await new Promise((resolve, reject) => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
+        } else {
+          reject(new Error('浏览器不支持定位'))
+        }
+      })
+      const lat = position.coords.latitude
+      const lng = position.coords.longitude
+      
+      const data = await api(`/tasks/${taskId}/complete`, 'POST', {
+        actual_lat: lat,
+        actual_lng: lng
+      })
+      alert(`🎉 任务完成！\n\n+${data.points_earned || taskPoints} 积分\n总积分：${data.total_points}\n等级：LV.${data.level} ${data.title || ''}`)
+      fetchTasks(taskPage)
+      fetchPlayerProfile()
+    } catch (error) { 
+      alert(error.message || '任务完成失败，请确保您在任务地点附近')
+    }
   }
 
   // Phase 3: 赛季
@@ -1226,6 +1288,7 @@ export default function App() {
     if (tab === 'team') { fetchMyTeams() }
     if (tab === 'season') { fetchSeason() }
     if (tab === 'stats') { fetchMyStats() }
+    if (tab === 'tasks') { fetchTasks() }
   }
 
   // 连接WebSocket
@@ -3096,6 +3159,7 @@ export default function App() {
                   { key: 'team', label: '👥 组队' },
                   { key: 'season', label: '🏅 赛季' },
                   { key: 'stats', label: '📊 统计' },
+                  { key: 'tasks', label: '🎯 任务' },
                 ].map(tab => (
                   <button key={tab.key} onClick={() => {
                     setGamePanelTab(tab.key)
@@ -3103,6 +3167,7 @@ export default function App() {
                     if (tab.key === 'team') { fetchMyTeams() }
                     if (tab.key === 'season') { fetchSeason() }
                     if (tab.key === 'stats') { fetchMyStats() }
+                    if (tab.key === 'tasks') { fetchTasks() }
                   }} style={{
                     flex: 1, padding: '8px 4px',
                     background: gamePanelTab === tab.key ? 'rgba(168,85,247,0.2)' : 'transparent',
@@ -3471,6 +3536,119 @@ export default function App() {
                     </div>
                   ) : (
                     <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>暂无进行中的赛季</div>
+                  )}
+                </div>
+              )}
+
+              {/* 任务中心面板 */}
+              {gamePanelTab === 'tasks' && (
+                <div>
+                  {/* 任务类型筛选 */}
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+                    {[
+                      { key: 'all', label: '✨ 全部' },
+                      { key: 'checkin', label: '📍 签到' },
+                      { key: 'photo', label: '📸 拍照' },
+                      { key: 'qa', label: '❓ 问答' },
+                      { key: 'explore', label: '🗺️ 探索' },
+                      { key: 'challenge', label: '🔥 挑战' },
+                    ].map(t => (
+                      <button key={t.key} onClick={() => { setTaskTab(t.key); fetchTasks(1) }} style={{
+                        padding: '6px 10px', borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 600,
+                        background: taskTab === t.key ? '#a855f7' : '#1a1a2e',
+                        border: taskTab === t.key ? 'none' : '1px solid #2d2d44',
+                        color: taskTab === t.key ? '#fff' : '#94a3b8', transition: 'all 0.2s',
+                      }}>{t.label}</button>
+                    ))}
+                  </div>
+
+                  {/* 任务列表 */}
+                  {tasksLoading ? (
+                    <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>加载中...</div>
+                  ) : tasks.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: 40, color: '#666' }}>
+                      <div style={{ fontSize: 40, marginBottom: 12 }}>🎯</div>
+                      <div style={{ color: '#94a3b8' }}>暂无任务</div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {tasks.map(task => {
+                        const typeIcons = { 1: '📍', 2: '📸', 3: '❓', 4: '🗺️', 5: '🔥' }
+                        const typeNames = { 1: '签到', 2: '拍照', 3: '问答', 4: '探索', 5: '挑战' }
+                        const statusLabels = { 0: '草稿', 1: '进行中', 2: '已结束', 3: '已取消' }
+                        const statusColors = { 0: '#666', 1: '#22c55e', 2: '#f59e0b', 3: '#ef4444' }
+                        return (
+                          <div key={task.id} style={{
+                            background: '#1a1a2e', borderRadius: 12, padding: 14,
+                            border: '1px solid #2d2d44', display: 'flex', gap: 12, alignItems: 'flex-start',
+                          }}>
+                            {/* 左侧图标 */}
+                            <div style={{
+                              width: 44, height: 44, borderRadius: 10, background: '#2d2d44',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 22, flexShrink: 0,
+                            }}>
+                              {typeIcons[task.type] || '📍'}
+                            </div>
+                            {/* 中间信息 */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontWeight: 700, fontSize: 13, color: '#f1f5f9', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {task.title}
+                              </div>
+                              <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>
+                                {task.location_name || '未知地点'} · {task.participant_count || 0}人参与
+                              </div>
+                              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <span style={{ fontSize: 11, color: '#f59e0b', fontWeight: 700 }}>+{task.points}积分</span>
+                                <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: `${statusColors[task.status]}22`, color: statusColors[task.status], fontWeight: 600 }}>
+                                  {statusLabels[task.status]}
+                                </span>
+                                <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: '#2d2d44', color: '#94a3b8' }}>
+                                  {typeNames[task.type]}
+                                </span>
+                              </div>
+                            </div>
+                            {/* 右侧操作 */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+                              <button
+                                onClick={() => {
+                                  if (mapRef) {
+                                    mapRef.setView([task.latitude, task.longitude], 15, { animate: true })
+                                  }
+                                }}
+                                style={{
+                                  padding: '6px 10px', borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 600,
+                                  background: 'rgba(168,85,247,0.2)', border: '1px solid #a855f7', color: '#a855f7',
+                                }}
+                              >定位</button>
+                              {task.status === 1 && (
+                                <button
+                                  onClick={() => completeTask(task.id, task.points)}
+                                  style={{
+                                    padding: '6px 10px', borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 600,
+                                    background: '#a855f7', border: 'none', color: '#fff',
+                                  }}
+                                >去打卡</button>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                      {/* 分页 */}
+                      {taskTotal > 20 && (
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 8 }}>
+                          <button onClick={() => fetchTasks(taskPage - 1)} disabled={taskPage <= 1} style={{
+                            padding: '8px 16px', borderRadius: 8, background: taskPage <= 1 ? '#1a1a2e' : '#a855f7',
+                            border: 'none', color: '#fff', cursor: taskPage <= 1 ? 'default' : 'pointer', fontSize: 12,
+                          }}>上一页</button>
+                          <span style={{ color: '#94a3b8', fontSize: 12, lineHeight: '36px' }}>第{taskPage}页 / 共{Math.ceil(taskTotal / 20)}页</span>
+                          <button onClick={() => fetchTasks(taskPage + 1)} disabled={taskPage >= Math.ceil(taskTotal / 20)} style={{
+                            padding: '8px 16px', borderRadius: 8, background: taskPage >= Math.ceil(taskTotal / 20) ? '#1a1a2e' : '#a855f7',
+                            border: 'none', color: '#fff', cursor: taskPage >= Math.ceil(taskTotal / 20) ? 'default' : 'pointer', fontSize: 12,
+                          }}>下一页</button>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
